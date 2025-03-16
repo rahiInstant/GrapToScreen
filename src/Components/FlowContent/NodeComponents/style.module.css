@@ -1,0 +1,116 @@
+.node {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  cursor: pointer;
+  /* background-color: white; */
+  /* border: 2px solid #C3C9D5; */
+  border-radius: 6px;
+  box-shadow: 1px 1px 11px -6px rgba(0, 0, 0, 0.75);
+  -webkit-user-select: none;
+  user-select: none;
+  z-index: 1;
+  transition: border ease 0.2s, box-shadow ease 0.2s;
+  /* width: 120px;
+  height: 220px; */
+  /* padding: 1rem; */
+}
+
+.node:hover {
+  box-shadow: 2px 2px 12px -6px rgba(0, 0, 0, 0.75);
+}
+
+.nodeSelected {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  cursor: pointer;
+  /* background-color: white; */
+  /* border: 2px solid #e38c29; */
+  /* outline: 4px solid #3264c9; */
+
+  border-radius: 6px;
+  box-shadow: 1px 1px 11px -6px rgba(0, 0, 0, 0.75);
+  -webkit-user-select: none;
+  user-select: none;
+  z-index: 100;
+  transition: border ease 0.2s, box-shadow ease 0.2s;
+  /* width: 120px;
+  height: auto; */
+  /* padding: 1rem; */
+}
+
+.nodeSelected:hover {
+  box-shadow: 2px 2px 12px -6px rgba(0, 0, 0, 0.75);
+}
+
+.inputsWrapper {
+  position: absolute;
+  top: 0px;
+  left: -6px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 12px;
+  pointer-events: none;
+}
+
+.input {
+  width: 10px;
+  height: 16px;
+  /* border-radius: 100%; */
+  background-color: #c3c9d5;
+  cursor: crosshair;
+  pointer-events: all;
+}
+
+.input:hover {
+  background-color: #e38c29;
+}
+
+.outputsWrapper {
+  position: absolute;
+  top: 0px;
+  right: -6px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 12px;
+  pointer-events: none;
+  /* border: 1px solid white; */
+}
+
+.output {
+  width: 16px;
+  height: 15px;
+  border-radius: 100%;
+  background-color: #c3c9d5;
+  cursor: crosshair;
+  pointer-events: all;
+}
+
+.output:hover {
+  background-color: #e38c29;
+}
+
+.name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: bold;
+  /* word-break: break-all; */
+  word-wrap: wrap;
+
+  padding: 4px;
+}
+
