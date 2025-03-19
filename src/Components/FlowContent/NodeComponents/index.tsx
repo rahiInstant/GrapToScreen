@@ -1,7 +1,17 @@
-import { Component, JSX, ParentComponent } from "solid-js";
+import {
+  Component,
+  createSignal,
+  JSX,
+  onMount,
+  ParentComponent,
+} from "solid-js";
 import style from "./style.module.css";
 import Vertex from "./Vertex";
-import TestNode from "./ChatNode/ChatNode";
+import { customNodeProps } from "../../ButtonComponents/Types";
+import PlayIcon from "./PlayIcon";
+import PowerIcon from "./PowerIcon";
+import DeleteIcon from "./DeleteIcon";
+import OptionIcon from "./OptionIcon";
 
 interface NodeProps {
   id: string;
@@ -11,7 +21,9 @@ interface NodeProps {
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
-  content: Component;
+  inputVertexIds: Array<string>;
+  outputVertexIds: Array<string>;
+  content: Component<customNodeProps>;
   selected: boolean;
   onMouseDownNode: (event: any, id: string) => void;
   onMouseDownOutput: (
@@ -27,23 +39,47 @@ interface NodeProps {
     inputIndex: number
   ) => void;
   onMouseLeaveInput: (nodeId: string, inputIndex: number) => void;
+  onClickDeleteNode: (nodeId: string) => void;
 }
 
-const NodeMain: ParentComponent<NodeProps> = (props) => {
-  // console.log(props.isInputVertex,props.isOutputVertex, 'node-main')
+const NodeMain: Component<NodeProps> = (props) => {
 
   return (
     <div
+      id="node"
       class={props.selected ? style.nodeSelected : style.node}
       style={{
         transform: `translate(${props.x}px, ${props.y}px)`,
       }}
-      onMouseDown={(event: any) => {
+      onPointerDown={(event: any) => {
         event.stopPropagation();
         props.onMouseDownNode(event, props.id);
       }}
     >
-      <div class={style.content}><props.content/></div>
+      <div class={style.functionWrapper}>
+        <div id="function" class={style.function}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <PlayIcon />
+          </div>
+          <div onClick={(e) => e.stopPropagation()}>
+            <PowerIcon />
+          </div>
+          <div
+            onPointerDown={(event: any) => {
+              event.stopPropagation();
+              props.onClickDeleteNode(props.id);
+            }}
+          >
+            <DeleteIcon />
+          </div>
+          <div onClick={(e) => e.stopPropagation()}>
+            <OptionIcon />
+          </div>
+        </div>
+      </div>
+      <div>
+        <props.content selected={props.selected} />
+      </div>
       {/* <TestNode selected={props.selected} onMouseDownNode={props.onMouseDownNode} id={props.id}/> */}
       <Vertex
         id={props.id}
@@ -51,6 +87,8 @@ const NodeMain: ParentComponent<NodeProps> = (props) => {
         numberOutputs={props.numberOutputs}
         isInputVertex={props.isInputVertex}
         isOutputVertex={props.isOutputVertex}
+        inputVertexIds={props.inputVertexIds}
+        outputVertexIds={props.outputVertexIds}
         onMouseDownOutput={props.onMouseDownOutput}
         onMouseEnterInput={props.onMouseEnterInput}
         onMouseLeaveInput={props.onMouseLeaveInput}

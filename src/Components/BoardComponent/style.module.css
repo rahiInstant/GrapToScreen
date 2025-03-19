@@ -26,6 +26,7 @@
     rgba(0, 0, 0, 0) 1px
   );
   background-color: #2d2e2e;
+  /* z-index: -1; */
   /* cursor: grab; */
 }
 
@@ -42,6 +43,7 @@
   );
   background-color: #2d2e2e;
   cursor: grab;
+
 }
 
 .boardDragging {

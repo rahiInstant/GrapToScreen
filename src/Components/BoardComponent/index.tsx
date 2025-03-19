@@ -13,7 +13,7 @@ import SideBar from "../ButtonComponents/index";
 import Board from "./Board";
 import StateContextProvider from "./StateContextProvider";
 import { nodeMark } from "../ButtonComponents/nodeMark";
-import { nodeType } from "../ButtonComponents/Types";
+import { customNodeProps, nodeType } from "../ButtonComponents/Types";
 import useStateContext from "./useStateContext";
 interface CustomNode {
   id: string;
@@ -21,7 +21,9 @@ interface CustomNode {
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
-  content: Component;
+  inputVertexIds: Array<string>;
+  outputVertexIds: Array<string>;
+  content: Component<customNodeProps>;
   prevPosition: {
     get: Accessor<{ x: number; y: number }>;
     set: Setter<{ x: number; y: number }>;
@@ -83,11 +85,14 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
       x: randomX,
       y: randomY,
     });
-    console.log(nodeName)
-    console.log(node[nodeName].content)
+    // console.log(nodeName)
+    // console.log(node[nodeName].content)
 
     const [inputsEdgeIds, setInputsEdgeIds] = createSignal<string[]>([]);
     const [outputsEdgeIds, setOutputsEdgeIds] = createSignal<string[]>([]);
+
+    function createOutputVertexMetadata() {}
+
     createRoot(() => {
       setNodes([
         ...nodes(),
@@ -97,6 +102,16 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
           numberOutputs: node[nodeName].numberOutputs,
           isInputVertex: node[nodeName].isInputVertex,
           isOutputVertex: node[nodeName].isOutputVertex,
+          inputVertexIds: [
+            ...new Array(node[nodeName].isInputVertex).map(
+              (v, i) => `vertex_${Math.random().toString(36).substring(2, 8)}`
+            ),
+          ],
+          outputVertexIds: [
+            ...new Array(node[nodeName].isOutputVertex).map(
+              (v, i) => `vertex_${Math.random().toString(36).substring(2, 8)}`
+            ),
+          ],
           content: node[nodeName].content,
           prevPosition: { get: nodePrev, set: setNodePrev },
           currPosition: { get: nodeCurr, set: setNodeCurr },
@@ -106,48 +121,7 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
       ]);
     });
   }
-  // function handleOnClickDeleteNode() {
-  //   const node = nodes().find((node) => node.id == selectedNode());
-  //   if (!node) {
-  //     setSelectedNode(null);
-  //     return;
-  //   }
-  //   // Delete node edges
-  //   const inputs = node.inputEdgeIds.get();
-  //   const outputs = node.outputEdgeIds.get();
 
-  //   // Get all unique edges to delete
-  //   const allEdges = [...inputs, ...outputs];
-  //   const uniqueEdges = allEdges.filter((value, index, array) => {
-  //     return array.indexOf(value) === index;
-  //   });
-
-  //   // Delete edges from correspondent nodes data
-  //   for (let i = 0; i < uniqueEdges.length; i++) {
-  //     const edge = edges().find((edge) => edge.id === uniqueEdges[i]);
-  //     if (edge) {
-  //       const nodeStart = nodes().find((node) => node.id === edge.nodeStartId);
-  //       const nodeEnd = nodes().find((node) => node.id === edge.nodeEndId);
-
-  //       nodeStart?.outputEdgeIds.set([
-  //         ...nodeStart.outputEdgeIds
-  //           .get()
-  //           .filter((edgeId) => edgeId !== uniqueEdges[i]),
-  //       ]);
-  //       nodeEnd?.inputEdgeIds.set([
-  //         ...nodeEnd.inputEdgeIds
-  //           .get()
-  //           .filter((edgeId) => edgeId !== uniqueEdges[i]),
-  //       ]);
-
-  //       // Delete edge from global data
-  //       setEdges([...edges().filter((e) => edge.id !== e.id)]);
-  //     }
-  //   }
-
-  //   setNodes([...nodes().filter((node) => node.id !== selectedNode())]);
-  //   setSelectedNode(null);
-  // }
   return (
     <div id="boardWrapper" class={style.wrapper} tabIndex={0}>
       <SideBar
@@ -159,7 +133,7 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
         <Zoom />
       </StateContextProvider>
       <StateContextProvider>
-        <Board nodes={nodes} />
+        <Board nodes={nodes} setNodes={setNodes} />
       </StateContextProvider>
     </div>
   );

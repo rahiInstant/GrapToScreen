@@ -1,9 +1,10 @@
 import { Component } from "solid-js";
 import style from "./style.module.css";
+import { customNodeProps } from "../../../ButtonComponents/Types";
 
-const ChatNode: Component = () => {
+const ChatNode: Component<customNodeProps> = (props) => {
   return (
-    <div class={style.testNode}>
+    <div class={props.selected ? style.selectedNode : style.testNode}>
       <div class={style.testNodeIcon}>
         <svg
           fill="currentColor"

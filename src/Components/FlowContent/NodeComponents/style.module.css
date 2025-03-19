@@ -6,10 +6,10 @@
   /* background-color: white; */
   /* border: 2px solid #C3C9D5; */
   border-radius: 6px;
-  box-shadow: 1px 1px 11px -6px rgba(0, 0, 0, 0.75);
+  /* box-shadow: 1px 1px 11px -6px rgba(0, 0, 0, 0.75); */
   -webkit-user-select: none;
   user-select: none;
-  z-index: 1;
+  z-index: 100;
   transition: border ease 0.2s, box-shadow ease 0.2s;
   /* width: 120px;
   height: 220px; */
@@ -17,7 +17,7 @@
 }
 
 .node:hover {
-  box-shadow: 2px 2px 12px -6px rgba(0, 0, 0, 0.75);
+  /* box-shadow: 2px 2px 12px -6px rgba(0, 0, 0, 0.75); */
 }
 
 .nodeSelected {
@@ -27,10 +27,10 @@
   cursor: pointer;
   /* background-color: white; */
   /* border: 2px solid #e38c29; */
-  /* outline: 4px solid #3264c9; */
+  /* outline: 8px solid #626262; */
 
   border-radius: 6px;
-  box-shadow: 1px 1px 11px -6px rgba(0, 0, 0, 0.75);
+  /* box-shadow: 1px 1px 11px -6px rgba(0, 0, 0, 0.75); */
   -webkit-user-select: none;
   user-select: none;
   z-index: 100;
@@ -68,35 +68,72 @@
 }
 
 .input:hover {
-  background-color: #e38c29;
+  background-color: #ff6f5c;
 }
 
 .outputsWrapper {
   position: absolute;
   top: 0px;
-  right: -6px;
+  right: -35px;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 4px;
   width: 12px;
   pointer-events: none;
+  /* background-color: wheat; */
   /* border: 1px solid white; */
 }
 
 .output {
+  display: flex;
+  align-items: center;
+  /* position: absolute; */
+  /* left: 0; */
+}
+
+.outputCircle {
   width: 16px;
-  height: 15px;
+  height: 16px;
   border-radius: 100%;
   background-color: #c3c9d5;
   cursor: crosshair;
   pointer-events: all;
 }
 
-.output:hover {
-  background-color: #e38c29;
+.outputCircle:hover {
+  background-color: #ff6f5c;
+}
+
+.outputLine {
+  width: 40px;
+  height: 2.5px;
+  background-color: #c3c9d5;
+  cursor: crosshair;
+  pointer-events: all;
+}
+
+.plusLine {
+  display: flex;
+  align-items: center;
+  pointer-events: all;
+  cursor: crosshair;
+}
+
+.outputPlus {
+  display: flex;
+  color: #c3c9d5;
+  padding: 2px;
+  border: 2px solid #c3c9d5;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.outputPlus:hover {
+  color: #ff6f5c;
+  border: 2px solid #ff6f5c;
 }
 
 .name {
@@ -114,3 +151,39 @@
   padding: 4px;
 }
 
+.function {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* margin-bottom: 15px; */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: all;
+  color: #fbfcfe;
+  /* z-index: 200; */
+  width: 100px;
+  height: auto;
+  /* position: absolute;
+  top: -35px;
+  right: 0; */
+}
+
+.functionWrapper {
+  position: absolute;
+  top: -35px;
+  height: 100%;
+}
+
+.function svg {
+  color: #fbfcfe;
+}
+
+.function svg:hover {
+  color: #ff6f5c;
+}
+
+.node:hover .function,
+.nodeSelected:hover .function {
+  opacity: 1;
+  pointer-events: all;
+}

@@ -42,7 +42,7 @@ const SideBar: Component<SideBarProps> = (props) => {
 
   const handleOnClickAdd = (event: any, nodeName: string) => {
     event.stopPropagation();
-    console.log(nodeName)
+    // console.log(nodeName)
     props.onClickAdd(nodeName);
   };
 

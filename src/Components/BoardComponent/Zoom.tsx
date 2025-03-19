@@ -27,8 +27,8 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
 
   onMount(() => {
     const boardElement = document.getElementById("board");
-    const backgroundElement: HTMLElement | null =
-      document.getElementById("background");
+    // const backgroundElement: HTMLElement | null =
+    //   document.getElementById("background");
 
     const handleOnkeyUp = (event: any) => {
       if (!event.ctrlKey) setIsCtrlPressed(false);
@@ -50,6 +50,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
 
     if (boardElement) {
       const handleWheel = (event: any) => {
+        event.preventDefault()
         if (isCtrlPressed() || isSpacePressed()) {
           // console.log(draggable())
           handleScale(event, () => {
@@ -70,8 +71,8 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
 
   const handleScale = (event: any, cb: Function) => {
     const boardElement = document.getElementById("board");
-    const backgroundElement: HTMLElement | null =
-      document.getElementById("background");
+    // const backgroundElement: HTMLElement | null =
+    //   document.getElementById("background");
     if (boardElement) {
       event.preventDefault();
       setScale(cb());

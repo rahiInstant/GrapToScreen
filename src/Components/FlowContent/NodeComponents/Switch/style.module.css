@@ -1,4 +1,4 @@
-.switch {
+.node {
   border: 2px solid #c3c9d5;
   height: 100px;
   width: 100px;
@@ -8,6 +8,18 @@
   justify-content: center;
   align-items: center;
   position: relative;
+}
+.selectedNode {
+  border: 2px solid #c3c9d5;
+  height: 100px;
+  width: 100px;
+  border-radius: 10px;
+  background-color: #414244;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  outline: 8px solid #626262;
 }
 
 .switch:active {

@@ -1,9 +1,10 @@
 import { Component } from "solid-js";
 import style from "./style.module.css";
+import { customNodeProps } from "../../../ButtonComponents/Types";
 
-const SwitchNode: Component = (props) => {
+const SwitchNode: Component<customNodeProps> = (props) => {
   return (
-    <div class={style.switch}>
+    <div class={props.selected ? style.selectedNode : style.node}>
       <div class={style.switchIcon}>
         <svg
           fill="currentColor"

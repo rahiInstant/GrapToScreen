@@ -13,6 +13,11 @@ export type nodeType = {
     numberOutputs: number;
     isInputVertex: boolean;
     isOutputVertex: boolean;
-    content: Component;
+    content: Component<customNodeProps>;
   };
 };
+
+export interface customNodeProps {
+  selected: boolean
+}
+

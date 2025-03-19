@@ -1,5 +1,6 @@
 import { Accessor, Component, For } from "solid-js";
 import style from "./style.module.css";
+import PlusIcon from "./PlusIcon";
 
 interface VertexProps {
   id: string;
@@ -7,6 +8,8 @@ interface VertexProps {
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
+  inputVertexIds: Array<string>;
+  outputVertexIds: Array<string>;
   onMouseDownOutput: (
     outputPositionX: number,
     outputPositionY: number,
@@ -37,6 +40,7 @@ const Vertex: Component<VertexProps> = (props) => {
     event: any,
     outputIndex: number
   ) {
+    console.log(props.numberOutputs);
     event.stopPropagation();
     const { left, right, top, bottom } = outputRef.getBoundingClientRect();
     const centerX = left + Math.abs(left - right) / 2;
@@ -67,9 +71,10 @@ const Vertex: Component<VertexProps> = (props) => {
       )}
       {props.isOutputVertex && (
         <div class={style.outputsWrapper}>
-          <For each={[...Array(Number(props.numberOutputs)).keys()]}>
-            {(_, index: Accessor<number>) => {
+          <For each={props.outputVertexIds}>
+            {(id, index: Accessor<number>) => {
               let outputRef: any = null;
+              console.log(id)
               return (
                 <div
                   ref={outputRef}
@@ -77,7 +82,20 @@ const Vertex: Component<VertexProps> = (props) => {
                   onMouseDown={(event: any) =>
                     handleMouseDownOutput(outputRef, event, index())
                   }
-                ></div>
+                >
+                  <div class={style.outputCircle}></div>
+                  <div
+                    classList={{
+                      [style.plusLine]: true,
+
+                    }}
+                  >
+                    <div class={style.outputLine}></div>
+                    <div class={style.outputPlus}>
+                      <PlusIcon />
+                    </div>
+                  </div>
+                </div>
               );
             }}
           </For>

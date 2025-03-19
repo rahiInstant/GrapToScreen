@@ -3,6 +3,7 @@ import style from "./style.module.css";
 import NodeMain from "../FlowContent/NodeComponents";
 import useStateContext from "./useStateContext";
 import EdgeComponent from "../FlowContent/EdgeComponents";
+import { customNodeProps } from "../ButtonComponents/Types";
 
 interface Node {
   id: string;
@@ -10,7 +11,9 @@ interface Node {
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
-  content: Component;
+  inputVertexIds: Array<string>;
+  outputVertexIds: Array<string>;
+  content: Component<customNodeProps>;
   prevPosition: {
     get: Accessor<{ x: number; y: number }>;
     set: Setter<{ x: number; y: number }>;
@@ -56,13 +59,14 @@ interface Edge {
 
 interface BoardComponent {
   nodes: Accessor<Node[]>;
+  setNodes: (nodes: Node[]) => void;
   // selectedNode: () => string | null
   // setSelectedNode: (selectedNode: string|null) => void
   // edges:() => Edge[]
   // setEdges: (edge: Edge[]) => void
 }
 
-const Board: Component<BoardComponent> = ({ nodes}) => {
+const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   const [clickedPosition, setClickedPosition] = createSignal<{
     x: number;
     y: number;
@@ -72,7 +76,7 @@ const Board: Component<BoardComponent> = ({ nodes}) => {
   const [edges, setEdges] = createSignal<Edge[]>([]);
   const [newEdge, setNewEdge] = createSignal<Edge | null>(null);
   const { draggable, isCtrlPressed, isSpacePressed, scale } = useStateContext();
-  
+
   const [selectedEdge, setSelectedEdge] = createSignal<string | null>(null);
   const [insideInput, setInsideInput] = createSignal<{
     nodeId: string;
@@ -88,48 +92,48 @@ const Board: Component<BoardComponent> = ({ nodes}) => {
     // const isSelectedNode = selectedNode()
     if (clickedPositionOk && selectedNode() !== null) {
       const deltaX = event.x - clickedPosition().x;
-        const deltaY = event.y - clickedPosition().y;
+      const deltaY = event.y - clickedPosition().y;
 
-        const node = nodes().find((node) => node.id === selectedNode());
-        if (node) {
-          // Update node position
-          node.currPosition.set((_) => {
-            return {
-              x: (node.prevPosition.get().x + deltaX) / scale(),
-              y: (node.prevPosition.get().y + deltaY) / scale(),
-            };
-          });
+      const node = nodes().find((node) => node.id === selectedNode());
+      if (node) {
+        // Update node position
+        node.currPosition.set((_) => {
+          return {
+            x: (node.prevPosition.get().x + deltaX) / scale(),
+            y: (node.prevPosition.get().y + deltaY) / scale(),
+          };
+        });
 
-          // Update input edges positions
-          for (let i = 0; i < node.inputEdgeIds.get().length; i++) {
-            const edgeId = node.inputEdgeIds.get()[i];
-            const edge = edges().find((edge) => edge.id === edgeId);
-            if (edge) {
-              // console.log(edge, "input");
-              edge.currEndPosition.set((_) => {
-                return {
-                  x: (edge.prevEndPosition.get().x + deltaX) / scale(),
-                  y: (edge.prevEndPosition.get().y + deltaY) / scale(),
-                };
-              });
-            }
-          }
-
-          // Update output edges positions
-          for (let i = 0; i < node.outputEdgeIds.get().length; i++) {
-            const edgeId = node.outputEdgeIds.get()[i];
-            const edge = edges().find((edge) => edge.id === edgeId);
-            if (edge) {
-              // console.log(edge, "output");
-              edge.currStartPosition.set((_) => {
-                return {
-                  x: (edge.prevStartPosition.get().x + deltaX) / scale(),
-                  y: (edge.prevStartPosition.get().y + deltaY) / scale(),
-                };
-              });
-            }
+        // Update input edges positions
+        for (let i = 0; i < node.inputEdgeIds.get().length; i++) {
+          const edgeId = node.inputEdgeIds.get()[i];
+          const edge = edges().find((edge) => edge.id === edgeId);
+          if (edge) {
+            // console.log(edge, "input");
+            edge.currEndPosition.set((_) => {
+              return {
+                x: (edge.prevEndPosition.get().x + deltaX) / scale(),
+                y: (edge.prevEndPosition.get().y + deltaY) / scale(),
+              };
+            });
           }
         }
+
+        // Update output edges positions
+        for (let i = 0; i < node.outputEdgeIds.get().length; i++) {
+          const edgeId = node.outputEdgeIds.get()[i];
+          const edge = edges().find((edge) => edge.id === edgeId);
+          if (edge) {
+            // console.log(edge, "output");
+            edge.currStartPosition.set((_) => {
+              return {
+                x: (edge.prevStartPosition.get().x + deltaX) / scale(),
+                y: (edge.prevStartPosition.get().y + deltaY) / scale(),
+              };
+            });
+          }
+        }
+      }
     } else if (isKeyPress && clickedPositionOk && selectedNode() === null) {
       event.preventDefault();
       const deltaX = event.x - clickedPosition().x;
@@ -397,9 +401,52 @@ const Board: Component<BoardComponent> = ({ nodes}) => {
     }
   }
 
+  function handleOnClickDeleteNode(id: string) {
+    const node = nodes().find((node) => node.id == id);
+    if (!node) {
+      setSelectedNode(null);
+      return;
+    }
+    // Delete node edges
+    const inputs = node.inputEdgeIds.get();
+    const outputs = node.outputEdgeIds.get();
+
+    // Get all unique edges to delete
+    const allEdges = [...inputs, ...outputs];
+    const uniqueEdges = allEdges.filter((value, index, array) => {
+      return array.indexOf(value) === index;
+    });
+
+    // Delete edges from correspondent nodes data
+    for (let i = 0; i < uniqueEdges.length; i++) {
+      const edge = edges().find((edge) => edge.id === uniqueEdges[i]);
+      if (edge) {
+        const nodeStart = nodes().find((node) => node.id === edge.nodeStartId);
+        const nodeEnd = nodes().find((node) => node.id === edge.nodeEndId);
+
+        nodeStart?.outputEdgeIds.set([
+          ...nodeStart.outputEdgeIds
+            .get()
+            .filter((edgeId) => edgeId !== uniqueEdges[i]),
+        ]);
+        nodeEnd?.inputEdgeIds.set([
+          ...nodeEnd.inputEdgeIds
+            .get()
+            .filter((edgeId) => edgeId !== uniqueEdges[i]),
+        ]);
+
+        // Delete edge from global data
+        setEdges([...edges().filter((e) => edge.id !== e.id)]);
+      }
+    }
+
+    setNodes([...nodes().filter((node) => node.id !== id)]);
+    setSelectedNode(null);
+  }
+
   return (
     <div>
-      <canvas
+      <div
         id="board"
         class={
           boardDragging()
@@ -408,7 +455,7 @@ const Board: Component<BoardComponent> = ({ nodes}) => {
             ? style.draggable
             : style.board
         }
-        onMouseDown={handleOnMouseDown}
+        onPointerDown={handleOnMouseDown}
         onMouseUp={handleOnMouseUp}
         onMouseMove={handleOnMouseMove}
       >
@@ -422,12 +469,15 @@ const Board: Component<BoardComponent> = ({ nodes}) => {
               numberOutputs={node.numberOutputs}
               isInputVertex={node.isInputVertex}
               isOutputVertex={node.isOutputVertex}
+              inputVertexIds={node.inputVertexIds}
+              outputVertexIds={node.outputVertexIds}
               content={node.content}
               selected={selectedNode() == node.id}
               onMouseDownNode={handleOnMouseDownNode}
               onMouseDownOutput={handleOnMouseDownOutput}
               onMouseEnterInput={handleOnMouseEnterInput}
               onMouseLeaveInput={handleOnMouseLeaveInput}
+              onClickDeleteNode={handleOnClickDeleteNode}
             />
           )}
         </For>
@@ -462,7 +512,7 @@ const Board: Component<BoardComponent> = ({ nodes}) => {
             />
           )}
         </For>
-      </canvas>
+      </div>
     </div>
   );
 };
