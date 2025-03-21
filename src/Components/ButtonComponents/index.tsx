@@ -1,6 +1,7 @@
 import { Accessor, Component, createSignal, For, onMount } from "solid-js";
 import style from "./style.module.css";
 import { nodeMarkType } from "./Types";
+import useStateContext from "../BoardComponent/useStateContext";
 
 interface SideBarProps {
   onClickAdd: (nodeName: string) => void;
@@ -9,12 +10,19 @@ interface SideBarProps {
 }
 
 const SideBar: Component<SideBarProps> = (props) => {
-  const [isOpen, setIsOpen] = createSignal<boolean>(false);
+  const { isOpen, setIsOpen } = useStateContext();
   let inputRef: HTMLInputElement;
   const handleClickOutside = (event: MouseEvent) => {
     const sidebar = document.getElementById("sidebar-main");
     const sidebarContent = document.getElementById("sidebar-content");
-    if (sidebar && !sidebar.contains(event.target as Node)) {
+    const plus = document.getElementById("plus");
+    // console.log(plus);
+    if (
+      sidebar &&
+      !sidebar.contains(event.target as Node) 
+      // plus &&
+      // !plus.contains(event.target as Node)
+    ) {
       setIsOpen(false);
       if (sidebarContent) {
         sidebarContent.style.right = "-450px";

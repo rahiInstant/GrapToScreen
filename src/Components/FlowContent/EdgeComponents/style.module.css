@@ -40,7 +40,7 @@
 
 .edge {
   pointer-events: all;
-  stroke: rgba(168, 168, 168, 0.8);
+  stroke: #a8a8a8cc;
   stroke-width: 2;
   fill: transparent;
   cursor: pointer;
@@ -63,4 +63,10 @@
   stroke: rgba(168, 168, 168, 0.4);
   stroke-width: 2;
   fill: transparent;
+}
+
+.arrow {
+  fill: #a8a8a8cc;
+  height: 3em;
+  width: 3em;
 }

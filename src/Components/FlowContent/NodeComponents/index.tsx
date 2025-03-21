@@ -1,9 +1,11 @@
 import {
+  Accessor,
   Component,
   createSignal,
   JSX,
   onMount,
   ParentComponent,
+  Setter,
 } from "solid-js";
 import style from "./style.module.css";
 import Vertex from "./Vertex";
@@ -23,6 +25,10 @@ interface NodeProps {
   isOutputVertex: boolean;
   inputVertexIds: Array<string>;
   outputVertexIds: Array<string>;
+  busyIndex: {
+    get: Accessor<string[]>;
+    set: Setter<string[]>;
+  };
   content: Component<customNodeProps>;
   selected: boolean;
   onMouseDownNode: (event: any, id: string) => void;
@@ -30,11 +36,14 @@ interface NodeProps {
     outputPositionX: number,
     outputPositionY: number,
     nodeId: string,
-    outputIndex: number
+    outputIndex: number,
+    vertexId: string
   ) => void;
   onMouseEnterInput: (
     inputPositionX: number,
     inputPositionY: number,
+    inputBuffX: number,
+    inputBuffY: number,
     nodeId: string,
     inputIndex: number
   ) => void;
@@ -43,7 +52,6 @@ interface NodeProps {
 }
 
 const NodeMain: Component<NodeProps> = (props) => {
-
   return (
     <div
       id="node"
@@ -52,6 +60,7 @@ const NodeMain: Component<NodeProps> = (props) => {
         transform: `translate(${props.x}px, ${props.y}px)`,
       }}
       onPointerDown={(event: any) => {
+        // console.log(props.inputVertexIds, props.outputVertexIds);
         event.stopPropagation();
         props.onMouseDownNode(event, props.id);
       }}
@@ -89,6 +98,7 @@ const NodeMain: Component<NodeProps> = (props) => {
         isOutputVertex={props.isOutputVertex}
         inputVertexIds={props.inputVertexIds}
         outputVertexIds={props.outputVertexIds}
+        busyIndex={props.busyIndex}
         onMouseDownOutput={props.onMouseDownOutput}
         onMouseEnterInput={props.onMouseEnterInput}
         onMouseLeaveInput={props.onMouseLeaveInput}

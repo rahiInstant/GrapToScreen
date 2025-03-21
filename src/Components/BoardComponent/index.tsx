@@ -13,7 +13,7 @@ import SideBar from "../ButtonComponents/index";
 import Board from "./Board";
 import StateContextProvider from "./StateContextProvider";
 import { nodeMark } from "../ButtonComponents/nodeMark";
-import { customNodeProps, nodeType } from "../ButtonComponents/Types";
+import { customNodeProps, nodeType, outputVertexDuty } from "../ButtonComponents/Types";
 import useStateContext from "./useStateContext";
 interface CustomNode {
   id: string;
@@ -23,6 +23,10 @@ interface CustomNode {
   isOutputVertex: boolean;
   inputVertexIds: Array<string>;
   outputVertexIds: Array<string>;
+  busyIndex: {
+    get: Accessor<string[]>;
+    set: Setter<string[]>;
+  };
   content: Component<customNodeProps>;
   prevPosition: {
     get: Accessor<{ x: number; y: number }>;
@@ -90,9 +94,7 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
 
     const [inputsEdgeIds, setInputsEdgeIds] = createSignal<string[]>([]);
     const [outputsEdgeIds, setOutputsEdgeIds] = createSignal<string[]>([]);
-
-    function createOutputVertexMetadata() {}
-
+    const [busyIndex, setBusyIndex] = createSignal<string[]>([]);
     createRoot(() => {
       setNodes([
         ...nodes(),
@@ -103,15 +105,20 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
           isInputVertex: node[nodeName].isInputVertex,
           isOutputVertex: node[nodeName].isOutputVertex,
           inputVertexIds: [
-            ...new Array(node[nodeName].isInputVertex).map(
-              (v, i) => `vertex_${Math.random().toString(36).substring(2, 8)}`
-            ),
+            ...Array(Number(node[nodeName].numberInputs))
+              .keys()
+              .map(
+                (v, i) => `vertex_${Math.random().toString(36).substring(2, 8)}`
+              ),
           ],
           outputVertexIds: [
-            ...new Array(node[nodeName].isOutputVertex).map(
-              (v, i) => `vertex_${Math.random().toString(36).substring(2, 8)}`
-            ),
+            ...Array(Number(node[nodeName].numberOutputs))
+              .keys()
+              .map(
+                (v, i) => `vertex_${Math.random().toString(36).substring(2, 8)}`
+              ),
           ],
+          busyIndex: { get: busyIndex, set: setBusyIndex },
           content: node[nodeName].content,
           prevPosition: { get: nodePrev, set: setNodePrev },
           currPosition: { get: nodeCurr, set: setNodeCurr },

@@ -120,6 +120,39 @@
   align-items: center;
   pointer-events: all;
   cursor: crosshair;
+  opacity: 1;
+  pointer-events: all;
+  transition: opacity 0.3s ease-in;
+}
+
+.vertexNum {
+  position: absolute;
+  color: #c3c9d5;
+  padding: 1px;
+  right: 10px;
+  background-color: #2e2e2e;
+}
+
+.snapping {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: -55px;
+  border-radius: 100%;
+  height: 100px;
+  width: 100px;
+  pointer-events: all;
+  cursor: auto;
+  z-index: 350;
+}
+
+.snapping:hover .input {
+  background-color: #c3c9d5;
+}
+
+.plusLineHidden {
+  opacity: 0;
+  pointer-events: all;
 }
 
 .outputPlus {
@@ -158,7 +191,7 @@
   /* margin-bottom: 15px; */
   opacity: 0;
   transition: opacity 0.3s ease;
-  pointer-events: all;
+  pointer-events: none;
   color: #fbfcfe;
   /* z-index: 200; */
   width: 100px;

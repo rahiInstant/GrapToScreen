@@ -13,6 +13,10 @@ interface Node {
   isOutputVertex: boolean;
   inputVertexIds: Array<string>;
   outputVertexIds: Array<string>;
+  busyIndex: {
+    get: Accessor<string[]>;
+    set: Setter<string[]>;
+  };
   content: Component<customNodeProps>;
   prevPosition: {
     get: Accessor<{ x: number; y: number }>;
@@ -38,7 +42,8 @@ interface Edge {
   nodeEndId: string;
   inputIndex: number;
   outputIndex: number;
-  nodeEndInputIndex?: number; // Added property
+  nodeEndInputIndex?: number;
+  outputVertexId: string;
   prevStartPosition: {
     get: Accessor<{ x: number; y: number }>;
     set: Setter<{ x: number; y: number }>;
@@ -73,10 +78,18 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   }>({ x: -1, y: -1 });
   const [boardDragging, setBoardDragging] = createSignal<boolean>(false);
   const [selectedNode, setSelectedNode] = createSignal<string | null>(null);
-  const [edges, setEdges] = createSignal<Edge[]>([]);
-  const [newEdge, setNewEdge] = createSignal<Edge | null>(null);
-  const { draggable, isCtrlPressed, isSpacePressed, scale } = useStateContext();
 
+  const {
+    draggable,
+    isCtrlPressed,
+    isSpacePressed,
+    scale,
+    edges,
+    newEdge,
+    setEdges,
+    setNewEdge,
+    edgeEnd,
+  } = useStateContext();
   const [selectedEdge, setSelectedEdge] = createSignal<string | null>(null);
   const [insideInput, setInsideInput] = createSignal<{
     nodeId: string;
@@ -241,6 +254,18 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             nodeEndInputIndex: insideInput()!.inputIndex,
           },
         ]);
+        const startNode = nodes().find(
+          (node) => node.id == newEdge()?.nodeStartId
+        );
+        console.log("startNode", newEdge());
+        if (startNode) {
+          if (newEdge()?.outputVertexId !== undefined) {
+            startNode.busyIndex.set([
+              ...startNode.busyIndex.get(),
+              newEdge()!.outputVertexId,
+            ]);
+          }
+        }
         setNewEdge(null);
       }
     }
@@ -303,7 +328,8 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     outputPositionX: number,
     outputPositionY: number,
     nodeId: string,
-    outputIndex: number
+    outputIndex: number,
+    vertexId: string
   ) {
     setSelectedNode(null);
     const boardWrapperElement = document.getElementById("boardWrapper");
@@ -344,6 +370,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         outputIndex: outputIndex,
         nodeEndId: "",
         inputIndex: -1,
+        outputVertexId: vertexId,
         prevStartPosition: { get: prevEdgeStart, set: setPrevEdgeStart },
         prevEndPosition: { get: prevEdgeEnd, set: setPrevEdgeEnd },
         currStartPosition: { get: currEdgeStart, set: setCurrEdgeStart },
@@ -354,6 +381,8 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   function handleOnMouseEnterInput(
     inputPositionX: number,
     inputPositionY: number,
+    inputBuffX: number,
+    inputBuffY: number,
     nodeId: string,
     inputIndex: number
   ) {
@@ -363,6 +392,102 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       positionX: inputPositionX,
       positionY: inputPositionY,
     });
+    // console.log(inputBuffX, inputBuffY);
+    const dx = edgeEnd().x - inputBuffX;
+    const dy = edgeEnd().y - inputBuffY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance < 80) {
+      // console.log(distance);
+      if (newEdge() !== null && insideInput() !== null) {
+        const nodeStartId = newEdge()!.nodeStartId;
+        const nodeEndId = insideInput()!.nodeId;
+
+        const nodeStart = nodes().find((node) => node.id === nodeStartId);
+        const nodeEnd = nodes().find((node) => node.id === nodeEndId);
+
+        const boardWrapperElement = document.getElementById("boardWrapper");
+
+        if (nodeStart && nodeEnd && boardWrapperElement) {
+          const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
+            nodeEnd.id
+          }_${insideInput()?.inputIndex}`;
+
+          if (
+            nodeStart.outputEdgeIds.get().includes(edgeId) &&
+            nodeEnd.inputEdgeIds.get().includes(edgeId)
+          ) {
+            setNewEdge(null);
+            return;
+          }
+
+          nodeStart.outputEdgeIds.set([
+            ...nodeStart.outputEdgeIds.get(),
+            edgeId,
+          ]);
+          nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
+
+          // Update edge current positions
+          newEdge()!.prevStartPosition.set((_) => {
+            return {
+              x:
+                (newEdge()!.currStartPosition.get().x +
+                  boardWrapperElement.scrollLeft) /
+                scale(),
+              y:
+                (newEdge()!.currStartPosition.get().y +
+                  boardWrapperElement.scrollTop) /
+                scale(),
+            };
+          });
+
+          newEdge()!.prevEndPosition.set((_) => {
+            return {
+              x:
+                (insideInput()!.positionX + boardWrapperElement.scrollLeft) /
+                scale(),
+              y:
+                (insideInput()!.positionY + boardWrapperElement.scrollTop) /
+                scale(),
+            };
+          });
+
+          newEdge()!.currEndPosition.set((_) => {
+            return {
+              x:
+                (insideInput()!.positionX + boardWrapperElement.scrollLeft) /
+                scale(),
+              y:
+                (insideInput()!.positionY + boardWrapperElement.scrollTop) /
+                scale(),
+            };
+          });
+
+          // Add new edge
+          setEdges([
+            ...edges(),
+            {
+              ...newEdge()!,
+              id: edgeId,
+              nodeEndId: nodeEnd.id,
+              nodeEndInputIndex: insideInput()!.inputIndex,
+            },
+          ]);
+          const startNode = nodes().find(
+            (node) => node.id == newEdge()?.nodeStartId
+          );
+          // console.log("startNode", newEdge());
+          if (startNode) {
+            if (newEdge()?.outputVertexId !== undefined) {  
+              startNode.busyIndex.set([
+                ...startNode.busyIndex.get(),
+                newEdge()!.outputVertexId,
+              ]);
+            }
+          }
+          setNewEdge(null);
+        }
+      }
+    }
   }
   function handleOnMouseLeaveInput(nodeId: string, inputIndex: number) {
     if (
@@ -382,11 +507,22 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     if (edge) {
       const nodeStart = nodes().find((n) => n.id == edge.nodeStartId);
       if (nodeStart) {
+        // console.log(nodeStart);
+        // console.log(nodeStart.outputEdgeIds.get());
+
         nodeStart.outputEdgeIds.set([
           ...nodeStart.outputEdgeIds
             .get()
             .filter((edgeId) => edgeId !== edge.id),
         ]);
+        console.log([...nodeStart.outputEdgeIds.get()])
+        if (nodeStart.outputEdgeIds.get().length < 1) {
+          nodeStart.busyIndex.set([
+            ...nodeStart.busyIndex
+              .get()
+              .filter((vertexId) => vertexId !== edge.outputVertexId),
+          ]);
+        }
       }
       const nodeEnd = nodes().find((n) => n.id === edge.nodeEndId);
       if (nodeEnd) {
@@ -471,6 +607,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
               isOutputVertex={node.isOutputVertex}
               inputVertexIds={node.inputVertexIds}
               outputVertexIds={node.outputVertexIds}
+              busyIndex={node.busyIndex}
               content={node.content}
               selected={selectedNode() == node.id}
               onMouseDownNode={handleOnMouseDownNode}

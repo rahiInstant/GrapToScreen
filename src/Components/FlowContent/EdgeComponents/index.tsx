@@ -1,5 +1,6 @@
 import { Component, createEffect, createSignal } from "solid-js";
 import style from "./style.module.css";
+import useStateContext from "../../BoardComponent/useStateContext";
 
 interface EdgeProps {
   selected: boolean;
@@ -15,12 +16,22 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
   });
 
+  const { setEdgeLength, setEdgeEnd } = useStateContext();
+
   createEffect(() => {
     const middleX =
       props.position.x0 + (props.position.x1 - props.position.x0) / 2;
     const middleY =
       props.position.y0 + (props.position.y1 - props.position.y0) / 2;
     setMiddlePoint({ x: middleX, y: middleY });
+
+    const dx = props.position.x1 - props.position.x0;
+    const dy = props.position.y1 - props.position.y0;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    setEdgeLength(length);
+    setEdgeEnd({x: props.position.x1, y: props.position.y1})
+    
   });
 
   const handleOnMouseDownEdge = (event: any) => {
@@ -66,6 +77,21 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
         marker-end="url(#arrowhead)"
         onMouseDown={handleOnMouseDownEdge}
       ></path>
+      {/* <path
+        d={`M ${props.position.x1-6} ${props.position.y1-6} L ${
+          props.position.x1-6
+        } ${props.position.y1 - 12} L ${props.position.x1 -5.5} ${
+          props.position.y1 - 12.5
+        } L ${props.position.x1 + 2.5} ${props.position.y1 - 8.75} L ${
+          props.position.x1 + 2
+        } ${props.position.y1 - 7.25} L ${props.position.x1 -5.5} ${
+          props.position.y1 -.5
+        } L ${props.position.x1 -5.5} ${props.position.y1 -1} L ${
+          props.position.x1-6
+        } ${props.position.y1-6} L ${props.position.x1-6} ${props.position.y1-6}`}
+        stroke-width="2"
+        fill="white"
+      />  */}
       <g
         class={props.selected ? style.delete : style.deleteHidden}
         transform={`translate(${middlePoint().x}, ${
