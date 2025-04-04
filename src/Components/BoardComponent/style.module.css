@@ -1,21 +1,64 @@
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap");
 
-.wrapper {
-  position: fixed;
+/* .wrapper {
+  position: relative;
   height: 100vh;
   width: 100vw;
   top: 0;
   left: 0;
   overflow: hidden;
   font-family: "Open Sans", sans-serif;
-}
+} */
 
-.wrapper::-webkit-scrollbar {
+/* .wrapper::-webkit-scrollbar {
   display: none;
+} */
+
+.dot-flow__pane {
+  /* width: 100%;
+  height: 100%; */
+  position: absolute;
+  /* top: 0;
+  left: 0; */
+  /* z-index: 1; */
+  background-size: 20px 20px;
+  background-image: radial-gradient(
+    circle,
+    #a5a5a5 0.1px,
+    rgba(0, 0, 0, 0) 1px
+  );
+  background-color: #2d2e2e;
+  &.draggable {
+    cursor: grab;
+  }
+
+  &.dragging {
+    cursor: grabbing;
+  }
+
+  &.selection {
+    cursor: pointer;
+  }
 }
 
+.dot-flow__viewport {
+  /* transform-origin: 0 0; */
+  z-index: 2;
+  pointer-events: none;
+  
+}
 
-.board {
+.dot-flow__container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  
+}
+
+/* .board {
   position: relative;
   height: 100vh;
   width: 100vw;
@@ -57,7 +100,7 @@
   );
   background-color: #2d2e2e;
   cursor: grabbing;
-}
+} */
 
 .zoomControl {
   position: fixed;

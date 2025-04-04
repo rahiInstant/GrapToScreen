@@ -16,7 +16,7 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
   });
 
-  const { setEdgeLength, setEdgeEnd } = useStateContext();
+  const { setEdgeLength, setEdgeEnd, scale } = useStateContext();
 
   createEffect(() => {
     const middleX =
@@ -28,15 +28,17 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const dx = props.position.x1 - props.position.x0;
     const dy = props.position.y1 - props.position.y0;
     const length = Math.sqrt(dx * dx + dy * dy);
+    // console.log(props.position.x0, props.position.y0);
+    // console.log({px:props.position.x1, py:props.position.y1});
 
     setEdgeLength(length);
-    setEdgeEnd({x: props.position.x1, y: props.position.y1})
-    
+    setEdgeEnd({ x: props.position.x1, y: props.position.y1 });
   });
 
   const handleOnMouseDownEdge = (event: any) => {
     event.stopPropagation();
     props.onMouseDownEdge();
+    console.log(document.getElementById("boardWrapper")?.offsetHeight)
   };
 
   const handleOnMouseDeleteEdge = (event: any) => {
@@ -58,10 +60,11 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M 0 0 L 6 3 L 0 6 z" fill="currentColor" />
+          <path d="M 0 0 L 6 3 L 0 6 z" fill="#c3c9d5" />
         </marker>
       </defs>
       <path
+
         class={
           props.isNew
             ? style.edgeNew
@@ -78,20 +81,20 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
         onMouseDown={handleOnMouseDownEdge}
       ></path>
       {/* <path
-        d={`M ${props.position.x1-6} ${props.position.y1-6} L ${
-          props.position.x1-6
-        } ${props.position.y1 - 12} L ${props.position.x1 -5.5} ${
-          props.position.y1 - 12.5
-        } L ${props.position.x1 + 2.5} ${props.position.y1 - 8.75} L ${
-          props.position.x1 + 2
-        } ${props.position.y1 - 7.25} L ${props.position.x1 -5.5} ${
-          props.position.y1 -.5
-        } L ${props.position.x1 -5.5} ${props.position.y1 -1} L ${
-          props.position.x1-6
-        } ${props.position.y1-6} L ${props.position.x1-6} ${props.position.y1-6}`}
-        stroke-width="2"
-        fill="white"
-      />  */}
+    d={`M ${props.position.x1-6} ${props.position.y1-6} L ${
+      props.position.x1-6
+    } ${props.position.y1 - 12} L ${props.position.x1 -5.5} ${
+      props.position.y1 - 12.5
+    } L ${props.position.x1 + 2.5} ${props.position.y1 - 8.75} L ${
+      props.position.x1 + 2
+    } ${props.position.y1 - 7.25} L ${props.position.x1 -5.5} ${
+      props.position.y1 -.5
+    } L ${props.position.x1 -5.5} ${props.position.y1 -1} L ${
+      props.position.x1-6
+    } ${props.position.y1-6} L ${props.position.x1-6} ${props.position.y1-6}`}
+    stroke-width="2"
+    fill="white"
+  />  */}
       <g
         class={props.selected ? style.delete : style.deleteHidden}
         transform={`translate(${middlePoint().x}, ${

@@ -2,6 +2,7 @@ import { Accessor, Component, For, Setter } from "solid-js";
 import style from "./style.module.css";
 import PlusIcon from "./PlusIcon";
 import useStateContext from "../../BoardComponent/useStateContext";
+import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 
 
 interface VertexProps {
@@ -46,6 +47,7 @@ const Vertex: Component<VertexProps> = (props) => {
     } = bufferRef.getBoundingClientRect();
     const centerX = left + Math.abs(left - right) / 2;
     const centerY = top + Math.abs(top - bottom) / 2;
+    // console.log({ inputX:centerX, inputY:centerY });
     const centerXB = leftB + Math.abs(leftB - rightB) / 2;
     const centerYB = topB + Math.abs(topB - bottomB) / 2;
     // console.log(centerXB, centerYB)
@@ -70,8 +72,10 @@ const Vertex: Component<VertexProps> = (props) => {
     // console.log(props.busyIndex.get());
     event.stopPropagation();
     const { left, right, top, bottom } = outputRef.getBoundingClientRect();
+    // console.log(left, right, top, bottom);  
     const centerX = left + Math.abs(left - right) / 2;
     const centerY = top + Math.abs(top - bottom) / 2;
+    console.log({centerX, centerY})
     props.onMouseDownOutput(centerX, centerY, props.id, outputIndex, vertexId);
   }
   // console.log(props.isInputVertex, props.isOutputVertex)

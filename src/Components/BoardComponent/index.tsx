@@ -13,7 +13,11 @@ import SideBar from "../ButtonComponents/index";
 import Board from "./Board";
 import StateContextProvider from "./StateContextProvider";
 import { nodeMark } from "../ButtonComponents/nodeMark";
-import { customNodeProps, nodeType, outputVertexDuty } from "../ButtonComponents/Types";
+import {
+  customNodeProps,
+  nodeType,
+  outputVertexDuty,
+} from "../ButtonComponents/Types";
 import useStateContext from "./useStateContext";
 interface CustomNode {
   id: string;
@@ -78,8 +82,8 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
   const [nodes, setNodes] = createSignal<CustomNode[]>([]);
   const {} = useStateContext();
   function handleOnClickAddNode(nodeName: string) {
-    const randomX = (Math.random() * window.innerWidth) / 2;
-    const randomY = (Math.random() * window.innerHeight) / 2;
+    const randomX = Math.random() * window.innerWidth;
+    const randomY = Math.random() * window.innerHeight;
     // console.log();
     const [nodePrev, setNodePrev] = createSignal<{ x: number; y: number }>({
       x: randomX,
@@ -130,7 +134,11 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
   }
 
   return (
-    <div id="boardWrapper" class={style.wrapper} tabIndex={0}>
+    <div
+      id="boardWrapper"
+      class="w-screen h-screen overflow-hidden relative z-0"
+      tabIndex={0}
+    >
       <SideBar
         onClickAdd={handleOnClickAddNode}
         // onClickDelete={handleOnClickDeleteNode}

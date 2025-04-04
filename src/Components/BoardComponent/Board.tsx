@@ -78,7 +78,8 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   }>({ x: -1, y: -1 });
   const [boardDragging, setBoardDragging] = createSignal<boolean>(false);
   const [selectedNode, setSelectedNode] = createSignal<string | null>(null);
-
+  const [transform, setTransform] = createSignal({ x: 0, y: 0 });
+  const [preTransform, setPreTransform] = createSignal({ x: 0, y: 0 });
   const {
     draggable,
     isCtrlPressed,
@@ -99,73 +100,78 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   } | null>(null);
   // console.log(draggable())
   const handleOnMouseMove = (event: any) => {
-    const isKeyPress = isCtrlPressed() || isSpacePressed();
-    const clickedPositionOk =
-      clickedPosition().x >= 0 && clickedPosition().y >= 0;
-    // const isSelectedNode = selectedNode()
-    if (clickedPositionOk && selectedNode() !== null) {
-      const deltaX = event.x - clickedPosition().x;
-      const deltaY = event.y - clickedPosition().y;
+    if (clickedPosition().x >= 0 && clickedPosition().y >= 0) {
+      const isKeyPress = isCtrlPressed() || isSpacePressed();
+      if (selectedNode() !== null) {
+        const deltaX = event.x - clickedPosition().x;
+        const deltaY = event.y - clickedPosition().y;
 
-      const node = nodes().find((node) => node.id === selectedNode());
-      if (node) {
-        // Update node position
-        node.currPosition.set((_) => {
-          return {
-            x: (node.prevPosition.get().x + deltaX) / scale(),
-            y: (node.prevPosition.get().y + deltaY) / scale(),
-          };
+        const node = nodes().find((node) => node.id === selectedNode());
+        if (node) {
+          // Update node position
+          node.currPosition.set((_) => {
+            return {
+              x: (node.prevPosition.get().x + deltaX) / scale(),
+              y: (node.prevPosition.get().y + deltaY) / scale(),
+            };
+          });
+
+          // Update input edges positions
+          for (let i = 0; i < node.inputEdgeIds.get().length; i++) {
+            const edgeId = node.inputEdgeIds.get()[i];
+            const edge = edges().find((edge) => edge.id === edgeId);
+            if (edge) {
+              // console.log(edge, "input");
+              edge.currEndPosition.set((_) => {
+                return {
+                  x: (edge.prevEndPosition.get().x + deltaX) / scale(),
+                  y: (edge.prevEndPosition.get().y + deltaY) / scale(),
+                };
+              });
+            }
+          }
+
+          // Update output edges positions
+          for (let i = 0; i < node.outputEdgeIds.get().length; i++) {
+            const edgeId = node.outputEdgeIds.get()[i];
+            const edge = edges().find((edge) => edge.id === edgeId);
+            if (edge) {
+              // console.log(edge, "output");
+              edge.currStartPosition.set((_) => {
+                return {
+                  x: (edge.prevStartPosition.get().x + deltaX) / scale(),
+                  y: (edge.prevStartPosition.get().y + deltaY) / scale(),
+                };
+              });
+            }
+          }
+        }
+      } else if (isKeyPress && selectedNode() === null) {
+        event.preventDefault();
+        const deltaX = event.x - clickedPosition().x;
+        const deltaY = event.y - clickedPosition().y;
+        // console.log(clickedPosition());
+        setTransform((prev) => {
+          return { x: deltaX + preTransform().x, y: deltaY + preTransform().y };
         });
-
-        // Update input edges positions
-        for (let i = 0; i < node.inputEdgeIds.get().length; i++) {
-          const edgeId = node.inputEdgeIds.get()[i];
-          const edge = edges().find((edge) => edge.id === edgeId);
-          if (edge) {
-            // console.log(edge, "input");
-            edge.currEndPosition.set((_) => {
-              return {
-                x: (edge.prevEndPosition.get().x + deltaX) / scale(),
-                y: (edge.prevEndPosition.get().y + deltaY) / scale(),
-              };
-            });
-          }
-        }
-
-        // Update output edges positions
-        for (let i = 0; i < node.outputEdgeIds.get().length; i++) {
-          const edgeId = node.outputEdgeIds.get()[i];
-          const edge = edges().find((edge) => edge.id === edgeId);
-          if (edge) {
-            // console.log(edge, "output");
-            edge.currStartPosition.set((_) => {
-              return {
-                x: (edge.prevStartPosition.get().x + deltaX) / scale(),
-                y: (edge.prevStartPosition.get().y + deltaY) / scale(),
-              };
-            });
-          }
-        }
-      }
-    } else if (isKeyPress && clickedPositionOk && selectedNode() === null) {
-      event.preventDefault();
-      const deltaX = event.x - clickedPosition().x;
-      const deltaY = event.y - clickedPosition().y;
-      console.log(clickedPosition());
-
-      const boardWrapperElement = document.getElementById("boardWrapper");
-      if (boardWrapperElement) {
-        boardWrapperElement.scrollBy(-deltaX, -deltaY);
-        setClickedPosition({ x: event.x, y: event.y });
+        const boardWrapperElement = document.getElementById("board");
+        // if (boardWrapperElement) {
+        //   boardWrapperElement.scrollBy(-deltaX, -deltaY);
+        //   setClickedPosition({ x: event.x, y: event.y });
+        // }
       }
     }
 
     if (newEdge() !== null) {
-      const boardWrapperElement = document.getElementById("boardWrapper");
+      const boardWrapperElement = document.getElementById("pane");
       if (boardWrapperElement) {
         newEdge()?.currEndPosition.set({
-          x: (event.x + boardWrapperElement.scrollLeft) / scale(),
-          y: (event.y + +boardWrapperElement.scrollTop) / scale(),
+          x:
+            (event.x - transform().x + boardWrapperElement.scrollTop) /
+            scale(),
+          y:
+            (event.y - transform().y + boardWrapperElement.scrollLeft) /
+            scale(),
         });
       }
     }
@@ -176,7 +182,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
 
     // Stop grabbing board
     setBoardDragging(false);
-
+    setPreTransform(transform());
     // If a new edge is being set and is not inside input
     if (newEdge() !== null && insideInput() === null) {
       setNewEdge(null);
@@ -190,7 +196,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       const nodeStart = nodes().find((node) => node.id === nodeStartId);
       const nodeEnd = nodes().find((node) => node.id === nodeEndId);
 
-      const boardWrapperElement = document.getElementById("boardWrapper");
+      const boardWrapperElement = document.getElementById("pane");
 
       if (nodeStart && nodeEnd && boardWrapperElement) {
         const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
@@ -211,36 +217,22 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         // Update edge current positions
         newEdge()!.prevStartPosition.set((_) => {
           return {
-            x:
-              (newEdge()!.currStartPosition.get().x +
-                boardWrapperElement.scrollLeft) /
-              scale(),
-            y:
-              (newEdge()!.currStartPosition.get().y +
-                boardWrapperElement.scrollTop) /
-              scale(),
+            x: (newEdge()!.currStartPosition.get().x - transform().x+ boardWrapperElement.scrollTop) / scale(),
+            y: (newEdge()!.currStartPosition.get().y - transform().y+ boardWrapperElement.scrollLeft) / scale(),
           };
         });
 
         newEdge()!.prevEndPosition.set((_) => {
           return {
-            x:
-              (insideInput()!.positionX + boardWrapperElement.scrollLeft) /
-              scale(),
-            y:
-              (insideInput()!.positionY + boardWrapperElement.scrollTop) /
-              scale(),
+            x: (insideInput()!.positionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
+            y: (insideInput()!.positionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
           };
         });
 
         newEdge()!.currEndPosition.set((_) => {
           return {
-            x:
-              (insideInput()!.positionX + boardWrapperElement.scrollLeft) /
-              scale(),
-            y:
-              (insideInput()!.positionY + boardWrapperElement.scrollTop) /
-              scale(),
+            x: (insideInput()!.positionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
+            y: (insideInput()!.positionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
           };
         });
 
@@ -272,25 +264,26 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   };
 
   const handleOnMouseDown = (event: any) => {
+    // console.log(event.target);
     setSelectedNode(null);
     setSelectedEdge(null);
     if (isCtrlPressed() || isSpacePressed()) {
       // console.log(clickedPosition());
-
       setBoardDragging(true);
       setClickedPosition({ x: event.x, y: event.y });
     }
   };
 
   function handleOnMouseDownNode(event: any, id: string) {
+    // console.log(event);
     setSelectedNode(id);
     setClickedPosition({ x: event.x, y: event.y });
     const node = nodes().find((node) => node.id == selectedNode());
     if (node) {
       node.prevPosition.set((_) => {
         return {
-          x: node.currPosition.get().x,
-          y: node.currPosition.get().y,
+          x: node.currPosition.get().x * scale(),
+          y: node.currPosition.get().y * scale(),
         };
       });
       // Update input edges positions
@@ -332,36 +325,36 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     vertexId: string
   ) {
     setSelectedNode(null);
-    const boardWrapperElement = document.getElementById("boardWrapper");
-
+    const boardWrapperElement = document.getElementById("pane");
+    // console.log(boardWrapperElement?.scrollLeft, boardWrapperElement?.scrollTop);
     if (boardWrapperElement) {
       const [prevEdgeStart, setPrevEdgeStart] = createSignal<{
         x: number;
         y: number;
       }>({
-        x: outputPositionX + boardWrapperElement.scrollLeft / scale(),
-        y: outputPositionY + boardWrapperElement.scrollTop / scale(),
+        x: (outputPositionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
+        y: (outputPositionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
       });
       const [prevEdgeEnd, setPrevEdgeEnd] = createSignal<{
         x: number;
         y: number;
       }>({
-        x: outputPositionX + boardWrapperElement.scrollLeft / scale(),
-        y: outputPositionY + boardWrapperElement.scrollTop / scale(),
+        x: (outputPositionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
+        y: (outputPositionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
       });
       const [currEdgeStart, setCurrEdgeStart] = createSignal<{
         x: number;
         y: number;
       }>({
-        x: outputPositionX + boardWrapperElement.scrollLeft / scale(),
-        y: outputPositionY + boardWrapperElement.scrollTop / scale(),
+        x: (outputPositionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
+        y: (outputPositionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
       });
       const [currEdgeEnd, setCurrEdgeEnd] = createSignal<{
         x: number;
         y: number;
       }>({
-        x: outputPositionX + boardWrapperElement.scrollLeft / scale(),
-        y: outputPositionY + boardWrapperElement.scrollTop / scale(),
+        x: (outputPositionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
+        y: (outputPositionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
       });
 
       setNewEdge({
@@ -393,101 +386,100 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       positionY: inputPositionY,
     });
     // console.log(inputBuffX, inputBuffY);
+    console.log({
+      curEdx: edgeEnd().x,
+      curEdy: edgeEnd().y,
+      inputPositionX,
+      inputPositionY,
+      inputBuffX,
+      inputBuffY,
+    });
     const dx = edgeEnd().x - inputBuffX;
     const dy = edgeEnd().y - inputBuffY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance < 80) {
-      // console.log(distance);
-      if (newEdge() !== null && insideInput() !== null) {
-        const nodeStartId = newEdge()!.nodeStartId;
-        const nodeEndId = insideInput()!.nodeId;
+    // console.log(distance);
+    // if (distance < 80) {
+    //   // console.log(distance);
+    //   if (newEdge() !== null && insideInput() !== null) {
+    //     const nodeStartId = newEdge()!.nodeStartId;
+    //     const nodeEndId = insideInput()!.nodeId;
 
-        const nodeStart = nodes().find((node) => node.id === nodeStartId);
-        const nodeEnd = nodes().find((node) => node.id === nodeEndId);
+    //     const nodeStart = nodes().find((node) => node.id === nodeStartId);
+    //     const nodeEnd = nodes().find((node) => node.id === nodeEndId);
 
-        const boardWrapperElement = document.getElementById("boardWrapper");
+    //     const boardWrapperElement = document.getElementById("boardWrapper");
 
-        if (nodeStart && nodeEnd && boardWrapperElement) {
-          const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
-            nodeEnd.id
-          }_${insideInput()?.inputIndex}`;
+    //     if (nodeStart && nodeEnd && boardWrapperElement) {
+    //       const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
+    //         nodeEnd.id
+    //       }_${insideInput()?.inputIndex}`;
 
-          if (
-            nodeStart.outputEdgeIds.get().includes(edgeId) &&
-            nodeEnd.inputEdgeIds.get().includes(edgeId)
-          ) {
-            setNewEdge(null);
-            return;
-          }
+    //       if (
+    //         nodeStart.outputEdgeIds.get().includes(edgeId) &&
+    //         nodeEnd.inputEdgeIds.get().includes(edgeId)
+    //       ) {
+    //         setNewEdge(null);
+    //         return;
+    //       }
 
-          nodeStart.outputEdgeIds.set([
-            ...nodeStart.outputEdgeIds.get(),
-            edgeId,
-          ]);
-          nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
+    //       nodeStart.outputEdgeIds.set([
+    //         ...nodeStart.outputEdgeIds.get(),
+    //         edgeId,
+    //       ]);
+    //       nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
 
-          // Update edge current positions
-          newEdge()!.prevStartPosition.set((_) => {
-            return {
-              x:
-                (newEdge()!.currStartPosition.get().x +
-                  boardWrapperElement.scrollLeft) /
-                scale(),
-              y:
-                (newEdge()!.currStartPosition.get().y +
-                  boardWrapperElement.scrollTop) /
-                scale(),
-            };
-          });
+    //       // Update edge current positions
+    //       newEdge()!.prevStartPosition.set((_) => {
+    //         return {
+    //           x:
+    //             (newEdge()!.currStartPosition.get().x - transform().x) /
+    //             scale(),
+    //           y:
+    //             (newEdge()!.currStartPosition.get().y - transform().y) /
+    //             scale(),
+    //         };
+    //       });
 
-          newEdge()!.prevEndPosition.set((_) => {
-            return {
-              x:
-                (insideInput()!.positionX + boardWrapperElement.scrollLeft) /
-                scale(),
-              y:
-                (insideInput()!.positionY + boardWrapperElement.scrollTop) /
-                scale(),
-            };
-          });
+    //       newEdge()!.prevEndPosition.set((_) => {
+    //         return {
+    //           x: (insideInput()!.positionX - transform().x) / scale(),
+    //           y: (insideInput()!.positionY - transform().y) / scale(),
+    //         };
+    //       });
 
-          newEdge()!.currEndPosition.set((_) => {
-            return {
-              x:
-                (insideInput()!.positionX + boardWrapperElement.scrollLeft) /
-                scale(),
-              y:
-                (insideInput()!.positionY + boardWrapperElement.scrollTop) /
-                scale(),
-            };
-          });
+    //       newEdge()!.currEndPosition.set((_) => {
+    //         return {
+    //           x: (insideInput()!.positionX - transform().x) / scale(),
+    //           y: (insideInput()!.positionY - transform().y) / scale(),
+    //         };
+    //       });
 
-          // Add new edge
-          setEdges([
-            ...edges(),
-            {
-              ...newEdge()!,
-              id: edgeId,
-              nodeEndId: nodeEnd.id,
-              nodeEndInputIndex: insideInput()!.inputIndex,
-            },
-          ]);
-          const startNode = nodes().find(
-            (node) => node.id == newEdge()?.nodeStartId
-          );
-          // console.log("startNode", newEdge());
-          if (startNode) {
-            if (newEdge()?.outputVertexId !== undefined) {  
-              startNode.busyIndex.set([
-                ...startNode.busyIndex.get(),
-                newEdge()!.outputVertexId,
-              ]);
-            }
-          }
-          setNewEdge(null);
-        }
-      }
-    }
+    //       // Add new edge
+    //       setEdges([
+    //         ...edges(),
+    //         {
+    //           ...newEdge()!,
+    //           id: edgeId,
+    //           nodeEndId: nodeEnd.id,
+    //           nodeEndInputIndex: insideInput()!.inputIndex,
+    //         },
+    //       ]);
+    //       const startNode = nodes().find(
+    //         (node) => node.id == newEdge()?.nodeStartId
+    //       );
+    //       // console.log("startNode", newEdge());
+    //       if (startNode) {
+    //         if (newEdge()?.outputVertexId !== undefined) {
+    //           startNode.busyIndex.set([
+    //             ...startNode.busyIndex.get(),
+    //             newEdge()!.outputVertexId,
+    //           ]);
+    //         }
+    //       }
+    //       setNewEdge(null);
+    //     }
+    //   }
+    // }
   }
   function handleOnMouseLeaveInput(nodeId: string, inputIndex: number) {
     if (
@@ -500,6 +492,13 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   function handleOnMouseDownEdge(edgeId: string) {
     setSelectedNode(null);
     setSelectedEdge(edgeId);
+    const edge = edges().find((edge) => edge.id === edgeId);
+    if (edge) {
+      console.log(
+        edge.currStartPosition.get().x,
+        edge.currStartPosition.get().y
+      );
+    }
   }
   function handleOnDeleteEdge(edgeId: string) {
     const edge = edges().find((e) => e.id === edgeId);
@@ -515,7 +514,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             .get()
             .filter((edgeId) => edgeId !== edge.id),
         ]);
-        console.log([...nodeStart.outputEdgeIds.get()])
+        console.log([...nodeStart.outputEdgeIds.get()]);
         if (nodeStart.outputEdgeIds.get().length < 1) {
           nodeStart.busyIndex.set([
             ...nodeStart.busyIndex
@@ -581,19 +580,39 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   }
 
   return (
-    <div>
+    // pane
+    <div
+      id="pane"
+      class="w-screen h-screen absolute top-0 left-0"
+      classList={{
+        [style["dot-flow__pane"]]: true,
+        [style["draggable"]]: draggable(),
+        [style["dragging"]]: boardDragging(),
+        [style["selection"]]: false,
+      }}
+      onWheel={(e) => e.preventDefault()}
+      style={{
+        "background-position": `${transform().x % 20}px ${
+          transform().y % 20
+        }px`,
+      }}
+      onPointerDown={handleOnMouseDown}
+      onMouseUp={handleOnMouseUp}
+      onMouseMove={handleOnMouseMove}
+    >
       <div
         id="board"
-        class={
-          boardDragging()
-            ? style.boardDragging
-            : draggable()
-            ? style.draggable
-            : style.board
-        }
-        onPointerDown={handleOnMouseDown}
-        onMouseUp={handleOnMouseUp}
-        onMouseMove={handleOnMouseMove}
+        class="w-screen h-screen absolute top-0 left-0"
+        classList={{
+          // [style["dot-flow__container"]]: true,
+          [style["dot-flow__viewport"]]: true,
+        }}
+        style={{
+          transform: `translate(${transform().x}px, ${
+            transform().y
+          }px) scale(${scale()})`,
+          border: "1px solid #000",
+        }}
       >
         <For each={nodes()}>
           {(node: Node) => (

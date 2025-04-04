@@ -15,7 +15,7 @@ interface ZoomProps {
 }
 
 const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
-  const [scale, setScale] = createSignal<number>(1);
+  // const [scale, setScale] = createSignal<number>(1);
 
   const {
     setDraggable,
@@ -23,14 +23,17 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
     setIsSpacePressed,
     isCtrlPressed,
     isSpacePressed,
+    scale,
+    setScale,
   } = useStateContext();
 
   onMount(() => {
-    const boardElement = document.getElementById("board");
+    const boardElement = document.getElementById("pane");
     // const backgroundElement: HTMLElement | null =
     //   document.getElementById("background");
 
     const handleOnkeyUp = (event: any) => {
+      // console.log(event)
       if (!event.ctrlKey) setIsCtrlPressed(false);
       if (event.code == "Space") {
         event.preventDefault();
@@ -50,27 +53,27 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
 
     if (boardElement) {
       const handleWheel = (event: any) => {
-        event.preventDefault()
+        event.preventDefault();
         if (isCtrlPressed() || isSpacePressed()) {
-          // console.log(draggable())
+          console.log("good");
           handleScale(event, () => {
-            return scale() + event.deltaY * -0.005;
+            return scale() + event.deltaY * -0.0001;
           });
         }
       };
       document.addEventListener("keyup", handleOnkeyUp);
       document.addEventListener("keydown", handleOnkeyDown);
       boardElement.addEventListener("wheel", handleWheel, { passive: false });
-      onCleanup(() => {
-        document.removeEventListener("keydown", handleOnkeyDown);
-        document.removeEventListener("keyup", handleOnkeyUp);
-        boardElement.removeEventListener("wheel", handleWheel);
-      });
+      // onCleanup(() => {
+      //   document.removeEventListener("keydown", handleOnkeyDown);
+      //   document.removeEventListener("keyup", handleOnkeyUp);
+      //   boardElement.removeEventListener("wheel", handleWheel);
+      // });
     }
   });
 
   const handleScale = (event: any, cb: Function) => {
-    const boardElement = document.getElementById("board");
+    const boardElement = document.getElementById("pane");
     // const backgroundElement: HTMLElement | null =
     //   document.getElementById("background");
     if (boardElement) {
@@ -78,6 +81,10 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
       setScale(cb());
       setScale(Math.min(Math.max(minScale, scale()), maxScale));
       boardElement.style.transform = `scale(${scale()})`;
+      // boardElement.style.marginTop = `${(scale() - 1) * 50}vh`;
+      // boardElement.style.marginLeft = `${(scale() - 1) * 50}vw`;
+      // boardElement.style.marginTop = `${(scale() - 1) * 50}vh`;
+      // boardElement.style.marginLeft = `${(scale() - 1) * 50}vw`;
       // if (backgroundElement) {
       //   backgroundElement.style.transform = `scale(${scale()})`;
       // }
@@ -104,7 +111,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
         type="button"
         id="zoom-in"
         class={style.zoomIn}
-        onclick={(e) => handleScale(e, () => scale() + 0.5)}
+        onclick={(e) => handleScale(e, () => scale() + 0.01)}
       >
         <svg
           fill="none"
@@ -126,7 +133,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
         type="button"
         id="zoom-out"
         class={style.zoomOut}
-        onclick={(e) => handleScale(e, () => Math.max(1, scale() - 0.5))}
+        onclick={(e) => handleScale(e, () => Math.max(1, scale() - 0.01))}
       >
         <svg
           fill="currentColor"

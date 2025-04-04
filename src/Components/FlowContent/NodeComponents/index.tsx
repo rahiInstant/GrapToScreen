@@ -56,6 +56,10 @@ const NodeMain: Component<NodeProps> = (props) => {
     <div
       id="node"
       class={props.selected ? style.nodeSelected : style.node}
+      // classList={{
+      //   [style.nodeSelected]: props.selected,
+      //   [style.node]: !props.selected,
+      // }}
       style={{
         transform: `translate(${props.x}px, ${props.y}px)`,
       }}
