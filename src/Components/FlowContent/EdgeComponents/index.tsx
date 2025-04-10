@@ -15,8 +15,10 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     x: props.position.x0 + (props.position.x1 - props.position.x0) / 2,
     y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
   });
+  const board = document.getElementById("board");
 
-  const { setEdgeLength, setEdgeEnd, scale } = useStateContext();
+  const { setEdgeLength, setEdgeEnd, scale, transform, edgeLength } =
+    useStateContext();
 
   createEffect(() => {
     const middleX =
@@ -28,17 +30,20 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const dx = props.position.x1 - props.position.x0;
     const dy = props.position.y1 - props.position.y0;
     const length = Math.sqrt(dx * dx + dy * dy);
-    // console.log(props.position.x0, props.position.y0);
+    console.log(props.position.x0, props.position.y0);
     // console.log({px:props.position.x1, py:props.position.y1});
+
+    console.log("edgelength", edgeLength());
 
     setEdgeLength(length);
     setEdgeEnd({ x: props.position.x1, y: props.position.y1 });
   });
 
   const handleOnMouseDownEdge = (event: any) => {
+    console.log("transform", transform().x, transform().y);
     event.stopPropagation();
     props.onMouseDownEdge();
-    console.log(document.getElementById("boardWrapper")?.offsetHeight)
+    console.log(document.getElementById("boardWrapper")?.offsetHeight);
   };
 
   const handleOnMouseDeleteEdge = (event: any) => {
@@ -47,6 +52,64 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
   };
 
   const extra = () => Math.abs(props.position.x1 - props.position.x0) / 2;
+
+  const createFiveStepPath = (
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number
+  ) => {
+    const corner = 10;
+
+    // Define horizontal positions
+    const midTopX = x0 + 40; // right offset from source
+    const midLeftX = x1 - 40; // left offset from target
+
+    // Define vertical midpoint
+    const midY = (y0 + y1) / 2;
+
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const midTopY = y0 + 40; // top offset from source
+    const midLeftY = y1 - 40; // bottom offset from target
+    const midX = (x0 + x1) / 2;
+    console.log(dx, dy);
+    let buffer = 20;
+
+    function getCorner() {
+      if (dy > 105 && dy < 135) {
+        return 0;
+      }
+      return corner;
+    }
+
+    if (dx < 40 && edgeLength() > 70) {
+      return `
+      M ${x0} ${y0}
+      L ${midTopX - corner} ${y0}
+      Q ${midTopX} ${y0} ${midTopX} ${y0 + corner}
+  
+      L ${midTopX} ${y0 + 120 - corner}
+      Q ${midTopX} ${y0 + 120} ${midTopX - corner} ${y0 + 120}
+  
+      L ${midLeftX + corner} ${y0 + 120}
+      Q ${midLeftX} ${y0 + 120} ${midLeftX} ${
+        dy > 105 ? y0 + 120 + getCorner() : y0 + 120 - getCorner()
+      }
+  
+      L ${midLeftX} ${dy > 105 ? y1 - getCorner() : y1 + getCorner()}
+      Q ${midLeftX} ${y1} ${midLeftX + corner} ${y1}
+  
+      L ${x1} ${y1}
+    `;
+    }
+
+    return `M ${props.position.x0} ${props.position.y0} C ${
+      props.position.x0 + extra()
+    } ${props.position.y0}, ${props.position.x1 - extra()} ${
+      props.position.y1
+    }, ${props.position.x1} ${props.position.y1}`;
+  };
 
   return (
     <svg class={style.wrapper}>
@@ -64,7 +127,6 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
         </marker>
       </defs>
       <path
-
         class={
           props.isNew
             ? style.edgeNew
@@ -72,29 +134,16 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
             ? style.edgeSelected
             : style.edge
         }
-        d={`M ${props.position.x0} ${props.position.y0} C ${
-          props.position.x0 + extra()
-        } ${props.position.y0}, ${props.position.x1 - extra()} ${
+        d={createFiveStepPath(
+          props.position.x0,
+          props.position.y0,
+          props.position.x1,
           props.position.y1
-        }, ${props.position.x1} ${props.position.y1}`}
+        )}
         marker-end="url(#arrowhead)"
         onMouseDown={handleOnMouseDownEdge}
       ></path>
-      {/* <path
-    d={`M ${props.position.x1-6} ${props.position.y1-6} L ${
-      props.position.x1-6
-    } ${props.position.y1 - 12} L ${props.position.x1 -5.5} ${
-      props.position.y1 - 12.5
-    } L ${props.position.x1 + 2.5} ${props.position.y1 - 8.75} L ${
-      props.position.x1 + 2
-    } ${props.position.y1 - 7.25} L ${props.position.x1 -5.5} ${
-      props.position.y1 -.5
-    } L ${props.position.x1 -5.5} ${props.position.y1 -1} L ${
-      props.position.x1-6
-    } ${props.position.y1-6} L ${props.position.x1-6} ${props.position.y1-6}`}
-    stroke-width="2"
-    fill="white"
-  />  */}
+
       <g
         class={props.selected ? style.delete : style.deleteHidden}
         transform={`translate(${middlePoint().x}, ${

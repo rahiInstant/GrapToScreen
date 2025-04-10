@@ -71,6 +71,7 @@ const Vertex: Component<VertexProps> = (props) => {
   ) {
     // console.log(props.busyIndex.get());
     event.stopPropagation();
+    console.log(event.clientX, event.clientY);
     const { left, right, top, bottom } = outputRef.getBoundingClientRect();
     // console.log(left, right, top, bottom);  
     const centerX = left + Math.abs(left - right) / 2;

@@ -20,7 +20,9 @@ import {
   setIsOpen,
   inputRef,
   edgeEnd,
-  setEdgeEnd
+  setEdgeEnd,
+  transform,
+  setTransform,
 } from "./state";
 import { Edge } from "../ButtonComponents/Types";
 
@@ -46,6 +48,8 @@ export const StateContext = createContext<{
   inputRef: HTMLInputElement;
   edgeEnd:() => {x: number, y: number}
   setEdgeEnd:(edgeEnd: {x: number, y: number}) => void
+  transform: () => { x: number; y: number };
+  setTransform: (transform: { x: number; y: number }) => void;
 }>({
   scale,
   setScale,
@@ -67,5 +71,7 @@ export const StateContext = createContext<{
   setIsOpen,
   inputRef,
   edgeEnd,
-  setEdgeEnd
+  setEdgeEnd,
+  transform,
+  setTransform,
 });

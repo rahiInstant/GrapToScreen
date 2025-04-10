@@ -19,6 +19,7 @@ import {
   outputVertexDuty,
 } from "../ButtonComponents/Types";
 import useStateContext from "./useStateContext";
+import Background from "./Background";
 interface CustomNode {
   id: string;
   numberInputs: number;
@@ -139,6 +140,7 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
       class="w-screen h-screen overflow-hidden relative z-0"
       tabIndex={0}
     >
+      {/* <Background/> */}
       <SideBar
         onClickAdd={handleOnClickAddNode}
         // onClickDelete={handleOnClickDeleteNode}

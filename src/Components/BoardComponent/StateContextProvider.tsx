@@ -22,6 +22,8 @@ import {
   inputRef,
   edgeEnd,
   setEdgeEnd,
+  transform,
+  setTransform,
 } from "./state";
 
 const StateContextProvider: ParentComponent = (props) => {
@@ -50,6 +52,8 @@ const StateContextProvider: ParentComponent = (props) => {
         inputRef,
         edgeEnd,
         setEdgeEnd,
+        transform,
+        setTransform,
       }}
     >
       {props.children}

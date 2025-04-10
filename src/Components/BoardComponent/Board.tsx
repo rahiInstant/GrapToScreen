@@ -78,7 +78,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   }>({ x: -1, y: -1 });
   const [boardDragging, setBoardDragging] = createSignal<boolean>(false);
   const [selectedNode, setSelectedNode] = createSignal<string | null>(null);
-  const [transform, setTransform] = createSignal({ x: 0, y: 0 });
+  // const [transform, setTransform] = createSignal({ x: 0, y: 0 });
   const [preTransform, setPreTransform] = createSignal({ x: 0, y: 0 });
   const {
     draggable,
@@ -90,7 +90,14 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     setEdges,
     setNewEdge,
     edgeEnd,
+    transform,
+    setTransform,
   } = useStateContext();
+  const [cursor, setCursor] = createSignal({ x: 0, y: 0 });
+  const [offset, setOffset] = createSignal<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
   const [selectedEdge, setSelectedEdge] = createSignal<string | null>(null);
   const [insideInput, setInsideInput] = createSignal<{
     nodeId: string;
@@ -100,6 +107,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   } | null>(null);
   // console.log(draggable())
   const handleOnMouseMove = (event: any) => {
+    setCursor({ x: event.x, y: event.y });
     if (clickedPosition().x >= 0 && clickedPosition().y >= 0) {
       const isKeyPress = isCtrlPressed() || isSpacePressed();
       if (selectedNode() !== null) {
@@ -151,8 +159,9 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         const deltaX = event.x - clickedPosition().x;
         const deltaY = event.y - clickedPosition().y;
         // console.log(clickedPosition());
-        setTransform((prev) => {
-          return { x: deltaX + preTransform().x, y: deltaY + preTransform().y };
+        setTransform({
+          x: deltaX + preTransform().x,
+          y: deltaY + preTransform().y,
         });
         const boardWrapperElement = document.getElementById("board");
         // if (boardWrapperElement) {
@@ -163,18 +172,24 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     }
 
     if (newEdge() !== null) {
-      const boardWrapperElement = document.getElementById("pane");
+      const boardWrapperElement = document.getElementById("boardWrapper");
+
       if (boardWrapperElement) {
         newEdge()?.currEndPosition.set({
-          x:
-            (event.x - transform().x + boardWrapperElement.scrollTop) /
-            scale(),
-          y:
-            (event.y - transform().y + boardWrapperElement.scrollLeft) /
-            scale(),
+          x: (event.x - transform().x) / scale(),
+          y: (event.y - transform().y) / scale(),
         });
       }
     }
+    // if (newEdge() !== null) {
+    //   const boardWrapperElement = document.getElementById("boardWrapper");
+    //   if (boardWrapperElement) {
+    //     newEdge()?.currEndPosition.set({
+    //       x: (event.x - transform().x) / scale(),
+    //       y: (event.y - transform().y) / scale(),
+    //     });
+    //   }
+    // }
   };
 
   const handleOnMouseUp = () => {
@@ -196,7 +211,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       const nodeStart = nodes().find((node) => node.id === nodeStartId);
       const nodeEnd = nodes().find((node) => node.id === nodeEndId);
 
-      const boardWrapperElement = document.getElementById("pane");
+      const boardWrapperElement = document.getElementById("boardWrapper");
 
       if (nodeStart && nodeEnd && boardWrapperElement) {
         const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
@@ -214,27 +229,48 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         nodeStart.outputEdgeIds.set([...nodeStart.outputEdgeIds.get(), edgeId]);
         nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
 
-        // Update edge current positions
+        // // Update edge current positions
         newEdge()!.prevStartPosition.set((_) => {
           return {
-            x: (newEdge()!.currStartPosition.get().x - transform().x+ boardWrapperElement.scrollTop) / scale(),
-            y: (newEdge()!.currStartPosition.get().y - transform().y+ boardWrapperElement.scrollLeft) / scale(),
+            x: (newEdge()!.currStartPosition.get().x - transform().x) / scale(),
+            y: (newEdge()!.currStartPosition.get().y - transform().y) / scale(),
           };
         });
 
         newEdge()!.prevEndPosition.set((_) => {
           return {
-            x: (insideInput()!.positionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
-            y: (insideInput()!.positionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
+            x: (insideInput()!.positionX - transform().x) / scale(),
+            y: (insideInput()!.positionY - transform().y) / scale(),
           };
         });
 
         newEdge()!.currEndPosition.set((_) => {
           return {
-            x: (insideInput()!.positionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
-            y: (insideInput()!.positionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
+            x: (insideInput()!.positionX - transform().x) / scale(),
+            y: (insideInput()!.positionY - transform().y) / scale(),
           };
         });
+        // Update edge current positions
+        // newEdge()!.prevStartPosition.set((_) => {
+        //   return {
+        //     x: (newEdge()!.currStartPosition.get().x - transform().x) / scale(),
+        //     y: (newEdge()!.currStartPosition.get().y - transform().y) / scale(),
+        //   };
+        // });
+
+        // newEdge()!.prevEndPosition.set((_) => {
+        //   return {
+        //     x: (insideInput()!.positionX - transform().x) / scale(),
+        //     y: (insideInput()!.positionY - transform().y) / scale(),
+        //   };
+        // });
+
+        // newEdge()!.currEndPosition.set((_) => {
+        //   return {
+        //     x: (insideInput()!.positionX - transform().x) / scale(),
+        //     y: (insideInput()!.positionY - transform().y) / scale(),
+        //   };
+        // });
 
         // Add new edge
         setEdges([
@@ -324,38 +360,84 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     outputIndex: number,
     vertexId: string
   ) {
+    console.log(
+      outputPositionX,
+      outputPositionY,
+      outputPositionX - transform().x,
+      outputPositionY - transform().y
+    );
+    // setOffset({
+    //   x: (window.innerWidth * (1 / scale() - 1)) / 2,
+    //   y: (window.innerHeight * (1 / scale() - 1)) / 2,
+    // });
     setSelectedNode(null);
     const boardWrapperElement = document.getElementById("pane");
-    // console.log(boardWrapperElement?.scrollLeft, boardWrapperElement?.scrollTop);
+    console.log(scale());
+    // console.log(
+    //   boardWrapperElement?.scrollLeft,
+    //   boardWrapperElement?.scrollTop
+    // );
+    // console.log(offset().x, offset().y);
+    console.log("offset", offset().x, offset().y);
     if (boardWrapperElement) {
       const [prevEdgeStart, setPrevEdgeStart] = createSignal<{
         x: number;
         y: number;
       }>({
-        x: (outputPositionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
-        y: (outputPositionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
+        x: (outputPositionX - transform().x) / scale(),
+        y: (outputPositionY - transform().y) / scale(),
       });
       const [prevEdgeEnd, setPrevEdgeEnd] = createSignal<{
         x: number;
         y: number;
       }>({
-        x: (outputPositionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
-        y: (outputPositionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
+        x: (outputPositionX - transform().x) / scale(),
+        y: (outputPositionY - transform().y) / scale(),
       });
       const [currEdgeStart, setCurrEdgeStart] = createSignal<{
         x: number;
         y: number;
       }>({
-        x: (outputPositionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
-        y: (outputPositionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
+        x: (outputPositionX - transform().x ) / scale(),
+        y: (outputPositionY - transform().y ) / scale(),
       });
       const [currEdgeEnd, setCurrEdgeEnd] = createSignal<{
         x: number;
         y: number;
       }>({
-        x: (outputPositionX - transform().x+ boardWrapperElement.scrollTop) / scale(),
-        y: (outputPositionY - transform().y+ boardWrapperElement.scrollLeft) / scale(),
+        x: (outputPositionX - transform().x) / scale(),
+        y: (outputPositionY - transform().y) / scale(),
       });
+      console.log(scale());
+      console.log("from down output", currEdgeStart().x, currEdgeStart().y);
+      // const [prevEdgeStart, setPrevEdgeStart] = createSignal<{
+      //   x: number;
+      //   y: number;
+      // }>({
+      //   x: (outputPositionX - transform().x) / scale(),
+      //   y: (outputPositionY - transform().y) / scale(),
+      // });
+      // const [prevEdgeEnd, setPrevEdgeEnd] = createSignal<{
+      //   x: number;
+      //   y: number;
+      // }>({
+      //   x: (outputPositionX - transform().x) / scale(),
+      //   y: (outputPositionY - transform().y) / scale(),
+      // });
+      // const [currEdgeStart, setCurrEdgeStart] = createSignal<{
+      //   x: number;
+      //   y: number;
+      // }>({
+      //   x: (outputPositionX - transform().x) / scale(),
+      //   y: (outputPositionY - transform().y) / scale(),
+      // });
+      // const [currEdgeEnd, setCurrEdgeEnd] = createSignal<{
+      //   x: number;
+      //   y: number;
+      // }>({
+      //   x: (outputPositionX - transform().x) / scale(),
+      //   y: (outputPositionY - transform().y) / scale(),
+      // });
 
       setNewEdge({
         id: "",
@@ -397,89 +479,89 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     const dx = edgeEnd().x - inputBuffX;
     const dy = edgeEnd().y - inputBuffY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    // console.log(distance);
-    // if (distance < 80) {
-    //   // console.log(distance);
-    //   if (newEdge() !== null && insideInput() !== null) {
-    //     const nodeStartId = newEdge()!.nodeStartId;
-    //     const nodeEndId = insideInput()!.nodeId;
+    console.log(distance);
+    if (distance < 80) {
+      // console.log(distance);
+      if (newEdge() !== null && insideInput() !== null) {
+        const nodeStartId = newEdge()!.nodeStartId;
+        const nodeEndId = insideInput()!.nodeId;
 
-    //     const nodeStart = nodes().find((node) => node.id === nodeStartId);
-    //     const nodeEnd = nodes().find((node) => node.id === nodeEndId);
+        const nodeStart = nodes().find((node) => node.id === nodeStartId);
+        const nodeEnd = nodes().find((node) => node.id === nodeEndId);
 
-    //     const boardWrapperElement = document.getElementById("boardWrapper");
+        const boardWrapperElement = document.getElementById("boardWrapper");
 
-    //     if (nodeStart && nodeEnd && boardWrapperElement) {
-    //       const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
-    //         nodeEnd.id
-    //       }_${insideInput()?.inputIndex}`;
+        if (nodeStart && nodeEnd && boardWrapperElement) {
+          const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
+            nodeEnd.id
+          }_${insideInput()?.inputIndex}`;
 
-    //       if (
-    //         nodeStart.outputEdgeIds.get().includes(edgeId) &&
-    //         nodeEnd.inputEdgeIds.get().includes(edgeId)
-    //       ) {
-    //         setNewEdge(null);
-    //         return;
-    //       }
+          if (
+            nodeStart.outputEdgeIds.get().includes(edgeId) &&
+            nodeEnd.inputEdgeIds.get().includes(edgeId)
+          ) {
+            setNewEdge(null);
+            return;
+          }
 
-    //       nodeStart.outputEdgeIds.set([
-    //         ...nodeStart.outputEdgeIds.get(),
-    //         edgeId,
-    //       ]);
-    //       nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
+          nodeStart.outputEdgeIds.set([
+            ...nodeStart.outputEdgeIds.get(),
+            edgeId,
+          ]);
+          nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
 
-    //       // Update edge current positions
-    //       newEdge()!.prevStartPosition.set((_) => {
-    //         return {
-    //           x:
-    //             (newEdge()!.currStartPosition.get().x - transform().x) /
-    //             scale(),
-    //           y:
-    //             (newEdge()!.currStartPosition.get().y - transform().y) /
-    //             scale(),
-    //         };
-    //       });
+          // Update edge current positions
+          newEdge()!.prevStartPosition.set((_) => {
+            return {
+              x:
+                (newEdge()!.currStartPosition.get().x - transform().x) /
+                scale(),
+              y:
+                (newEdge()!.currStartPosition.get().y - transform().y) /
+                scale(),
+            };
+          });
 
-    //       newEdge()!.prevEndPosition.set((_) => {
-    //         return {
-    //           x: (insideInput()!.positionX - transform().x) / scale(),
-    //           y: (insideInput()!.positionY - transform().y) / scale(),
-    //         };
-    //       });
+          newEdge()!.prevEndPosition.set((_) => {
+            return {
+              x: (insideInput()!.positionX - transform().x) / scale(),
+              y: (insideInput()!.positionY - transform().y) / scale(),
+            };
+          });
 
-    //       newEdge()!.currEndPosition.set((_) => {
-    //         return {
-    //           x: (insideInput()!.positionX - transform().x) / scale(),
-    //           y: (insideInput()!.positionY - transform().y) / scale(),
-    //         };
-    //       });
+          newEdge()!.currEndPosition.set((_) => {
+            return {
+              x: (insideInput()!.positionX - transform().x) / scale(),
+              y: (insideInput()!.positionY - transform().y) / scale(),
+            };
+          });
 
-    //       // Add new edge
-    //       setEdges([
-    //         ...edges(),
-    //         {
-    //           ...newEdge()!,
-    //           id: edgeId,
-    //           nodeEndId: nodeEnd.id,
-    //           nodeEndInputIndex: insideInput()!.inputIndex,
-    //         },
-    //       ]);
-    //       const startNode = nodes().find(
-    //         (node) => node.id == newEdge()?.nodeStartId
-    //       );
-    //       // console.log("startNode", newEdge());
-    //       if (startNode) {
-    //         if (newEdge()?.outputVertexId !== undefined) {
-    //           startNode.busyIndex.set([
-    //             ...startNode.busyIndex.get(),
-    //             newEdge()!.outputVertexId,
-    //           ]);
-    //         }
-    //       }
-    //       setNewEdge(null);
-    //     }
-    //   }
-    // }
+          // Add new edge
+          setEdges([
+            ...edges(),
+            {
+              ...newEdge()!,
+              id: edgeId,
+              nodeEndId: nodeEnd.id,
+              nodeEndInputIndex: insideInput()!.inputIndex,
+            },
+          ]);
+          const startNode = nodes().find(
+            (node) => node.id == newEdge()?.nodeStartId
+          );
+          // console.log("startNode", newEdge());
+          if (startNode) {
+            if (newEdge()?.outputVertexId !== undefined) {
+              startNode.busyIndex.set([
+                ...startNode.busyIndex.get(),
+                newEdge()!.outputVertexId,
+              ]);
+            }
+          }
+          setNewEdge(null);
+        }
+      }
+    }
   }
   function handleOnMouseLeaveInput(nodeId: string, inputIndex: number) {
     if (
@@ -578,12 +660,16 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     setNodes([...nodes().filter((node) => node.id !== id)]);
     setSelectedNode(null);
   }
+  // const [offset, setOffset] = createSignal<{ x: number; y: number }>({
+  //   x: (window.innerWidth * (1 / scale() - 1)) / 2,
+  //   y: (window.innerHeight * (1 / scale() - 1)) / 2,
+  // });
 
   return (
     // pane
     <div
       id="pane"
-      class="w-screen h-screen absolute top-0 left-0"
+      class="absolute top-0 left-0"
       classList={{
         [style["dot-flow__pane"]]: true,
         [style["draggable"]]: draggable(),
@@ -595,6 +681,11 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         "background-position": `${transform().x % 20}px ${
           transform().y % 20
         }px`,
+        transform: `scale(${scale()})`,
+        width: `calc(100vw * ${1 / scale()})`,
+        height: `calc(100vh * ${1 / scale()})`,
+        // "transform-origin": `${cursor().x}px ${cursor().y}px`,
+        // 'background-size': `${Math.round(20 * scale())}px ${Math.round(20 * scale())}px`,
       }}
       onPointerDown={handleOnMouseDown}
       onMouseUp={handleOnMouseUp}
@@ -611,7 +702,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           transform: `translate(${transform().x}px, ${
             transform().y
           }px) scale(${scale()})`,
-          border: "1px solid #000",
+          // border: "1px solid #000",
         }}
       >
         <For each={nodes()}>

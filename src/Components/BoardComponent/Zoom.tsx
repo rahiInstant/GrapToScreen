@@ -14,7 +14,7 @@ interface ZoomProps {
   maxScale?: number;
 }
 
-const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
+const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
   // const [scale, setScale] = createSignal<number>(1);
 
   const {
@@ -29,6 +29,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
 
   onMount(() => {
     const boardElement = document.getElementById("pane");
+    // const backgroundElement = document.getElementById("background");
     // const backgroundElement: HTMLElement | null =
     //   document.getElementById("background");
 
@@ -64,6 +65,9 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
       document.addEventListener("keyup", handleOnkeyUp);
       document.addEventListener("keydown", handleOnkeyDown);
       boardElement.addEventListener("wheel", handleWheel, { passive: false });
+      // backgroundElement.addEventListener("wheel", handleWheel, {
+      //   passive: false,
+      // });
       // onCleanup(() => {
       //   document.removeEventListener("keydown", handleOnkeyDown);
       //   document.removeEventListener("keyup", handleOnkeyUp);
@@ -74,13 +78,20 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
 
   const handleScale = (event: any, cb: Function) => {
     const boardElement = document.getElementById("pane");
+    const backgroundElement = document.getElementById("background");
+
     // const backgroundElement: HTMLElement | null =
     //   document.getElementById("background");
     if (boardElement) {
       event.preventDefault();
+      console.log(cb());
       setScale(cb());
+      console.log(100 * (1 / scale() - 1));
       setScale(Math.min(Math.max(minScale, scale()), maxScale));
-      boardElement.style.transform = `scale(${scale()})`;
+      // boardElement.style.transform = `scale(${scale()})`;
+      // boardElement.style.backgroundSize = `${20 * scale()}px ${20 * scale()}px`;
+      // backgroundElement.style.transform = `scale(${scale()})`;
+
       // boardElement.style.marginTop = `${(scale() - 1) * 50}vh`;
       // boardElement.style.marginLeft = `${(scale() - 1) * 50}vw`;
       // boardElement.style.marginTop = `${(scale() - 1) * 50}vh`;
@@ -133,7 +144,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 1, maxScale = 2 }) => {
         type="button"
         id="zoom-out"
         class={style.zoomOut}
-        onclick={(e) => handleScale(e, () => Math.max(1, scale() - 0.01))}
+        onclick={(e) => handleScale(e, () => Math.max(0, scale() - 0.01))}
       >
         <svg
           fill="currentColor"
