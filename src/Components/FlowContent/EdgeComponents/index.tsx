@@ -53,12 +53,7 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
 
   const extra = () => Math.abs(props.position.x1 - props.position.x0) / 2;
 
-  const createFiveStepPath = (
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number
-  ) => {
+  const getPath = (x0: number, y0: number, x1: number, y1: number) => {
     const corner = 10;
 
     // Define horizontal positions
@@ -73,6 +68,8 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const midTopY = y0 + 40; // top offset from source
     const midLeftY = y1 - 40; // bottom offset from target
     const midX = (x0 + x1) / 2;
+    const verticalBuffer = 120;
+    const edgeDirectionChangeThreshold = 105;
     console.log(dx, dy);
     let buffer = 20;
 
@@ -89,15 +86,21 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
       L ${midTopX - corner} ${y0}
       Q ${midTopX} ${y0} ${midTopX} ${y0 + corner}
   
-      L ${midTopX} ${y0 + 120 - corner}
-      Q ${midTopX} ${y0 + 120} ${midTopX - corner} ${y0 + 120}
-  
-      L ${midLeftX + corner} ${y0 + 120}
-      Q ${midLeftX} ${y0 + 120} ${midLeftX} ${
-        dy > 105 ? y0 + 120 + getCorner() : y0 + 120 - getCorner()
+      L ${midTopX} ${y0 + verticalBuffer - corner}
+      Q ${midTopX} ${y0 + verticalBuffer} ${midTopX - corner} ${
+        y0 + verticalBuffer
       }
   
-      L ${midLeftX} ${dy > 105 ? y1 - getCorner() : y1 + getCorner()}
+      L ${midLeftX + corner} ${y0 + verticalBuffer}
+      Q ${midLeftX} ${y0 + verticalBuffer} ${midLeftX} ${
+        dy > edgeDirectionChangeThreshold
+          ? y0 + verticalBuffer + getCorner()
+          : y0 + verticalBuffer - getCorner()
+      }
+  
+      L ${midLeftX} ${
+        dy > edgeDirectionChangeThreshold ? y1 - getCorner() : y1 + getCorner()
+      }
       Q ${midLeftX} ${y1} ${midLeftX + corner} ${y1}
   
       L ${x1} ${y1}
@@ -134,7 +137,7 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
             ? style.edgeSelected
             : style.edge
         }
-        d={createFiveStepPath(
+        d={getPath(
           props.position.x0,
           props.position.y0,
           props.position.x1,
