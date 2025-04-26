@@ -30,12 +30,13 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const dx = props.position.x1 - props.position.x0;
     const dy = props.position.y1 - props.position.y0;
     const length = Math.sqrt(dx * dx + dy * dy);
-    console.log(props.position.x0, props.position.y0);
+    // console.log(props.position.x0, props.position.y0);
     // console.log({px:props.position.x1, py:props.position.y1});
 
-    console.log("edgelength", edgeLength());
+    // console.log("edge length", edgeLength());
+    // console.log(scale());
 
-    setEdgeLength(length);
+    // setEdgeLength(length);
     setEdgeEnd({ x: props.position.x1, y: props.position.y1 });
   });
 
@@ -51,9 +52,10 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     props.onClickDeleteEdge();
   };
 
-  const extra = () => Math.abs(props.position.x1 - props.position.x0) / 2;
+  const getSmoothCurvedOffset = () =>
+    Math.abs(props.position.x1 - props.position.x0) / 2;
 
-  const getPath = (x0: number, y0: number, x1: number, y1: number) => {
+  const getPathString = (x0: number, y0: number, x1: number, y1: number) => {
     const corner = 10;
 
     // Define horizontal positions
@@ -70,7 +72,7 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const midX = (x0 + x1) / 2;
     const verticalBuffer = 120;
     const edgeDirectionChangeThreshold = 105;
-    console.log(dx, dy);
+    // console.log(dx, dy);
     let buffer = 20;
 
     function getCorner() {
@@ -80,7 +82,7 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
       return corner;
     }
 
-    if (dx < 40 && edgeLength() > 70) {
+    if (dx < 40) {
       return `
       M ${x0} ${y0}
       L ${midTopX - corner} ${y0}
@@ -107,17 +109,25 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     `;
     }
 
-    return `M ${props.position.x0} ${props.position.y0} C ${
-      props.position.x0 + extra()
-    } ${props.position.y0}, ${props.position.x1 - extra()} ${
-      props.position.y1
-    }, ${props.position.x1} ${props.position.y1}`;
+    return `M ${x0} ${y0} C ${x0 + getSmoothCurvedOffset()} ${y0}, ${
+      x1 - getSmoothCurvedOffset()
+    } ${y1}, ${x1} ${y1}`;
   };
 
   return (
-    <svg class={style.wrapper}>
+    <svg
+      class={style.wrapper}
+      // style={{
+      //   transform: `translate(${transform().x}px, ${
+      //     transform().y
+      //   }px) scale(${scale()})`,
+      //   "transform-origin": "0 0",
+      //   overflow: "visible",
+      // }}
+    >
       <defs>
         <marker
+          // class="z-100"
           id="arrowhead"
           markerWidth="6"
           markerHeight="6"
@@ -130,14 +140,8 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
         </marker>
       </defs>
       <path
-        class={
-          props.isNew
-            ? style.edgeNew
-            : props.selected
-            ? style.edgeSelected
-            : style.edge
-        }
-        d={getPath(
+        class={props.isNew ? style.edgeNew : style.edge}
+        d={getPathString(
           props.position.x0,
           props.position.y0,
           props.position.x1,
@@ -148,10 +152,8 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
       ></path>
 
       <g
-        class={props.selected ? style.delete : style.deleteHidden}
-        transform={`translate(${middlePoint().x}, ${
-          middlePoint().y - (props.selected ? 24 : 0)
-        })`}
+        class={style.delete}
+        transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
         onMouseDown={handleOnMouseDeleteEdge}
       >
         <circle class={style.circle}></circle>

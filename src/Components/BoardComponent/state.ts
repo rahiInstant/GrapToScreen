@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js";
-import { Edge } from "../ButtonComponents/Types";
+import { CustomNode, Edge } from "../ButtonComponents/Types";
 
 export const [draggable, setDraggable] = createSignal<boolean>(false);
 export const [isCtrlPressed, setIsCtrlPressed] = createSignal<boolean>(false);
@@ -16,3 +16,20 @@ export const [edgeEnd, setEdgeEnd] = createSignal<{ x: number; y: number }>({
   y: 0,
 });
 export const [transform, setTransform] = createSignal({ x: 0, y: 0 });
+export const [nodes, setNodes] = createSignal<CustomNode[]>([]);
+export const [preTransform, setPreTransform] = createSignal({ x: 0, y: 0 });
+export const [selectedNode, setSelectedNode] = createSignal<string | null>(
+  null
+);
+
+export const [pendingOutput, setPendingOutput] = createSignal<{
+  nodeId: string;
+  outputIndex: number;
+  x: number;
+  y: number;
+} | null>(null);
+
+export const [lastClickPosition, setLastClickPosition] = createSignal<{
+  x: number;
+  y: number;
+} | null>(null);

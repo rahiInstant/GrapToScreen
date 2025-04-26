@@ -14,42 +14,44 @@ import Board from "./Board";
 import StateContextProvider from "./StateContextProvider";
 import { nodeMark } from "../ButtonComponents/nodeMark";
 import {
+  CustomNode,
   customNodeProps,
   nodeType,
   outputVertexDuty,
 } from "../ButtonComponents/Types";
 import useStateContext from "./useStateContext";
 import Background from "./Background";
-interface CustomNode {
-  id: string;
-  numberInputs: number;
-  numberOutputs: number;
-  isInputVertex: boolean;
-  isOutputVertex: boolean;
-  inputVertexIds: Array<string>;
-  outputVertexIds: Array<string>;
-  busyIndex: {
-    get: Accessor<string[]>;
-    set: Setter<string[]>;
-  };
-  content: Component<customNodeProps>;
-  prevPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  currPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  inputEdgeIds: {
-    get: Accessor<string[]>;
-    set: Setter<string[]>;
-  };
-  outputEdgeIds: {
-    get: Accessor<string[]>;
-    set: Setter<string[]>;
-  };
-}
+// import { pendingOutput } from "./state";
+// interface CustomNode {
+//   id: string;
+//   numberInputs: number;
+//   numberOutputs: number;
+//   isInputVertex: boolean;
+//   isOutputVertex: boolean;
+//   inputVertexIds: Array<string>;
+//   outputVertexIds: Array<string>;
+//   busyIndex: {
+//     get: Accessor<string[]>;
+//     set: Setter<string[]>;
+//   };
+//   content: Component<customNodeProps>;
+//   prevPosition: {
+//     get: Accessor<{ x: number; y: number }>;
+//     set: Setter<{ x: number; y: number }>;
+//   };
+//   currPosition: {
+//     get: Accessor<{ x: number; y: number }>;
+//     set: Setter<{ x: number; y: number }>;
+//   };
+//   inputEdgeIds: {
+//     get: Accessor<string[]>;
+//     set: Setter<string[]>;
+//   };
+//   outputEdgeIds: {
+//     get: Accessor<string[]>;
+//     set: Setter<string[]>;
+//   };
+// }
 
 interface Edge {
   id: string;
@@ -80,26 +82,91 @@ interface DotFlowProps {
 }
 
 const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
-  const [nodes, setNodes] = createSignal<CustomNode[]>([]);
-  const {} = useStateContext();
+  // const [nodes, setNodes] = createSignal<CustomNode[]>([]);
+  const [baseNode, setBaseNode] = createSignal<CustomNode>();
+  const {
+    nodes,
+    setNodes,
+    selectedNode,
+    setSelectedNode,
+    pendingOutput,
+    lastClickPosition,
+    setEdges,
+    edges,
+    transform,
+    scale,
+  } = useStateContext();
+
   function handleOnClickAddNode(nodeName: string) {
-    const randomX = Math.random() * window.innerWidth;
-    const randomY = Math.random() * window.innerHeight;
-    // console.log();
+    let nodeX = window.innerWidth / 2;
+    let nodeY = window.innerHeight / 2;
+
+    const selected = selectedNode();
+    const pending = pendingOutput();
+    const lastClick = lastClickPosition();
+
+    function getOffsetPositionFromNode(
+      nodeId: string,
+      offsetX = 200,
+      offsetY = 0
+    ): { x: number; y: number } | null {
+      const selectedNodeData = nodes().find((n) => n.id === nodeId);
+      // setBaseNode(baseNode);
+      setBaseNode(selectedNodeData);
+      if (!selectedNodeData) return null;
+
+      const pos = selectedNodeData.currPosition.get();
+      return {
+        x: pos.x + offsetX,
+        y: pos.y + offsetY,
+      };
+    }
+
+    if (selected) {
+      let position = getOffsetPositionFromNode(selected);
+      if (position) {
+        nodeX = position.x;
+        nodeY = position.y;
+      }
+    } else if (pending) {
+      let position = getOffsetPositionFromNode(pending.nodeId);
+      if (position) {
+        nodeX = position.x;
+        nodeY = position.y;
+      }
+    } else if (lastClick) {
+      nodeX = lastClick.x;
+      nodeY = lastClick.y;
+    }
+
     const [nodePrev, setNodePrev] = createSignal<{ x: number; y: number }>({
-      x: randomX,
-      y: randomY,
+      x: nodeX,
+      y: nodeY,
     });
     const [nodeCurr, setNodeCurr] = createSignal<{ x: number; y: number }>({
-      x: randomX,
-      y: randomY,
+      x: nodeX,
+      y: nodeY,
     });
-    // console.log(nodeName)
-    // console.log(node[nodeName].content)
 
     const [inputsEdgeIds, setInputsEdgeIds] = createSignal<string[]>([]);
     const [outputsEdgeIds, setOutputsEdgeIds] = createSignal<string[]>([]);
     const [busyIndex, setBusyIndex] = createSignal<string[]>([]);
+    const inputVertexIds = [
+      ...Array(Number(node[nodeName].numberInputs))
+        .keys()
+        .map(() => {
+          const id = `vertex_${Math.random().toString(36).substring(2, 8)}`;
+          return id;
+        }),
+    ];
+    const outputVertexIds = [
+      ...Array(Number(node[nodeName].numberOutputs))
+        .keys()
+        .map(() => {
+          const id = `vertex_${Math.random().toString(36).substring(2, 8)}`;
+          return id;
+        }),
+    ];
     createRoot(() => {
       setNodes([
         ...nodes(),
@@ -109,20 +176,8 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
           numberOutputs: node[nodeName].numberOutputs,
           isInputVertex: node[nodeName].isInputVertex,
           isOutputVertex: node[nodeName].isOutputVertex,
-          inputVertexIds: [
-            ...Array(Number(node[nodeName].numberInputs))
-              .keys()
-              .map(
-                (v, i) => `vertex_${Math.random().toString(36).substring(2, 8)}`
-              ),
-          ],
-          outputVertexIds: [
-            ...Array(Number(node[nodeName].numberOutputs))
-              .keys()
-              .map(
-                (v, i) => `vertex_${Math.random().toString(36).substring(2, 8)}`
-              ),
-          ],
+          inputVertexIds: inputVertexIds,
+          outputVertexIds: outputVertexIds,
           busyIndex: { get: busyIndex, set: setBusyIndex },
           content: node[nodeName].content,
           prevPosition: { get: nodePrev, set: setNodePrev },
@@ -132,6 +187,84 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
         },
       ]);
     });
+    // console.log(baseNode()!.outputVertexIds);
+    const newNode = nodes()[nodes().length - 1];
+    if (selectedNode()) {
+      const outputVertexRef = document.getElementById(
+        baseNode()!.outputVertexIds[0]
+      );
+      console.log(outputVertexRef);
+
+      const { left, right, top, bottom } =
+        outputVertexRef!.getBoundingClientRect();
+      const centerX = left + Math.abs(left - right) / 2;
+      const centerY = top + Math.abs(top - bottom) / 2;
+      const inputVertexRef = document.getElementById(newNode.inputVertexIds[0]);
+      const {
+        left: left2,
+        right: right2,
+        top: top2,
+        bottom: bottom2,
+      } = inputVertexRef!.getBoundingClientRect();
+      const centerX2 = left2 + Math.abs(left2 - right2) / 2;
+      const centerY2 = top2 + Math.abs(top2 - bottom2) / 2;
+      const [prevEdgeStart, setPrevEdgeStart] = createSignal<{
+        x: number;
+        y: number;
+      }>({
+        x: (centerX - transform().x) / scale(),
+        y: (centerY - transform().y) / scale(),
+      });
+      const [prevEdgeEnd, setPrevEdgeEnd] = createSignal<{
+        x: number;
+        y: number;
+      }>({
+        x: (centerX2 - transform().x) / scale(),
+        y: (centerY2 - transform().y) / scale(),
+      });
+      const [currEdgeStart, setCurrEdgeStart] = createSignal<{
+        x: number;
+        y: number;
+      }>({
+        x: (centerX - transform().x) / scale(),
+        y: (centerY - transform().y) / scale(),
+      });
+      const [currEdgeEnd, setCurrEdgeEnd] = createSignal<{
+        x: number;
+        y: number;
+      }>({
+        x: (centerX2 - transform().x) / scale(),
+        y: (centerY2 - transform().y) / scale(),
+      });
+      const edgeId = `edge_${baseNode()!.id}_${0}_${newNode.id}_${0}`;
+      baseNode()!.outputEdgeIds.set([
+        ...baseNode()!.outputEdgeIds.get(),
+        edgeId,
+      ]);
+      newNode.inputEdgeIds.set([...newNode.inputEdgeIds.get(), edgeId]);
+      setEdges([
+        ...edges(),
+        {
+          id: edgeId,
+          nodeStartId: baseNode()!.id,
+          nodeEndId: newNode.id,
+          inputIndex: 0,
+          outputIndex: 0,
+          outputVertexId: baseNode()!.outputVertexIds[0],
+          prevStartPosition: { get: prevEdgeStart, set: setPrevEdgeStart },
+          prevEndPosition: { get: prevEdgeEnd, set: setPrevEdgeEnd },
+          currStartPosition: { get: currEdgeStart, set: setCurrEdgeStart },
+          currEndPosition: { get: currEdgeEnd, set: setCurrEdgeEnd },
+        },
+      ]);
+      baseNode()!.busyIndex.set([
+        ...baseNode()!.busyIndex.get(),
+        baseNode()!.outputVertexIds[0],
+      ]);
+    }
+
+    setSelectedNode(newNode.id);
+    // connect with base node
   }
 
   return (
@@ -141,11 +274,7 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
       tabIndex={0}
     >
       {/* <Background/> */}
-      <SideBar
-        onClickAdd={handleOnClickAddNode}
-        // onClickDelete={handleOnClickDeleteNode}
-        nodeMark={nodeMark}
-      />
+      <SideBar onClickAdd={handleOnClickAddNode} nodeMark={nodeMark} />
       <StateContextProvider>
         <Zoom />
       </StateContextProvider>

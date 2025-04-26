@@ -23,6 +23,8 @@ interface NodeProps {
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
+  // inputVertexIds: Record<string, HTMLElement | undefined>;
+  // outputVertexIds: Record<string, HTMLElement | undefined>;
   inputVertexIds: Array<string>;
   outputVertexIds: Array<string>;
   busyIndex: {
@@ -42,8 +44,8 @@ interface NodeProps {
   onMouseEnterInput: (
     inputPositionX: number,
     inputPositionY: number,
-    inputBuffX: number,
-    inputBuffY: number,
+    // inputBuffX: number,
+    // inputBuffY: number,
     nodeId: string,
     inputIndex: number
   ) => void;
@@ -54,7 +56,7 @@ interface NodeProps {
 const NodeMain: Component<NodeProps> = (props) => {
   return (
     <div
-      id="node"
+      id={props.id}
       class={props.selected ? style.nodeSelected : style.node}
       // classList={{
       //   [style.nodeSelected]: props.selected,

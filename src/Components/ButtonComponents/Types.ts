@@ -27,8 +27,8 @@ export interface Edge {
   nodeEndId: string;
   inputIndex: number;
   outputIndex: number;
-  nodeEndInputIndex?: number; 
-  outputVertexId: string
+  nodeEndInputIndex?: number;
+  outputVertexId: string;
   prevStartPosition: {
     get: Accessor<{ x: number; y: number }>;
     set: Setter<{ x: number; y: number }>;
@@ -78,7 +78,38 @@ export interface Node {
   };
 }
 
-
+export interface CustomNode {
+  id: string;
+  numberInputs: number;
+  numberOutputs: number;
+  isInputVertex: boolean;
+  isOutputVertex: boolean;
+  inputVertexIds: Array<string>;
+  outputVertexIds: Array<string>;
+  // inputVertexIds: Record<string, HTMLElement | undefined>;
+  // outputVertexIds: Record<string, HTMLElement | undefined>;
+  busyIndex: {
+    get: Accessor<string[]>;
+    set: Setter<string[]>;
+  };
+  content: Component<customNodeProps>;
+  prevPosition: {
+    get: Accessor<{ x: number; y: number }>;
+    set: Setter<{ x: number; y: number }>;
+  };
+  currPosition: {
+    get: Accessor<{ x: number; y: number }>;
+    set: Setter<{ x: number; y: number }>;
+  };
+  inputEdgeIds: {
+    get: Accessor<string[]>;
+    set: Setter<string[]>;
+  };
+  outputEdgeIds: {
+    get: Accessor<string[]>;
+    set: Setter<string[]>;
+  };
+}
 
 export interface outputVertexDuty {
   [key: string]: string[];

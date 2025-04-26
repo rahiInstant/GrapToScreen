@@ -8,6 +8,8 @@ import {
 import style from "./style.module.css";
 import { StateContext } from "./StateContext";
 import useStateContext from "./useStateContext";
+import { CustomNode } from "../ButtonComponents/Types";
+// import { preTransform } from "./state";
 
 interface ZoomProps {
   minScale?: number;
@@ -15,8 +17,6 @@ interface ZoomProps {
 }
 
 const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
-  // const [scale, setScale] = createSignal<number>(1);
-
   const {
     setDraggable,
     setIsCtrlPressed,
@@ -25,6 +25,10 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
     isSpacePressed,
     scale,
     setScale,
+    nodes,
+    setTransform,
+    setPreTransform,
+    transform,
   } = useStateContext();
 
   onMount(() => {
@@ -32,6 +36,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
     // const backgroundElement = document.getElementById("background");
     // const backgroundElement: HTMLElement | null =
     //   document.getElementById("background");
+    // console.log(window.innerHeight * scale(), window.innerWidth * scale());
 
     const handleOnkeyUp = (event: any) => {
       // console.log(event)
@@ -57,54 +62,146 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
         event.preventDefault();
         if (isCtrlPressed() || isSpacePressed()) {
           console.log("good");
-          handleScale(event, () => {
-            return scale() + event.deltaY * -0.0001;
-          });
+          handleScale(
+            event,
+            () => {
+              return scale() + event.deltaY * -0.0001;
+            },
+            "cursor"
+          );
         }
       };
       document.addEventListener("keyup", handleOnkeyUp);
       document.addEventListener("keydown", handleOnkeyDown);
       boardElement.addEventListener("wheel", handleWheel, { passive: false });
-      // backgroundElement.addEventListener("wheel", handleWheel, {
-      //   passive: false,
-      // });
-      // onCleanup(() => {
-      //   document.removeEventListener("keydown", handleOnkeyDown);
-      //   document.removeEventListener("keyup", handleOnkeyUp);
-      //   boardElement.removeEventListener("wheel", handleWheel);
-      // });
+
+
+      onCleanup(() => {
+        document.removeEventListener("keydown", handleOnkeyDown);
+        document.removeEventListener("keyup", handleOnkeyUp);
+        boardElement.removeEventListener("wheel", handleWheel);
+      });
     }
   });
 
-  const handleScale = (event: any, cb: Function) => {
-    const boardElement = document.getElementById("pane");
-    const backgroundElement = document.getElementById("background");
-
-    // const backgroundElement: HTMLElement | null =
-    //   document.getElementById("background");
-    if (boardElement) {
-      event.preventDefault();
-      console.log(cb());
-      setScale(cb());
-      console.log(100 * (1 / scale() - 1));
-      setScale(Math.min(Math.max(minScale, scale()), maxScale));
-      // boardElement.style.transform = `scale(${scale()})`;
-      // boardElement.style.backgroundSize = `${20 * scale()}px ${20 * scale()}px`;
-      // backgroundElement.style.transform = `scale(${scale()})`;
-
-      // boardElement.style.marginTop = `${(scale() - 1) * 50}vh`;
-      // boardElement.style.marginLeft = `${(scale() - 1) * 50}vw`;
-      // boardElement.style.marginTop = `${(scale() - 1) * 50}vh`;
-      // boardElement.style.marginLeft = `${(scale() - 1) * 50}vw`;
-      // if (backgroundElement) {
-      //   backgroundElement.style.transform = `scale(${scale()})`;
-      // }
+  function getBoundingBox(nodes: CustomNode[]) {
+    if (nodes.length === 0) {
+      return { minX: 0, minY: 0, width: 0, height: 0 };
     }
+
+    const minX = Math.min(...nodes.map((n) => n.currPosition.get().x));
+    const minY = Math.min(...nodes.map((n) => n.currPosition.get().y));
+
+    const maxX = Math.max(
+      ...nodes.map((n) => {
+        const el = document.getElementById(n.id);
+        if (el) {
+          // const { width } = el.getBoundingClientRect();
+          // console.log({width, cliWidth: el.offsetWidth});
+          return n.currPosition.get().x + el.clientWidth;
+        }
+        return n.currPosition.get().x;
+      })
+    );
+
+    const maxY = Math.max(
+      ...nodes.map((n) => {
+        const el = document.getElementById(n.id);
+        if (el) {
+          // const { height } = el.getBoundingClientRect();
+          // console.log({height, cliHeight: el.offsetHeight});
+          return n.currPosition.get().y + el.clientHeight;
+        }
+        return n.currPosition.get().y;
+      })
+    );
+
+    // console.log({ maxY, maxX });
+
+    return {
+      minX,
+      minY,
+      width: maxX - minX,
+      height: maxY - minY,
+    };
+  }
+
+  function zoomToFit() {
+    const pane = document.getElementById("pane");
+    if (!pane) return;
+
+    const bbox = getBoundingBox(nodes());
+    if (!bbox) return;
+    const padding = 80;
+// console.log(bbox)
+    const paneRect = pane.getBoundingClientRect();
+
+    const availableWidth = paneRect.width - padding * 2;
+    const availableHeight = paneRect.height - padding * 2;
+
+    const scaleX = availableWidth / bbox.width;
+    const scaleY = availableHeight / bbox.height;
+
+    const newScale = Math.min(scaleX, scaleY, 1);
+
+    const centerX = bbox.minX + bbox.width / 2;
+    const centerY = bbox.minY + bbox.height / 2;
+
+    const x = paneRect.width / 2 - centerX * newScale;
+    const y = paneRect.height / 2 - centerY * newScale;
+
+    setScale(newScale);
+    setTransform({ x, y });
+    setPreTransform({ x, y });
+  }
+
+  const handleScale = (
+    event: MouseEvent | WheelEvent,
+    cb: () => number,
+    mode: "cursor" | "center" = "cursor"
+  ) => {
+    const boardElement = document.getElementById("pane");
+    if (!boardElement) return;
+
+    event.preventDefault();
+
+    const rect = boardElement.getBoundingClientRect();
+    const cursorX =
+      mode === "cursor"
+        ? (event as MouseEvent).clientX - rect.left
+        : rect.width / 2;
+
+    const cursorY =
+      mode === "cursor"
+        ? (event as MouseEvent).clientY - rect.top
+        : rect.height / 2;
+
+    const oldScale = scale();
+    const newScale = Math.min(Math.max(minScale, cb()), maxScale);
+
+    // Get the world/graph space position under the cursor before zoom
+    const graphX = (cursorX - transform().x) / oldScale;
+    const graphY = (cursorY - transform().y) / oldScale;
+
+    // Calculate the new transform so the graph point stays under the cursor
+    const newX = cursorX - graphX * newScale;
+    const newY = cursorY - graphY * newScale;
+
+    // Apply
+    setScale(newScale);
+    setTransform({ x: newX, y: newY });
+    setPreTransform({ x: newX, y: newY }); // optional but recommended
   };
 
   return (
     <div id="zoom-control" class={style.zoomControl}>
-      <button title="fit" type="button" id="zoom-fit" class={style.zoomFit}>
+      <button
+        title="fit"
+        type="button"
+        id="zoom-fit"
+        class={style.zoomFit}
+        onClick={() => zoomToFit()}
+      >
         <svg
           fill="currentColor"
           stroke-width="0"
@@ -122,7 +219,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
         type="button"
         id="zoom-in"
         class={style.zoomIn}
-        onclick={(e) => handleScale(e, () => scale() + 0.01)}
+        onclick={(e) => handleScale(e, () => scale() + 0.01, "center")}
       >
         <svg
           fill="none"
@@ -144,7 +241,9 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
         type="button"
         id="zoom-out"
         class={style.zoomOut}
-        onclick={(e) => handleScale(e, () => Math.max(0, scale() - 0.01))}
+        onclick={(e) =>
+          handleScale(e, () => Math.max(0, scale() - 0.01), "center")
+        }
       >
         <svg
           fill="currentColor"
@@ -165,12 +264,20 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
         title="reset"
         type="button"
         id="zoom-reset"
-        class={scale() > 1 ? style.zoomReset : style.zoomResetHide}
+        class={
+          scale() > 1 || scale() < 1 ? style.zoomReset : style.zoomResetHide
+        }
         onclick={(e) =>
-          handleScale(e, () => {
-            setScale(1);
-            return scale();
-          })
+          handleScale(
+            e,
+            () => {
+              setScale(1);
+              setTransform({ x: 0, y: 0 });
+              setPreTransform({ x: 0, y: 0 });
+              return 1;
+            },
+            "center"
+          )
         }
       >
         <svg

@@ -23,8 +23,18 @@ import {
   setEdgeEnd,
   transform,
   setTransform,
+  nodes,
+  setNodes,
+  preTransform,
+  setPreTransform,
+  selectedNode,
+  setSelectedNode,
+  pendingOutput,
+  setPendingOutput,
+  lastClickPosition,
+  setLastClickPosition,
 } from "./state";
-import { Edge } from "../ButtonComponents/Types";
+import { CustomNode, Edge } from "../ButtonComponents/Types";
 
 export const StateContext = createContext<{
   scale: () => number;
@@ -46,10 +56,34 @@ export const StateContext = createContext<{
   isOpen: () => boolean;
   setIsOpen: (isOpen: boolean) => void;
   inputRef: HTMLInputElement;
-  edgeEnd:() => {x: number, y: number}
-  setEdgeEnd:(edgeEnd: {x: number, y: number}) => void
+  edgeEnd: () => { x: number; y: number };
+  setEdgeEnd: (edgeEnd: { x: number; y: number }) => void;
   transform: () => { x: number; y: number };
   setTransform: (transform: { x: number; y: number }) => void;
+  nodes: () => CustomNode[];
+  setNodes: (nodes: CustomNode[]) => void;
+  preTransform: () => { x: number; y: number };
+  setPreTransform: (preTransform: { x: number; y: number }) => void;
+  selectedNode: () => string | null;
+  setSelectedNode: (selectedNode: string | null) => void;
+  pendingOutput: () => {
+    nodeId: string;
+    outputIndex: number;
+    x: number;
+    y: number;
+  } | null;
+  setPendingOutput: (
+    pendingOutput: {
+      nodeId: string;
+      outputIndex: number;
+      x: number;
+      y: number;
+    } | null
+  ) => void;
+  lastClickPosition: () => { x: number; y: number } | null;
+  setLastClickPosition: (
+    lastClickPosition: { x: number; y: number } | null
+  ) => void;
 }>({
   scale,
   setScale,
@@ -74,4 +108,14 @@ export const StateContext = createContext<{
   setEdgeEnd,
   transform,
   setTransform,
+  nodes,
+  setNodes,
+  preTransform,
+  setPreTransform,
+  selectedNode,
+  setSelectedNode,
+  pendingOutput,
+  setPendingOutput,
+  lastClickPosition,
+  setLastClickPosition,
 });

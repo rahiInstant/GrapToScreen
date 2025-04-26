@@ -24,6 +24,16 @@ import {
   setEdgeEnd,
   transform,
   setTransform,
+  nodes,
+  setNodes,
+  preTransform,
+  setPreTransform,
+  selectedNode,
+  setSelectedNode,
+  pendingOutput,
+  setPendingOutput,
+  lastClickPosition,
+  setLastClickPosition
 } from "./state";
 
 const StateContextProvider: ParentComponent = (props) => {
@@ -54,6 +64,16 @@ const StateContextProvider: ParentComponent = (props) => {
         setEdgeEnd,
         transform,
         setTransform,
+        nodes,
+        setNodes,
+        preTransform,
+        setPreTransform,
+        selectedNode,
+        setSelectedNode,
+        pendingOutput,
+        setPendingOutput,
+        lastClickPosition,
+        setLastClickPosition
       }}
     >
       {props.children}

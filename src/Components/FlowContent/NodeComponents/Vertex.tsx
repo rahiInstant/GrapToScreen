@@ -4,13 +4,14 @@ import PlusIcon from "./PlusIcon";
 import useStateContext from "../../BoardComponent/useStateContext";
 import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 
-
 interface VertexProps {
   id: string;
   numberInputs: number;
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
+  // inputVertexIds: Record<string, HTMLElement | undefined>;
+  // outputVertexIds: Record<string, HTMLElement | undefined>;
   inputVertexIds: Array<string>;
   outputVertexIds: Array<string>;
   busyIndex: {
@@ -27,8 +28,6 @@ interface VertexProps {
   onMouseEnterInput: (
     inputPositionX: number,
     inputPositionY: number,
-    inputBuffX: number,
-    inputBuffY: number,
     nodeId: string,
     inputIndex: number
   ) => void;
@@ -37,28 +36,11 @@ interface VertexProps {
 
 const Vertex: Component<VertexProps> = (props) => {
   const { newEdge, edgeLength, setIsOpen, isOpen } = useStateContext();
-  function handleMouseEnterInput(inputRef: any, bufferRef: any, index: number) {
+  function handleMouseEnterInput(inputRef: any, index: number) {
     const { left, right, top, bottom } = inputRef.getBoundingClientRect();
-    const {
-      left: leftB,
-      right: rightB,
-      top: topB,
-      bottom: bottomB,
-    } = bufferRef.getBoundingClientRect();
     const centerX = left + Math.abs(left - right) / 2;
     const centerY = top + Math.abs(top - bottom) / 2;
-    // console.log({ inputX:centerX, inputY:centerY });
-    const centerXB = leftB + Math.abs(leftB - rightB) / 2;
-    const centerYB = topB + Math.abs(topB - bottomB) / 2;
-    // console.log(centerXB, centerYB)
-    props.onMouseEnterInput(
-      centerX,
-      centerY,
-      centerXB,
-      centerYB,
-      props.id,
-      index
-    );
+    props.onMouseEnterInput(centerX, centerY, props.id, index);
   }
   function handleMouseLeaveInput(index: number) {
     props.onMouseLeaveInput(props.id, index);
@@ -73,10 +55,10 @@ const Vertex: Component<VertexProps> = (props) => {
     event.stopPropagation();
     console.log(event.clientX, event.clientY);
     const { left, right, top, bottom } = outputRef.getBoundingClientRect();
-    // console.log(left, right, top, bottom);  
+    // console.log(left, right, top, bottom);
     const centerX = left + Math.abs(left - right) / 2;
     const centerY = top + Math.abs(top - bottom) / 2;
-    console.log({centerX, centerY})
+    console.log({ centerX, centerY });
     props.onMouseDownOutput(centerX, centerY, props.id, outputIndex, vertexId);
   }
   // console.log(props.isInputVertex, props.isOutputVertex)
@@ -85,22 +67,16 @@ const Vertex: Component<VertexProps> = (props) => {
       {props.isInputVertex ? (
         <div class={style.inputsWrapper}>
           <For each={props.inputVertexIds}>
-            {(_, index: Accessor<number>) => {
+            {(id, index: Accessor<number>) => {
               let inputRef: any = null;
               let bufferRef: any = null;
               return (
                 <div
-                  onMouseEnter={() =>
-                    handleMouseEnterInput(inputRef, bufferRef, index())
-                  }
+                id={`input-${id}`}
+                  onMouseEnter={() => handleMouseEnterInput(inputRef, index())}
                   onMouseLeave={() => handleMouseLeaveInput(index())}
                 >
-                  <div
-                    class={style.snapping}
-                    ref={bufferRef}
-                    onpointerdown={(e) => e.stopPropagation()}
-                  ></div>
-                  <div ref={inputRef} class={style.input}></div>
+                  <div id={id} ref={inputRef} class={style.input}></div>
                 </div>
               );
             }}
@@ -117,12 +93,22 @@ const Vertex: Component<VertexProps> = (props) => {
               // console.log(props.busyIndex.get());
               return (
                 <div
+                  id={`output-${id}`}
                   class={style.output}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    const sidebarContent =
+                      document.getElementById("sidebar-content");
+                    if (sidebarContent) {
+                      sidebarContent.style.right = "0px";
+                    }
+                    setIsOpen(true);
+                  }}
                   onMouseDown={(event: any) =>
                     handleMouseDownOutput(outputRef, event, index(), id)
                   }
                 >
-                  <div ref={outputRef} class={style.outputCircle}></div>
+                  <div id={id} ref={outputRef} class={style.outputCircle}></div>
                   <div
                     // class={style.plusLine}
                     classList={{
@@ -140,14 +126,15 @@ const Vertex: Component<VertexProps> = (props) => {
                     <div
                       class={style.outputPlus}
                       id="plus"
-                      onClick={(event: any) => {
-                        event.stopPropagation();
-                        const sidebarContent =
-                          document.getElementById("sidebar-content");
-                        if (sidebarContent) {
-                          sidebarContent.style.right = "0px";
-                        }
-                      }}
+                      // onClick={(event: any) => {
+                      //   event.stopPropagation();
+                      //   const sidebarContent =
+                      //     document.getElementById("sidebar-content");
+                      //   if (sidebarContent) {
+                      //     sidebarContent.style.right = "0px";
+                      //   }
+                      //   setIsOpen(true);
+                      // }}
                     >
                       <PlusIcon />
                     </div>

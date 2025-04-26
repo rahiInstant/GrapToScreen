@@ -15,11 +15,20 @@ const SideBar: Component<SideBarProps> = (props) => {
   const handleClickOutside = (event: MouseEvent) => {
     const sidebar = document.getElementById("sidebar-main");
     const sidebarContent = document.getElementById("sidebar-content");
-    const plus = document.getElementById("plus");
+    const outputVertex = document.querySelectorAll('[id^="output-"]');
+    // console.log(outputVertex);
+    let clickedOnPlus = false;
+    outputVertex.forEach((vertex) => {
+      if (vertex.contains(event.target as Node)) {
+        clickedOnPlus = true;
+      }
+    });
+
     // console.log(plus);
     if (
       sidebar &&
-      !sidebar.contains(event.target as Node) 
+      !sidebar.contains(event.target as Node) &&
+      !clickedOnPlus
       // plus &&
       // !plus.contains(event.target as Node)
     ) {
