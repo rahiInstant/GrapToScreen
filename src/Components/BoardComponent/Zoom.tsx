@@ -33,33 +33,37 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
 
   onMount(() => {
     const boardElement = document.getElementById("pane");
-    // const backgroundElement = document.getElementById("background");
-    // const backgroundElement: HTMLElement | null =
-    //   document.getElementById("background");
-    // console.log(window.innerHeight * scale(), window.innerWidth * scale());
 
     const handleOnkeyUp = (event: any) => {
       // console.log(event)
-      if (!event.ctrlKey) setIsCtrlPressed(false);
+      if (!event.ctrlKey) {
+        setDraggable(false);
+        setIsCtrlPressed(false);
+      }
       if (event.code == "Space") {
         event.preventDefault();
         setIsSpacePressed(false);
+        setDraggable(false);
       }
-      setDraggable(false);
     };
     const handleOnkeyDown = (event: any) => {
-      if (event.ctrlKey) setIsCtrlPressed(true);
+      // console.log(event);
+      if (event.ctrlKey) {
+        setDraggable(true);
+        setIsCtrlPressed(true);
+      }
       if (event.code == "Space") {
         event.preventDefault();
         setIsSpacePressed(true);
+        setDraggable(true);
       }
-      setDraggable(true);
       //   console.log(isSpacePressed());
     };
 
     if (boardElement) {
       const handleWheel = (event: any) => {
         event.preventDefault();
+        // console.log(event.deltaY);
         if (isCtrlPressed() || isSpacePressed()) {
           console.log("good");
           handleScale(
@@ -69,12 +73,25 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
             },
             "cursor"
           );
+        } else {
+          if (event.shiftKey) {
+            // horizontal scroll by wheel 
+            setTransform((prev) => ({
+              x: prev.x - event.deltaY * 0.5,
+              y: prev.y,
+            }));
+          } else {
+            // vertical scroll by wheel
+            setTransform((prev) => ({
+              x: prev.x,
+              y: prev.y - event.deltaY * 0.5,
+            }));
+          }
         }
       };
       document.addEventListener("keyup", handleOnkeyUp);
       document.addEventListener("keydown", handleOnkeyDown);
       boardElement.addEventListener("wheel", handleWheel, { passive: false });
-
 
       onCleanup(() => {
         document.removeEventListener("keydown", handleOnkeyDown);
@@ -83,6 +100,10 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
       });
     }
   });
+
+  //==================================================
+  // measure current area of the node-edge network
+  //==================================================
 
   function getBoundingBox(nodes: CustomNode[]) {
     if (nodes.length === 0) {
@@ -126,6 +147,9 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
     };
   }
 
+  //==================================================
+  // fit node-edge network in the viewport
+  //==================================================
   function zoomToFit() {
     const pane = document.getElementById("pane");
     if (!pane) return;
@@ -133,7 +157,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
     const bbox = getBoundingBox(nodes());
     if (!bbox) return;
     const padding = 80;
-// console.log(bbox)
+    // console.log(bbox)
     const paneRect = pane.getBoundingClientRect();
 
     const availableWidth = paneRect.width - padding * 2;
@@ -155,6 +179,10 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
     setPreTransform({ x, y });
   }
 
+  //==================================================
+  // cursor centric zoom in/out
+  // center oriented zoom for zoom in/out button
+  //==================================================
   const handleScale = (
     event: MouseEvent | WheelEvent,
     cb: () => number,
@@ -179,18 +207,21 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
     const oldScale = scale();
     const newScale = Math.min(Math.max(minScale, cb()), maxScale);
 
+    // **********
     // Get the world/graph space position under the cursor before zoom
+    // ********** 
     const graphX = (cursorX - transform().x) / oldScale;
     const graphY = (cursorY - transform().y) / oldScale;
 
+    // **********
     // Calculate the new transform so the graph point stays under the cursor
+    // ********** 
     const newX = cursorX - graphX * newScale;
     const newY = cursorY - graphY * newScale;
 
-    // Apply
     setScale(newScale);
     setTransform({ x: newX, y: newY });
-    setPreTransform({ x: newX, y: newY }); // optional but recommended
+    setPreTransform({ x: newX, y: newY });
   };
 
   return (

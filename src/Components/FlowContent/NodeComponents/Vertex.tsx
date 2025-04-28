@@ -2,7 +2,6 @@ import { Accessor, Component, For, Setter } from "solid-js";
 import style from "./style.module.css";
 import PlusIcon from "./PlusIcon";
 import useStateContext from "../../BoardComponent/useStateContext";
-import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 
 interface VertexProps {
   id: string;
@@ -35,16 +34,31 @@ interface VertexProps {
 }
 
 const Vertex: Component<VertexProps> = (props) => {
-  const { newEdge, edgeLength, setIsOpen, isOpen } = useStateContext();
+  const { newEdge, edgeLength, setIsOpen, setPendingOutput } =
+    useStateContext();
+
+  //==================================================
+  // handle all things related to when cursor with edge
+  // come into input vertex area of the node (any node)
+  //==================================================
   function handleMouseEnterInput(inputRef: any, index: number) {
     const { left, right, top, bottom } = inputRef.getBoundingClientRect();
     const centerX = left + Math.abs(left - right) / 2;
     const centerY = top + Math.abs(top - bottom) / 2;
     props.onMouseEnterInput(centerX, centerY, props.id, index);
   }
+
+  //=====================================================
+  // handle all things related to when cursor with edge
+  // goes out of input vertex area of the node (any node)
   function handleMouseLeaveInput(index: number) {
     props.onMouseLeaveInput(props.id, index);
   }
+
+  //==================================================
+  // handle all things related to when mouse down
+  // output vertex of the node (any node)
+  //==================================================
   function handleMouseDownOutput(
     outputRef: any,
     event: any,
@@ -53,17 +67,16 @@ const Vertex: Component<VertexProps> = (props) => {
   ) {
     // console.log(props.busyIndex.get());
     event.stopPropagation();
-    console.log(event.clientX, event.clientY);
     const { left, right, top, bottom } = outputRef.getBoundingClientRect();
-    // console.log(left, right, top, bottom);
     const centerX = left + Math.abs(left - right) / 2;
     const centerY = top + Math.abs(top - bottom) / 2;
-    console.log({ centerX, centerY });
+    // console.log({ centerX, centerY });
     props.onMouseDownOutput(centerX, centerY, props.id, outputIndex, vertexId);
   }
-  // console.log(props.isInputVertex, props.isOutputVertex)
+
   return (
     <div>
+      {/* render all input vertex of a node */}
       {props.isInputVertex ? (
         <div class={style.inputsWrapper}>
           <For each={props.inputVertexIds}>
@@ -72,7 +85,7 @@ const Vertex: Component<VertexProps> = (props) => {
               let bufferRef: any = null;
               return (
                 <div
-                id={`input-${id}`}
+                  id={`input-${id}`}
                   onMouseEnter={() => handleMouseEnterInput(inputRef, index())}
                   onMouseLeave={() => handleMouseLeaveInput(index())}
                 >
@@ -85,6 +98,8 @@ const Vertex: Component<VertexProps> = (props) => {
       ) : (
         <div></div>
       )}
+
+      {/* render all output vertex of a node */}
       {props.isOutputVertex && (
         <div class={style.outputsWrapper}>
           <For each={props.outputVertexIds}>
@@ -97,12 +112,11 @@ const Vertex: Component<VertexProps> = (props) => {
                   class={style.output}
                   onClick={(event) => {
                     event.stopPropagation();
-                    const sidebarContent =
-                      document.getElementById("sidebar-content");
-                    if (sidebarContent) {
-                      sidebarContent.style.right = "0px";
-                    }
                     setIsOpen(true);
+                    setPendingOutput({
+                      nodeId: props.id,
+                      outputVertexIndex: index(),
+                    });
                   }}
                   onMouseDown={(event: any) =>
                     handleMouseDownOutput(outputRef, event, index(), id)
@@ -115,7 +129,7 @@ const Vertex: Component<VertexProps> = (props) => {
                       [style.plusLine]: true,
                       [style.plusLineHidden]:
                         (newEdge()?.outputVertexId == id &&
-                          edgeLength() > 80) ||
+                          edgeLength() > 40) ||
                         props.busyIndex.get().includes(id),
                     }}
                   >
@@ -126,15 +140,6 @@ const Vertex: Component<VertexProps> = (props) => {
                     <div
                       class={style.outputPlus}
                       id="plus"
-                      // onClick={(event: any) => {
-                      //   event.stopPropagation();
-                      //   const sidebarContent =
-                      //     document.getElementById("sidebar-content");
-                      //   if (sidebarContent) {
-                      //     sidebarContent.style.right = "0px";
-                      //   }
-                      //   setIsOpen(true);
-                      // }}
                     >
                       <PlusIcon />
                     </div>

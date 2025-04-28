@@ -23,10 +23,8 @@ export const [selectedNode, setSelectedNode] = createSignal<string | null>(
 );
 
 export const [pendingOutput, setPendingOutput] = createSignal<{
-  nodeId: string;
-  outputIndex: number;
-  x: number;
-  y: number;
+  nodeId:string,
+  outputVertexIndex:number
 } | null>(null);
 
 export const [lastClickPosition, setLastClickPosition] = createSignal<{

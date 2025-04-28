@@ -40,11 +40,22 @@
   z-index: 500;
   background-color: #414244;
   top: 0;
-  right: -450px;
+  /* right: -450px; */
   border: 1px solid #616161;
   transition: all ease-in-out 0.5s;
   overflow: hidden;
 }
+
+.sidebarContentShow {
+  right: 0px;
+  /* transition: all ease-in-out 0.5s; */
+}
+
+.sidebarContentHide {
+  right: -450px;
+  /* transition: all ease-in-out 0.5s; */
+}
+
 
 .sidebarTitle {
   padding: 20px 20px;

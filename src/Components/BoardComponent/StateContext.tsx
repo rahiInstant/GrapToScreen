@@ -59,27 +59,25 @@ export const StateContext = createContext<{
   edgeEnd: () => { x: number; y: number };
   setEdgeEnd: (edgeEnd: { x: number; y: number }) => void;
   transform: () => { x: number; y: number };
-  setTransform: (transform: { x: number; y: number }) => void;
+  setTransform: (
+    transform: { x: number; y: number } | ((prev:any) => { x: number; y: number })
+  ) => void;
   nodes: () => CustomNode[];
   setNodes: (nodes: CustomNode[]) => void;
   preTransform: () => { x: number; y: number };
-  setPreTransform: (preTransform: { x: number; y: number }) => void;
+  setPreTransform: (
+    preTransform: { x: number; y: number } | ((prev:any) => { x: number; y: number })
+  ) => void;
   selectedNode: () => string | null;
   setSelectedNode: (selectedNode: string | null) => void;
   pendingOutput: () => {
-    nodeId: string;
-    outputIndex: number;
-    x: number;
-    y: number;
+    nodeId:string,
+    outputVertexIndex:number
   } | null;
-  setPendingOutput: (
-    pendingOutput: {
-      nodeId: string;
-      outputIndex: number;
-      x: number;
-      y: number;
-    } | null
-  ) => void;
+  setPendingOutput: (pendingOutput: {
+    nodeId:string,
+    outputVertexIndex:number
+  } | null) => void;
   lastClickPosition: () => { x: number; y: number } | null;
   setLastClickPosition: (
     lastClickPosition: { x: number; y: number } | null

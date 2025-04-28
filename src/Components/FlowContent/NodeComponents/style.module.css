@@ -123,8 +123,8 @@
   align-items: center;
   pointer-events: all;
   /* cursor: crosshair; */
-  opacity: 1;
-  pointer-events: all;
+  /* opacity: 1; */
+  /* pointer-events: all; */
   transition: opacity 0.3s ease-in;
 }
 
@@ -153,6 +153,12 @@
 
 .snapping:hover .input {
   background-color: #c3c9d5;
+}
+
+.plusLineShow {
+  opacity: 1;
+  pointer-events: all;
+  /* transition: opacity 0.3s ease-in; */
 }
 
 .plusLineHidden {

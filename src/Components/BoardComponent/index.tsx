@@ -97,6 +97,15 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
     scale,
   } = useStateContext();
 
+  //==================================================
+  // inject node in the board,
+  // dynamic node injection also, node inject based on
+  // ---> random screen cord
+  // ---> selected node
+  // ---> pending trigger (when click on output vertex side panel trigger)
+  // ---> last click position
+  //==================================================
+
   function handleOnClickAddNode(nodeName: string) {
     let nodeX = window.innerWidth / 2;
     let nodeY = window.innerHeight / 2;
@@ -135,8 +144,8 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
         nodeY = position.y;
       }
     } else if (lastClick) {
-      nodeX = lastClick.x;
-      nodeY = lastClick.y;
+      nodeX = (lastClick.x - transform().x) / scale();
+      nodeY = (lastClick.y - transform().y) / scale();
     }
 
     const [nodePrev, setNodePrev] = createSignal<{ x: number; y: number }>({
@@ -167,6 +176,7 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
           return id;
         }),
     ];
+    // **** node injection
     createRoot(() => {
       setNodes([
         ...nodes(),
@@ -187,13 +197,20 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
         },
       ]);
     });
+
+    // connect with base node
     // console.log(baseNode()!.outputVertexIds);
+
+
+    //==================================================
+    // connect edge of selected/pending node with new node
+    //==================================================
     const newNode = nodes()[nodes().length - 1];
-    if (selectedNode()) {
+    function autoConnectEdge(outputVertexIndex: number = 0) {
       const outputVertexRef = document.getElementById(
-        baseNode()!.outputVertexIds[0]
+        baseNode()!.outputVertexIds[outputVertexIndex]
       );
-      console.log(outputVertexRef);
+      // console.log(outputVertexRef);
 
       const { left, right, top, bottom } =
         outputVertexRef!.getBoundingClientRect();
@@ -236,12 +253,18 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
         x: (centerX2 - transform().x) / scale(),
         y: (centerY2 - transform().y) / scale(),
       });
-      const edgeId = `edge_${baseNode()!.id}_${0}_${newNode.id}_${0}`;
+
+      const edgeId = `edge_${baseNode()!.id}_${outputVertexIndex}_${
+        newNode.id
+      }_${0}`;
+
       baseNode()!.outputEdgeIds.set([
         ...baseNode()!.outputEdgeIds.get(),
         edgeId,
       ]);
+
       newNode.inputEdgeIds.set([...newNode.inputEdgeIds.get(), edgeId]);
+
       setEdges([
         ...edges(),
         {
@@ -249,22 +272,29 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
           nodeStartId: baseNode()!.id,
           nodeEndId: newNode.id,
           inputIndex: 0,
-          outputIndex: 0,
-          outputVertexId: baseNode()!.outputVertexIds[0],
+          outputIndex: outputVertexIndex,
+          outputVertexId: baseNode()!.outputVertexIds[outputVertexIndex],
           prevStartPosition: { get: prevEdgeStart, set: setPrevEdgeStart },
           prevEndPosition: { get: prevEdgeEnd, set: setPrevEdgeEnd },
           currStartPosition: { get: currEdgeStart, set: setCurrEdgeStart },
           currEndPosition: { get: currEdgeEnd, set: setCurrEdgeEnd },
         },
       ]);
+
+      // ******** block vertex ********
       baseNode()!.busyIndex.set([
         ...baseNode()!.busyIndex.get(),
-        baseNode()!.outputVertexIds[0],
+        baseNode()!.outputVertexIds[outputVertexIndex],
       ]);
     }
 
+    if (selected) {
+      autoConnectEdge();
+    } else if (pending) {
+      autoConnectEdge(pending!.outputVertexIndex);
+    }
+
     setSelectedNode(newNode.id);
-    // connect with base node
   }
 
   return (
@@ -273,8 +303,9 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
       class="w-screen h-screen overflow-hidden relative z-0"
       tabIndex={0}
     >
-      {/* <Background/> */}
-      <SideBar onClickAdd={handleOnClickAddNode} nodeMark={nodeMark} />
+      <StateContextProvider>
+        <SideBar onClickAdd={handleOnClickAddNode} nodeMark={nodeMark} />
+      </StateContextProvider>
       <StateContextProvider>
         <Zoom />
       </StateContextProvider>

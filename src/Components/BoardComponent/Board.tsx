@@ -4,6 +4,7 @@ import {
   createSignal,
   For,
   JSX,
+  onCleanup,
   onMount,
   Setter,
 } from "solid-js";
@@ -13,6 +14,9 @@ import useStateContext from "./useStateContext";
 import EdgeComponent from "../FlowContent/EdgeComponents";
 import { customNodeProps } from "../ButtonComponents/Types";
 
+// ***************
+// node data type 
+// ***************
 interface Node {
   id: string;
   numberInputs: number;
@@ -46,6 +50,9 @@ interface Node {
   };
 }
 
+// ***************
+// edge data type 
+// ***************
 interface Edge {
   id: string;
   nodeStartId: string;
@@ -75,10 +82,6 @@ interface Edge {
 interface BoardComponent {
   nodes: Accessor<Node[]>;
   setNodes: (nodes: Node[]) => void;
-  // selectedNode: () => string | null
-  // setSelectedNode: (selectedNode: string|null) => void
-  // edges:() => Edge[]
-  // setEdges: (edge: Edge[]) => void
 }
 
 const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
@@ -87,8 +90,6 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     y: number;
   }>({ x: -1, y: -1 });
   const [boardDragging, setBoardDragging] = createSignal<boolean>(false);
-  // const [selectedNode, setSelectedNode] = createSignal<string | null>(null);
-  // const [transform, setTransform] = createSignal({ x: 0, y: 0 });
 
   const {
     draggable,
@@ -99,7 +100,6 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     newEdge,
     setEdges,
     setNewEdge,
-    edgeEnd,
     transform,
     setTransform,
     preTransform,
@@ -107,13 +107,10 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     selectedNode,
     setSelectedNode,
     setLastClickPosition,
-    setIsOpen,
+    setEdgeLength,
   } = useStateContext();
-  const [cursor, setCursor] = createSignal({ x: 0, y: 0 });
-  const [offset, setOffset] = createSignal<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
+  // const [cursor, setCursor] = createSignal({ x: 0, y: 0 });
+
   const [selectedEdge, setSelectedEdge] = createSignal<string | null>(null);
   const [insideInput, setInsideInput] = createSignal<{
     nodeId: string;
@@ -144,9 +141,10 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     x: number;
     y: number;
   } | null>(null);
+  // const [edgeDragging, setEdgeDragging] = createSignal<boolean>(false);
 
   onMount(() => {
-    document.addEventListener("keydown", (event) => {
+    const handleOnDeleteKeyDown = (event: any) => {
       if (event.code === "Delete") {
         if (selectedNodesGroup() && selectedNode() === null) {
           selectedNodesGroup().forEach((nodeId) => {
@@ -163,15 +161,148 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           }
         }
       }
+    };
+
+    // document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("keydown", handleOnDeleteKeyDown);
+
+    onCleanup(() => {
+      // document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("keydown", handleOnDeleteKeyDown);
     });
   });
+
+  //==================================================
+  // This function for panning Guided by bounding box
+  //==================================================
+
+  function PanGuidedByNodeOrBoundingBox(event: MouseEvent) {
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    let deltaX = 0;
+    let deltaY = 0;
+    const SCREEN_MARGIN = 60;
+    const PAN_SPEED = 10;
+
+    if (event.clientX < SCREEN_MARGIN) deltaX = PAN_SPEED;
+    else if (event.clientX > windowWidth - SCREEN_MARGIN) deltaX = -PAN_SPEED;
+
+    if (event.clientY < SCREEN_MARGIN) deltaY = PAN_SPEED;
+    else if (event.clientY > windowHeight - SCREEN_MARGIN) deltaY = -PAN_SPEED;
+
+    if (deltaX !== 0 || deltaY !== 0) {
+      // ******* Move the board *********
+      setTransform((prev) => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY,
+      }));
+      setPreTransform((prev) => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY,
+      }));
+
+      // ********* Correct clickedPosition shifting depending on mode ********
+      if (groupBoundingBox()) {
+        setClickedPosition((prev) => ({
+          x: prev.x - deltaX,
+          y: prev.y - deltaY,
+        }));
+      } else {
+        setClickedPosition((prev) => ({
+          x: prev.x + deltaX,
+          y: prev.y + deltaY,
+        }));
+      }
+
+      if (groupBoundingBox()) {
+        setGroupBoundingBox((prev) => ({
+          x: prev!.x - deltaX / scale(),
+          y: prev!.y - deltaY / scale(),
+          width: prev!.width,
+          height: prev!.height,
+        }));
+
+        selectedNodesGroup().forEach((nodeId) => {
+          const node = nodes().find((n) => n.id === nodeId);
+          if (node) {
+            const prevPos = node.currPosition.get();
+            node.currPosition.set({
+              x: prevPos.x - deltaX / scale(),
+              y: prevPos.y - deltaY / scale(),
+            });
+
+            node.inputEdgeIds.get().forEach((edgeId) => {
+              const edge = edges().find((e) => e.id === edgeId);
+              if (edge) {
+                const prevEnd = edge.currEndPosition.get();
+                edge.currEndPosition.set({
+                  x: prevEnd.x - deltaX / scale(),
+                  y: prevEnd.y - deltaY / scale(),
+                });
+              }
+            });
+
+            node.outputEdgeIds.get().forEach((edgeId) => {
+              const edge = edges().find((e) => e.id === edgeId);
+              if (edge) {
+                const prevStart = edge.currStartPosition.get();
+                edge.currStartPosition.set({
+                  x: prevStart.x - deltaX / scale(),
+                  y: prevStart.y - deltaY / scale(),
+                });
+              }
+            });
+          }
+        });
+      } else if (selectedNode() !== null) {
+        const node = nodes().find((n) => n.id === selectedNode());
+        if (node) {
+          const prevPos = node.currPosition.get();
+          node.currPosition.set({
+            x: prevPos.x - deltaX / scale(),
+            y: prevPos.y - deltaY / scale(),
+          });
+
+          // *********** Move input edges for single node ************
+          node.inputEdgeIds.get().forEach((edgeId) => {
+            const edge = edges().find((e) => e.id === edgeId);
+            if (edge) {
+              const prevEnd = edge.currEndPosition.get();
+              edge.currEndPosition.set({
+                x: prevEnd.x - deltaX / scale(),
+                y: prevEnd.y - deltaY / scale(),
+              });
+            }
+          });
+
+          // ************ Move output edges for single node ************
+          node.outputEdgeIds.get().forEach((edgeId) => {
+            const edge = edges().find((e) => e.id === edgeId);
+            if (edge) {
+              const prevStart = edge.currStartPosition.get();
+              edge.currStartPosition.set({
+                x: prevStart.x - deltaX / scale(),
+                y: prevStart.y - deltaY / scale(),
+              });
+            }
+          });
+        }
+      }
+    }
+  }
+
+  //==================================================
+  // This function for handling all mouse move on the board
+  // like move board, move node/nodeGroup (bounding box)
+  //==================================================
 
   const handleOnMouseMove = (event: MouseEvent) => {
     const isKeyPress = isCtrlPressed() || isSpacePressed();
     const deltaX = event.x - clickedPosition().x;
     const deltaY = event.y - clickedPosition().y;
-    setCursor({ x: event.x, y: event.y });
-    // selection box dragging and move multiple nodes
+    // setCursor({ x: event.x, y: event.y });
+
+    // ********** selection box dragging and move multiple nodes ************
     if (selectionBox()) {
       const start = clickedPosition();
       const width = event.clientX - start.x;
@@ -207,12 +338,12 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       });
       setSelectedNodesGroup(liveSelectedNodes.map((node) => node.id));
     }
-    // move multiple nodes
+    // *********** move multiple nodes ************
     if (groupBoundingBox() && lastPointer()) {
       const dx = event.clientX - lastPointer()!.x;
       const dy = event.clientY - lastPointer()!.y;
 
-      // move groundBoundingBox (screen coords)
+      // ********** move groundBoundingBox (screen coords) *********
       const prev = groupBoundingBox()!;
       setGroupBoundingBox({
         x: prev.x + dx / scale(),
@@ -229,7 +360,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           const newY = prevPos.y + dy / scale();
 
           node.currPosition.set({ x: newX, y: newY });
-          // input edges
+          // ******** input edges ************
           node.inputEdgeIds.get().forEach((edgeId) => {
             const edge = edges().find((edge) => edge.id === edgeId);
             if (edge) {
@@ -242,7 +373,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
               });
             }
           });
-
+          // ************ output edges *************
           node.outputEdgeIds.get().forEach((edgeId) => {
             const edge = edges().find((edge) => edge.id === edgeId);
             if (edge) {
@@ -258,13 +389,14 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         }
       });
       setLastPointer({ x: event.clientX, y: event.clientY });
+      PanGuidedByNodeOrBoundingBox(event);
     }
-    // single node dragging
+    // ************ single node dragging ************
     else if (clickedPosition().x >= 0 && selectedNode() !== null) {
       const node = nodes().find((node) => node.id === selectedNode());
       // console.log(node)
       if (node) {
-        // Update node position
+        // ************ Update node position ***************
         node.currPosition.set((_) => {
           return {
             x: (node.prevPosition.get().x + deltaX) / scale(),
@@ -272,7 +404,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           };
         });
 
-        // Update input edges positions
+        // *********** input edges ************
         for (let i = 0; i < node.inputEdgeIds.get().length; i++) {
           const edgeId = node.inputEdgeIds.get()[i];
           console.log(edgeId);
@@ -288,7 +420,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           }
         }
 
-        // Update output edges positions
+        // ************ output edges **********
         for (let i = 0; i < node.outputEdgeIds.get().length; i++) {
           const edgeId = node.outputEdgeIds.get()[i];
           const edge = edges().find((edge) => edge.id === edgeId);
@@ -302,9 +434,11 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             });
           }
         }
+
+        PanGuidedByNodeOrBoundingBox(event);
       }
     }
-    // Board dragging
+    // ************ Board dragging **************
     else if (isKeyPress && boardDragging() && selectedNode() === null) {
       event.preventDefault();
       const deltaX = event.x - clickedPosition().x;
@@ -315,113 +449,72 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       });
     }
 
+    // *********** new edge movement and snapping effect ************
     if (newEdge() !== null) {
+      // console.log(newEdge(), "newEdge");
+      setEdgeLength(
+        Math.abs(
+          newEdge()!.currEndPosition.get().x -
+            newEdge()!.currStartPosition.get().x
+        )
+      );
       const boardWrapperElement = document.getElementById("boardWrapper");
+      const BUFFER_RADIUS = 50;
       if (boardWrapperElement) {
-        newEdge()?.currEndPosition.set({
-          x: (event.x - transform().x) / scale(),
-          y: (event.y - transform().y) / scale(),
-        });
-      }
-    }
-    // if (newEdge() !== null) {
-    //   const edgeScreenX = edgeEnd().x * scale() + transform().x;
-    //   const edgeScreenY = edgeEnd().y * scale() + transform().y;
+        const [foundInput, setFoundInput] = createSignal<{
+          positionX: number;
+          positionY: number;
+          id: string;
+        } | null>(null);
 
-    //   const SNAP_THRESHOLD = 100;
-    //   let found = false;
-    //   nodes().forEach((node, i) => {
-    //     if (found) return;
-    //     const nodeRef = document.getElementById(node.id);
-    //     if (!nodeRef) return false;
-    //     const rect = nodeRef.getBoundingClientRect();
-    //     const centerX = rect.left + rect.width / 2;
-    //     const centerY = rect.top + rect.height / 2;
-    //     const dx = edgeScreenX - centerX;
-    //     const dy = edgeScreenY - centerY;
-    //     const dist = Math.sqrt(dx * dx + dy * dy);
-    //     if (dist < SNAP_THRESHOLD && nodes().indexOf(node) !== i) {
-    //       setInsideInput({
-    //         nodeId: node.id,
-    //         inputIndex: 0,
-    //         positionX: centerX,
-    //         positionY: centerY,
-    //       });
-    //       found = true;
-    //     }
-    //     console.log(dist, "distance", i);
-    //   });
-    //   connectEdge();
-    //   newEdge()?.currEndPosition.set({
-    //     x: (event.x - transform().x) / scale(),
-    //     y: (event.y - transform().y) / scale(),
-    //   });
-    // }
-  };
+        // ************* check nearest input vertex ************
+        for (const node of nodes()) {
+          if (node.id !== newEdge()!.nodeStartId && node.isInputVertex) {
+            const inputVertexId = node.inputVertexIds[0];
+            // console.log(inputVertexId, "inputVertexId");
+            const inputVertexRef = document.getElementById(inputVertexId);
+            const { left, right, top, bottom } =
+              inputVertexRef!.getBoundingClientRect();
+            const centerX = left + Math.abs(left - right) / 2;
+            const centerY = top + Math.abs(top - bottom) / 2;
 
-  const connectEdge = () => {
-    if (newEdge() !== null && insideInput() !== null) {
-      const nodeStartId = newEdge()!.nodeStartId;
-      const nodeEndId = insideInput()!.nodeId;
-
-      const nodeStart = nodes().find((node) => node.id === nodeStartId);
-      const nodeEnd = nodes().find((node) => node.id === nodeEndId);
-
-      const boardWrapperElement = document.getElementById("boardWrapper");
-
-      if (nodeStart && nodeEnd && boardWrapperElement) {
-        const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
-          nodeEnd.id
-        }_${insideInput()?.inputIndex}`;
-
-        if (
-          nodeStart.outputEdgeIds.get().includes(edgeId) &&
-          nodeEnd.inputEdgeIds.get().includes(edgeId)
-        ) {
-          setNewEdge(null);
-          return;
+            const dx = event.clientX - centerX;
+            const dy = event.clientY - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            // console.log(distance, "distance");
+            if (distance < BUFFER_RADIUS) {
+              setFoundInput({
+                positionX: centerX,
+                positionY: centerY,
+                id: node.id,
+              });
+              break;
+            }
+          }
         }
 
-        nodeStart.outputEdgeIds.set([...nodeStart.outputEdgeIds.get(), edgeId]);
-        nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
+        if (foundInput() !== null) {
+          // console.log(foundInput(), "foundInput");
+          //*********** Snap to input center ***********
+          newEdge()?.currEndPosition.set({
+            x: (foundInput()!.positionX - transform().x) / scale(),
+            y: (foundInput()!.positionY - transform().y) / scale(),
+          });
 
-        // Update edge current positions
-        newEdge()!.prevStartPosition.set((_) => {
-          return {
-            x: (newEdge()!.currStartPosition.get().x - transform().x) / scale(),
-            y: (newEdge()!.currStartPosition.get().y - transform().y) / scale(),
-          };
-        });
-
-        newEdge()!.prevEndPosition.set((_) => {
-          return {
-            x: (insideInput()!.positionX - transform().x) / scale(),
-            y: (insideInput()!.positionY - transform().y) / scale(),
-          };
-        });
-
-        newEdge()!.currEndPosition.set((_) => {
-          return {
-            x: (insideInput()!.positionX - transform().x) / scale(),
-            y: (insideInput()!.positionY - transform().y) / scale(),
-          };
-        });
-
-        // Add new edge
-        setEdges([
-          ...edges(),
-          {
-            ...newEdge()!,
-            id: edgeId,
-            nodeEndId: nodeEnd.id,
-            nodeEndInputIndex: insideInput()!.inputIndex,
-          },
-        ]);
-        nodeStart.busyIndex.set([
-          ...nodeStart.busyIndex.get(),
-          newEdge()!.outputVertexId,
-        ]);
-        setNewEdge(null);
+          // ********** save snapping input data **********
+          setInsideInput({
+            nodeId: foundInput()!.id,
+            inputIndex: 0,
+            positionX: foundInput()!.positionX,
+            positionY: foundInput()!.positionY,
+          });
+        } else {
+          setInsideInput(null);
+          newEdge()?.currEndPosition.set({
+            x: (event.x - transform().x) / scale(),
+            y: (event.y - transform().y) / scale(),
+          });
+        }
       }
     }
   };
@@ -429,13 +522,14 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
   const handleOnMouseUp = () => {
     setClickedPosition({ x: -1, y: -1 });
 
-    // Stop grabbing board
+    // ************ Stop grabbing board ************
     setBoardDragging(false);
     setPreTransform(transform());
+    // setEdgeDragging(false);
 
-
-
-    //  If a box selection was made, compute selected nodes and bounding box
+    //**
+    // compute selected nodes and bounding box after creation of selection box
+    //* *
     if (selectionBox()) {
       const box = selectionBox()!;
       let normalizedBox = {
@@ -465,7 +559,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       setSelectedNodesGroup(selected.map((n) => n.id));
       setSelectionBox(null);
 
-      // Set bounding box for selection
+      // ********** Set bounding box for selection ************
       if (selected.length > 0) {
         const nodeRects = selected.map((node) => {
           const el = document.getElementById(node.id);
@@ -495,7 +589,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           height: maxY - minY,
         });
 
-        // Set prev position of selected nodes for smooth dragging
+        // ************ Set prev position of selected nodes for smooth dragging ***********
         selected.forEach((node) => {
           node.prevPosition.set({
             x: node.currPosition.get().x * scale(),
@@ -505,21 +599,106 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       }
     }
 
-    // If a new edge is being set and is not inside input
+    // *********** If newEdge is not inside input, remove it ************
     if (newEdge() !== null && insideInput() === null) {
-      const sidebarContent = document.getElementById("sidebar-content");
-      if (sidebarContent) {
-        sidebarContent.style.right = "0px";
-      }
-      setIsOpen(true);
       setNewEdge(null);
+      // setEdgeDragging(false)
     }
 
-    // If a new edge is being set and is inside input
-    connectEdge();
+    // *****
+    // If a new edge is inside input,
+    // connect with both target and source node,
+    // convert new edge to permanent edge
+    // *****
+    if (newEdge() !== null && insideInput() !== null) {
+      // console.log(newEdge(), insideInput())
+      const nodeStartId = newEdge()!.nodeStartId;
+      const nodeEndId = insideInput()!.nodeId;
+
+      // console.log(nodeStartId, "nodeStartId");
+      // console.log(nodeEndId, "nodeEndId");
+
+      const nodeStart = nodes().find((node) => node.id === nodeStartId);
+      const nodeEnd = nodes().find((node) => node.id === nodeEndId);
+      // console.log(nodeStart, "nodeStart");
+      // console.log(nodeEnd, "nodeEnd");
+
+      const boardWrapperElement = document.getElementById("boardWrapper");
+
+      if (nodeStart && nodeEnd && boardWrapperElement) {
+        const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
+          nodeEnd.id
+        }_${insideInput()?.inputIndex}`;
+
+        if (
+          nodeStart.outputEdgeIds.get().includes(edgeId) &&
+          nodeEnd.inputEdgeIds.get().includes(edgeId)
+        ) {
+          setNewEdge(null);
+          return;
+        }
+
+        nodeStart.outputEdgeIds.set([...nodeStart.outputEdgeIds.get(), edgeId]);
+        nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
+
+        // ********** Update edge current positions ********
+        newEdge()!.prevStartPosition.set((_) => {
+          return {
+            x: (newEdge()!.currStartPosition.get().x - transform().x) / scale(),
+            y: (newEdge()!.currStartPosition.get().y - transform().y) / scale(),
+          };
+        });
+
+        newEdge()!.prevEndPosition.set((_) => {
+          return {
+            x: (insideInput()!.positionX - transform().x) / scale(),
+            y: (insideInput()!.positionY - transform().y) / scale(),
+          };
+        });
+
+        newEdge()!.currEndPosition.set((_) => {
+          return {
+            x: (insideInput()!.positionX - transform().x) / scale(),
+            y: (insideInput()!.positionY - transform().y) / scale(),
+          };
+        });
+
+        // ******** setup a new permanent edge **********
+        setEdges([
+          ...edges(),
+          {
+            ...newEdge()!,
+            id: edgeId,
+            nodeEndId: nodeEnd.id,
+            nodeEndInputIndex: insideInput()!.inputIndex,
+          },
+        ]);
+        const startNode = nodes().find(
+          (node) => node.id == newEdge()?.nodeStartId
+        );
+        // console.log("startNode", newEdge());
+
+        // ******** block vertex ********
+        startNode!.busyIndex.set([
+          ...startNode!.busyIndex.get(),
+          newEdge()!.outputVertexId,
+        ]);
+        // if (startNode && newEdge()?.outputVertexId !== undefined) {
+        // }
+        // setEdgeDragging(false)
+        setNewEdge(null);
+        // console.log("edge", edges())
+      }
+    }
+
+    // setNewEdge(null)
     setLastPointer(null);
   };
 
+  //==================================================
+  // handle all mouse down event, it may be
+  // down on node, boundingBox etc
+  //==================================================
   const handleOnMouseDown = (event: any) => {
     setLastClickPosition({ x: event.clientX, y: event.clientY });
     setSelectedNode(null);
@@ -540,6 +719,11 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     }
   };
 
+  //==================================================
+  // handle the mouse down event but only
+  // specific for node, node position
+  //==================================================
+
   function handleOnMouseDownNode(event: any, id: string) {
     // console.log(event);
     setSelectedNode(id);
@@ -552,7 +736,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           y: node.currPosition.get().y * scale(),
         };
       });
-      // Update input edges positions
+      // ********** Update input edges positions ***********
       for (let i = 0; i < node.inputEdgeIds.get().length; i++) {
         const edgeId = node.inputEdgeIds.get()[i];
         const edge = edges().find((edge) => edge.id === edgeId);
@@ -567,7 +751,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         }
       }
 
-      // Update output edges positions
+      // *********** Update output edges positions *************
       for (let i = 0; i < node.outputEdgeIds.get().length; i++) {
         const edgeId = node.outputEdgeIds.get()[i];
         const edge = edges().find((edge) => edge.id === edgeId);
@@ -583,6 +767,12 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       }
     }
   }
+
+  //==================================================
+  // handle all things related to when mouse down
+  // output vertex of the node (any node)
+  //==================================================
+
   function handleOnMouseDownOutput(
     outputPositionX: number,
     outputPositionY: number,
@@ -590,10 +780,11 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     outputIndex: number,
     vertexId: string
   ) {
+    // setEdgeDragging(true);
     setSelectedNode(null);
     const boardWrapperElement = document.getElementById("pane");
-    console.log(scale());
-    console.log("offset", offset().x, offset().y);
+    // console.log(scale());
+    // console.log("offset", offset().x, offset().y);
     if (boardWrapperElement) {
       const [prevEdgeStart, setPrevEdgeStart] = createSignal<{
         x: number;
@@ -638,11 +829,15 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       });
     }
   }
+
+  //==================================================
+  // handle all things related to when cursor with edge
+  // come into input vertex area of the node (any node)
+  //==================================================
+
   function handleOnMouseEnterInput(
     inputPositionX: number,
     inputPositionY: number,
-    // inputBuffX: number,
-    // inputBuffY: number,
     nodeId: string,
     inputIndex: number
   ) {
@@ -652,105 +847,12 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       positionX: inputPositionX,
       positionY: inputPositionY,
     });
-    // console.log(inputBuffX, inputBuffY);
-    console.log({
-      curEdx: edgeEnd().x,
-      curEdy: edgeEnd().y,
-      inputPositionX,
-      inputPositionY,
-      // inputBuffX,
-      // inputBuffY,
-    });
-    // const edgeScreenX = edgeEnd().x * scale() + transform().x;
-    // const edgeScreenY = edgeEnd().y * scale() + transform().y;
-    // const dx = edgeScreenX - inputPositionX;
-    // const dy = edgeScreenY - inputPositionY;
-    // const distance = Math.sqrt(dx * dx + dy * dy);
-    // const SNAP_THRESHOLD = 100;
-    // console.log(distance, "distance")
-    // if (distance < SNAP_THRESHOLD) {
-    //   // console.log(distance);
-    //   if (newEdge() !== null && insideInput() !== null) {
-    //     const nodeStartId = newEdge()!.nodeStartId;
-    //     const nodeEndId = insideInput()!.nodeId;
-
-    //     const nodeStart = nodes().find((node) => node.id === nodeStartId);
-    //     const nodeEnd = nodes().find((node) => node.id === nodeEndId);
-
-    //     const boardWrapperElement = document.getElementById("boardWrapper");
-
-    //     if (nodeStart && nodeEnd && boardWrapperElement) {
-    //       const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
-    //         nodeEnd.id
-    //       }_${insideInput()?.inputIndex}`;
-
-    //       if (
-    //         nodeStart.outputEdgeIds.get().includes(edgeId) &&
-    //         nodeEnd.inputEdgeIds.get().includes(edgeId)
-    //       ) {
-    //         setNewEdge(null);
-    //         return;
-    //       }
-
-    //       nodeStart.outputEdgeIds.set([
-    //         ...nodeStart.outputEdgeIds.get(),
-    //         edgeId,
-    //       ]);
-    //       nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
-
-    //       // Update edge current positions
-    //       newEdge()!.prevStartPosition.set((_) => {
-    //         return {
-    //           x:
-    //             (newEdge()!.currStartPosition.get().x - transform().x) /
-    //             scale(),
-    //           y:
-    //             (newEdge()!.currStartPosition.get().y - transform().y) /
-    //             scale(),
-    //         };
-    //       });
-
-    //       newEdge()!.prevEndPosition.set((_) => {
-    //         return {
-    //           x: (insideInput()!.positionX - transform().x) / scale(),
-    //           y: (insideInput()!.positionY - transform().y) / scale(),
-    //         };
-    //       });
-
-    //       newEdge()!.currEndPosition.set((_) => {
-    //         return {
-    //           x: (insideInput()!.positionX - transform().x) / scale(),
-    //           y: (insideInput()!.positionY - transform().y) / scale(),
-    //         };
-    //       });
-
-    //       // Add new edge
-    //       setEdges([
-    //         ...edges(),
-    //         {
-    //           ...newEdge()!,
-    //           id: edgeId,
-    //           nodeEndId: nodeEnd.id,
-    //           nodeEndInputIndex: insideInput()!.inputIndex,
-    //         },
-    //       ]);
-    //       const startNode = nodes().find(
-    //         (node) => node.id == newEdge()?.nodeStartId
-    //       );
-    //       // console.log("startNode", newEdge());
-    //       if (startNode) {
-    //         if (newEdge()?.outputVertexId !== undefined) {
-    //           startNode.busyIndex.set([
-    //             ...startNode.busyIndex.get(),
-    //             newEdge()!.outputVertexId,
-    //           ]);
-    //         }
-    //       }
-    //       setNewEdge(null);
-    //     }
-    //   }
-    // }
   }
+
+  //=====================================================
+  // handle all things related to when cursor with edge
+  // goes out of input vertex area of the node (any node)
+  //=====================================================
   function handleOnMouseLeaveInput(nodeId: string, inputIndex: number) {
     if (
       insideInput()?.nodeId == nodeId &&
@@ -759,6 +861,10 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       setInsideInput(null);
     }
   }
+
+  //=====================================================
+  // everything related to when mouse click on edge
+  //=====================================================
   function handleOnMouseDownEdge(edgeId: string) {
     setSelectedNode(null);
     setSelectedEdge(edgeId);
@@ -770,42 +876,47 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       );
     }
   }
+
+  //=====================================================
+  // for delete the permanent edge (one by one)
+  //=====================================================
   function handleOnDeleteEdge(edgeId: string) {
     const edge = edges().find((e) => e.id === edgeId);
 
     if (edge) {
       const nodeStart = nodes().find((n) => n.id == edge.nodeStartId);
       if (nodeStart) {
-        // console.log(nodeStart);
-        // console.log(nodeStart.outputEdgeIds.get());
-
         nodeStart.outputEdgeIds.set([
-          ...nodeStart.outputEdgeIds
-            .get()
-            .filter((edgeId) => edgeId !== edge.id),
+          ...nodeStart.outputEdgeIds.get().filter((id) => id !== edgeId),
         ]);
-        // console.log([...nodeStart.outputEdgeIds.get()]);
+      }
+      const nodeEnd = nodes().find((n) => n.id === edge.nodeEndId);
+      if (nodeEnd) {
+        nodeEnd.inputEdgeIds.set([
+          ...nodeEnd.inputEdgeIds.get().filter((id) => id !== edgeId),
+        ]);
+      }
+
+      const busyCheck = edges().filter(
+        (e) => e.outputVertexId === edge.outputVertexId
+      );
+
+      // ******** release vertex ********
+      if (busyCheck.length <= 1 && nodeStart) {
         nodeStart.busyIndex.set([
           ...nodeStart.busyIndex
             .get()
             .filter((vertexId) => vertexId !== edge.outputVertexId),
         ]);
-        // if (nodeStart.outputEdgeIds.get().length < 1) {
-        // }
       }
-      const nodeEnd = nodes().find((n) => n.id === edge.nodeEndId);
-      if (nodeEnd) {
-        nodeEnd.inputEdgeIds.set([
-          ...nodeEnd.inputEdgeIds
-            .get()
-            .filter((edgeId) => edgeId !== edge.nodeEndId),
-        ]);
-      }
-
-      setEdges([...edges().filter((e) => e.id !== edge.id)]);
+      // console.log(busyCheck, 'busyCheck');
+      setEdges([...edges().filter((e) => e.id !== edgeId)]);
     }
   }
 
+  //=====================================================
+  // delete single node or many node at all
+  //=====================================================
   function handleOnClickDeleteNode(id: string) {
     const node = nodes().find((node) => node.id == id);
     if (!node) {
@@ -840,6 +951,19 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             .filter((edgeId) => edgeId !== uniqueEdges[i]),
         ]);
 
+        const busyCheck = edges().filter(
+          (e) => e.outputVertexId === edge.outputVertexId
+        );
+        
+        // ******** block vertex ********
+        if (busyCheck.length <= 1 && nodeStart) {
+          nodeStart.busyIndex.set([
+            ...nodeStart.busyIndex
+              .get()
+              .filter((vertexId) => vertexId !== edge.outputVertexId),
+          ]);
+        }
+
         // Delete edge from global data
         setEdges([...edges().filter((e) => edge.id !== e.id)]);
       }
@@ -847,6 +971,17 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
 
     setNodes([...nodes().filter((node) => node.id !== id)]);
     setSelectedNode(null);
+  }
+
+  //=====================================================
+  // get the live edge length
+  //=====================================================
+  function getPathLength() {
+    const dx =
+      newEdge()!.currEndPosition.get().x - newEdge()!.currStartPosition.get().x;
+    const dy =
+      newEdge()!.currEndPosition.get().y - newEdge()!.currStartPosition.get().y;
+    return Math.sqrt(dx * dx + dy * dy);
   }
 
   return (
@@ -865,6 +1000,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       onMouseUp={handleOnMouseUp}
       onMouseMove={handleOnMouseMove}
     >
+      {/* background */}
       <div
         class={style["dot-flow__background"]}
         style={{
@@ -877,6 +1013,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           }px`,
         }}
       ></div>
+      {/* selection box */}
       {selectionBox() && (
         <div
           style={{
@@ -898,7 +1035,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           }}
         ></div>
       )}
-
+      {/* bounding box */}
       {groupBoundingBox() && (
         <div
           style={{
@@ -920,7 +1057,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           }}
         ></div>
       )}
-
+      {/* bounding box --> main element */}
       <div
         id="board"
         class="w-screen h-screen absolute top-0 left-0"
@@ -935,6 +1072,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           "transform-origin": "top left",
         }}
       >
+        {/* render all nodes */}
         <For each={nodes()}>
           {(node: Node) => (
             <NodeMain
@@ -961,10 +1099,13 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             />
           )}
         </For>
+
+        {/* render only new edge */}
         {newEdge() !== null && (
           <EdgeComponent
             selected={false}
             isNew={true}
+            edgeLength={() => getPathLength()}
             position={{
               x0: newEdge()!.currStartPosition.get().x,
               y0: newEdge()!.currStartPosition.get().y,
@@ -976,11 +1117,13 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           />
         )}
 
+        {/* render all edges */}
         <For each={edges()}>
           {(edges: Edge) => (
             <EdgeComponent
               selected={selectedEdge() === edges.id}
               isNew={false}
+              edgeLength={() => getPathLength()}
               position={{
                 x0: edges.currStartPosition.get().x,
                 y0: edges.currStartPosition.get().y,

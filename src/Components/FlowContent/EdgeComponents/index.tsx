@@ -6,6 +6,7 @@ interface EdgeProps {
   selected: boolean;
   isNew: boolean;
   position: { x0: number; y0: number; x1: number; y1: number };
+  edgeLength: () => number;
   onMouseDownEdge: () => void;
   onClickDeleteEdge: () => void;
 }
@@ -15,10 +16,8 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     x: props.position.x0 + (props.position.x1 - props.position.x0) / 2,
     y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
   });
-  const board = document.getElementById("board");
 
-  const { setEdgeLength, setEdgeEnd, scale, transform, edgeLength } =
-    useStateContext();
+  // const { newEdge } = useStateContext();
 
   createEffect(() => {
     const middleX =
@@ -26,22 +25,10 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const middleY =
       props.position.y0 + (props.position.y1 - props.position.y0) / 2;
     setMiddlePoint({ x: middleX, y: middleY });
-
-    const dx = props.position.x1 - props.position.x0;
-    const dy = props.position.y1 - props.position.y0;
-    const length = Math.sqrt(dx * dx + dy * dy);
-    // console.log(props.position.x0, props.position.y0);
-    // console.log({px:props.position.x1, py:props.position.y1});
-
-    // console.log("edge length", edgeLength());
-    // console.log(scale());
-
-    // setEdgeLength(length);
-    setEdgeEnd({ x: props.position.x1, y: props.position.y1 });
   });
 
+
   const handleOnMouseDownEdge = (event: any) => {
-    console.log("transform", transform().x, transform().y);
     event.stopPropagation();
     props.onMouseDownEdge();
     console.log(document.getElementById("boardWrapper")?.offsetHeight);
@@ -52,48 +39,50 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     props.onClickDeleteEdge();
   };
 
+  // smooth the middle of curved path
   const getSmoothCurvedOffset = () =>
     Math.abs(props.position.x1 - props.position.x0) / 2;
 
+  //==================================================
+  // calculate conditional path
+  //==================================================
   const getPathString = (x0: number, y0: number, x1: number, y1: number) => {
-    const corner = 10;
-
-    // Define horizontal positions
-    const midTopX = x0 + 40; // right offset from source
-    const midLeftX = x1 - 40; // left offset from target
-
-    // Define vertical midpoint
-    const midY = (y0 + y1) / 2;
+    const cornerRadius = 10;
+    const midTopX = x0 + 40;
+    const midLeftX = x1 - 40;
 
     const dx = x1 - x0;
     const dy = y1 - y0;
-    const midTopY = y0 + 40; // top offset from source
-    const midLeftY = y1 - 40; // bottom offset from target
-    const midX = (x0 + x1) / 2;
+    // const midTopY = y0 + 40;
+    // const midLeftY = y1 - 40;
+    // const midX = (x0 + x1) / 2;
+    // const midY = (y0 + y1) / 2;
     const verticalBuffer = 120;
     const edgeDirectionChangeThreshold = 105;
     // console.log(dx, dy);
-    let buffer = 20;
+    // let buffer = 20;
 
     function getCorner() {
       if (dy > 105 && dy < 135) {
         return 0;
       }
-      return corner;
+      return cornerRadius;
     }
+    // console.log(x1, "dx", x0, "dx", props.edgeLength(), "edgeLength()");
 
-    if (dx < 40) {
+    // ******* logical 5 step path
+    function getSmoothSteep() {
       return `
       M ${x0} ${y0}
-      L ${midTopX - corner} ${y0}
-      Q ${midTopX} ${y0} ${midTopX} ${y0 + corner}
+      L ${midTopX - cornerRadius} ${y0}
+      Q ${midTopX} ${y0} ${midTopX} ${y0 + cornerRadius}
   
-      L ${midTopX} ${y0 + verticalBuffer - corner}
-      Q ${midTopX} ${y0 + verticalBuffer} ${midTopX - corner} ${
+      L ${midTopX} ${y0 + verticalBuffer - cornerRadius}
+      Q ${midTopX} ${y0 + verticalBuffer} ${midTopX - cornerRadius} ${
         y0 + verticalBuffer
       }
   
-      L ${midLeftX + corner} ${y0 + verticalBuffer}
+      L ${midLeftX + cornerRadius} ${y0 + verticalBuffer}
       Q ${midLeftX} ${y0 + verticalBuffer} ${midLeftX} ${
         dy > edgeDirectionChangeThreshold
           ? y0 + verticalBuffer + getCorner()
@@ -103,28 +92,27 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
       L ${midLeftX} ${
         dy > edgeDirectionChangeThreshold ? y1 - getCorner() : y1 + getCorner()
       }
-      Q ${midLeftX} ${y1} ${midLeftX + corner} ${y1}
+      Q ${midLeftX} ${y1} ${midLeftX + cornerRadius} ${y1}
   
       L ${x1} ${y1}
     `;
     }
+    // ******* control new edge creation to avoid 
+    // ******* edge creation mismatch
+    if (props.isNew && props.edgeLength() > 40 && dx < 40) {
+      return getSmoothSteep();
+    } else if (!props.isNew && dx < 40) {
+      return getSmoothSteep();
+    }
 
+    // ****** fallback to curve edge
     return `M ${x0} ${y0} C ${x0 + getSmoothCurvedOffset()} ${y0}, ${
       x1 - getSmoothCurvedOffset()
     } ${y1}, ${x1} ${y1}`;
   };
 
   return (
-    <svg
-      class={style.wrapper}
-      // style={{
-      //   transform: `translate(${transform().x}px, ${
-      //     transform().y
-      //   }px) scale(${scale()})`,
-      //   "transform-origin": "0 0",
-      //   overflow: "visible",
-      // }}
-    >
+    <svg class={style.wrapper}>
       <defs>
         <marker
           // class="z-100"
