@@ -33,7 +33,17 @@ import {
   pendingOutput,
   setPendingOutput,
   lastClickPosition,
-  setLastClickPosition
+  setLastClickPosition,
+  isShowModal,
+  setIsShowModal,
+  setPositionButton,
+  positionButton,
+  isModalOpen,
+  setIsModalOpen,
+  isOpening,
+  setIsOpening,
+  typeOfVertex,
+  setTypeOfVertex,
 } from "./state";
 
 const StateContextProvider: ParentComponent = (props) => {
@@ -73,7 +83,17 @@ const StateContextProvider: ParentComponent = (props) => {
         pendingOutput,
         setPendingOutput,
         lastClickPosition,
-        setLastClickPosition
+        setLastClickPosition,
+        isShowModal,
+        setIsShowModal,
+        setPositionButton,
+        positionButton,
+        isModalOpen,
+        setIsModalOpen,
+        isOpening,
+        setIsOpening,
+        typeOfVertex,
+        setTypeOfVertex,
       }}
     >
       {props.children}

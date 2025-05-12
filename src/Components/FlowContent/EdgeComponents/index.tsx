@@ -5,6 +5,7 @@ import useStateContext from "../../BoardComponent/useStateContext";
 interface EdgeProps {
   selected: boolean;
   isNew: boolean;
+  typeOfEdge: string;
   position: { x0: number; y0: number; x1: number; y1: number };
   edgeLength: () => number;
   onMouseDownEdge: () => void;
@@ -17,7 +18,7 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
   });
 
-  // const { newEdge } = useStateContext();
+  const { typeOfVertex } = useStateContext();
 
   createEffect(() => {
     const middleX =
@@ -25,13 +26,13 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const middleY =
       props.position.y0 + (props.position.y1 - props.position.y0) / 2;
     setMiddlePoint({ x: middleX, y: middleY });
+    // console.log(typeOfVertex());
   });
-
 
   const handleOnMouseDownEdge = (event: any) => {
     event.stopPropagation();
     props.onMouseDownEdge();
-    console.log(document.getElementById("boardWrapper")?.offsetHeight);
+    // console.log(document.getElementById("boardWrapper")?.offsetHeight);
   };
 
   const handleOnMouseDeleteEdge = (event: any) => {
@@ -61,6 +62,7 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const edgeDirectionChangeThreshold = 105;
     // console.log(dx, dy);
     // let buffer = 20;
+    const offset = getSmoothCurvedOffset();
 
     function getCorner() {
       if (dy > 105 && dy < 135) {
@@ -97,18 +99,24 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
       L ${x1} ${y1}
     `;
     }
-    // ******* control new edge creation to avoid 
-    // ******* edge creation mismatch
-    if (props.isNew && props.edgeLength() > 40 && dx < 40) {
-      return getSmoothSteep();
-    } else if (!props.isNew && dx < 40) {
-      return getSmoothSteep();
-    }
 
-    // ****** fallback to curve edge
-    return `M ${x0} ${y0} C ${x0 + getSmoothCurvedOffset()} ${y0}, ${
-      x1 - getSmoothCurvedOffset()
-    } ${y1}, ${x1} ${y1}`;
+    if (props.typeOfEdge === "dash") {
+      return `M ${x0} ${y0} C ${x0} ${y0 + offset}, ${x1} ${
+        y1 - offset
+      }, ${x1} ${y1}`;
+    } else {
+      // ******* control new edge creation to avoid
+      // ******* edge creation mismatch
+      if (props.isNew && props.edgeLength() > 40 && dx < 40) {
+        return getSmoothSteep();
+      } else if (!props.isNew && dx < 40) {
+        return getSmoothSteep();
+      }
+      // ****** fallback to curve edge
+      return `M ${x0} ${y0} C ${x0 + offset} ${y0}, ${
+        x1 - offset
+      } ${y1}, ${x1} ${y1}`;
+    }
   };
 
   return (
@@ -128,7 +136,9 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
         </marker>
       </defs>
       <path
-        class={props.isNew ? style.edgeNew : style.edge}
+        class={`${props.isNew ? style.edgeNew : style.edge} ${
+          props.typeOfEdge == "dash" ? style.edgeDash : ""
+        }`}
         d={getPathString(
           props.position.x0,
           props.position.y0,

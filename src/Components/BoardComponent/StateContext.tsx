@@ -33,6 +33,16 @@ import {
   setPendingOutput,
   lastClickPosition,
   setLastClickPosition,
+  isShowModal,
+  setIsShowModal,
+  setPositionButton,
+  positionButton,
+  isModalOpen,
+  setIsModalOpen,
+  isOpening,
+  setIsOpening,
+  typeOfVertex,
+  setTypeOfVertex,
 } from "./state";
 import { CustomNode, Edge } from "../ButtonComponents/Types";
 
@@ -60,28 +70,44 @@ export const StateContext = createContext<{
   setEdgeEnd: (edgeEnd: { x: number; y: number }) => void;
   transform: () => { x: number; y: number };
   setTransform: (
-    transform: { x: number; y: number } | ((prev:any) => { x: number; y: number })
+    transform:
+      | { x: number; y: number }
+      | ((prev: any) => { x: number; y: number })
   ) => void;
   nodes: () => CustomNode[];
   setNodes: (nodes: CustomNode[]) => void;
   preTransform: () => { x: number; y: number };
   setPreTransform: (
-    preTransform: { x: number; y: number } | ((prev:any) => { x: number; y: number })
+    preTransform:
+      | { x: number; y: number }
+      | ((prev: any) => { x: number; y: number })
   ) => void;
   selectedNode: () => string | null;
   setSelectedNode: (selectedNode: string | null) => void;
   pendingOutput: () => {
-    nodeId:string,
-    outputVertexIndex:number
+    nodeId: string;
+    outputVertexIndex: number;
   } | null;
-  setPendingOutput: (pendingOutput: {
-    nodeId:string,
-    outputVertexIndex:number
-  } | null) => void;
+  setPendingOutput: (
+    pendingOutput: {
+      nodeId: string;
+      outputVertexIndex: number;
+    } | null
+  ) => void;
   lastClickPosition: () => { x: number; y: number } | null;
   setLastClickPosition: (
     lastClickPosition: { x: number; y: number } | null
   ) => void;
+  isShowModal: () => boolean;
+  setIsShowModal: (isShowModal: boolean) => void;
+  positionButton: () => { x: number; y: number };
+  setPositionButton: (positionButton: { x: number; y: number }) => void;
+  isOpening: () => boolean;
+  setIsOpening: (isOpening: boolean) => void;
+  isModalOpen: () => boolean;
+  setIsModalOpen: (isModalOpen: boolean) => void;
+  typeOfVertex: () => string;
+  setTypeOfVertex: (typeOfVertex: string) => void;
 }>({
   scale,
   setScale,
@@ -116,4 +142,14 @@ export const StateContext = createContext<{
   setPendingOutput,
   lastClickPosition,
   setLastClickPosition,
+  isShowModal,
+  setIsShowModal,
+  positionButton,
+  setPositionButton,
+  isOpening,
+  setIsOpening,
+  isModalOpen,
+  setIsModalOpen,
+  typeOfVertex,
+  setTypeOfVertex,
 });

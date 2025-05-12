@@ -23,11 +23,17 @@ export const [selectedNode, setSelectedNode] = createSignal<string | null>(
 );
 
 export const [pendingOutput, setPendingOutput] = createSignal<{
-  nodeId:string,
-  outputVertexIndex:number
+  nodeId: string;
+  outputVertexIndex: number;
 } | null>(null);
 
 export const [lastClickPosition, setLastClickPosition] = createSignal<{
   x: number;
   y: number;
 } | null>(null);
+export const [isShowModal, setIsShowModal] = createSignal<boolean>(false);
+export const [positionButton, setPositionButton] = createSignal<{ x: number; y: number }>({ x: 0, y: 0 });
+export const [isOpening, setIsOpening] = createSignal<boolean>(false);
+export const [isModalOpen, setIsModalOpen] = createSignal<boolean>(false);
+export const [typeOfVertex, setTypeOfVertex] = createSignal<string>("")
+export const [] = createSignal(null)

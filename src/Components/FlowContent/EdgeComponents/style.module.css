@@ -29,6 +29,13 @@
   }
 }
 
+.edgeDash {
+  /* stroke: #c3c9d5; */
+  /* stroke-width: 2; */
+  /* fill: none; */
+  stroke-dasharray: 6, 4;
+}
+
 .delete {
   /* cursor: pointer; */
   pointer-events: none;

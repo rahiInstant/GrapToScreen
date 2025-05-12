@@ -1,0 +1,272 @@
+{
+  "name": "Your workflow",
+  "description": "no description",
+  "nodes": [
+    {
+      "id": "node_jr0k2l_gmail-trigger",
+      "description": "no description",
+      "type": "gmail-trigger",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 58,
+        "y": 128
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_7p4y5e_edit",
+      "description": "no description",
+      "type": "edit",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 258,
+        "y": 128
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_655q21_ai-agent",
+      "description": "no description",
+      "type": "ai-agent",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 458,
+        "y": 128
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_s33fu8_ollama-chat",
+      "description": "no description",
+      "type": "ollama-chat",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 322,
+        "y": 445
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_xdzg8g_switch",
+      "description": "no description",
+      "type": "switch",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 882,
+        "y": 152
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_s6c8se_send-email",
+      "description": "no description",
+      "type": "send-email",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 904,
+        "y": 550
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_jvcgwp_ai-agent",
+      "description": "no description",
+      "type": "ai-agent",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 1380,
+        "y": 126
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_y949dc_ollama-chat",
+      "description": "no description",
+      "type": "ollama-chat",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 1162,
+        "y": 328
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_ftmxpq_create-draft",
+      "description": "no description",
+      "type": "create-draft",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 1757,
+        "y": 350
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_fevl0p_vector-store",
+      "description": "no description",
+      "type": "vector-store",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 1366,
+        "y": 424
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_n8ipzx_pg-vector",
+      "description": "no description",
+      "type": "pg-vector",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 1131,
+        "y": 612
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_3a5p1r_ollama-chat",
+      "description": "no description",
+      "type": "ollama-chat",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 1598,
+        "y": 693
+      },
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "id": "node_n1w4lq_embedding",
+      "description": "no description",
+      "type": "embedding",
+      "parameters": {
+        "credentials": "no credentials"
+      },
+      "position": {
+        "x": 1090,
+        "y": 792
+      },
+      "inputs": [],
+      "outputs": []
+    }
+  ],
+  "connections": [
+    {
+      "id": "edge_node_jr0k2l_gmail-trigger_0_node_7p4y5e_edit_0",
+      "sourceNodeId": "node_jr0k2l_gmail-trigger",
+      "sourcePortId": "vertex_lrmndo",
+      "targetNodeId": "node_7p4y5e_edit",
+      "targetPortId": "vertex_l5m0yx"
+    },
+    {
+      "id": "edge_node_7p4y5e_edit_0_node_655q21_ai-agent_0",
+      "sourceNodeId": "node_7p4y5e_edit",
+      "sourcePortId": "vertex_vj1sbv",
+      "targetNodeId": "node_655q21_ai-agent",
+      "targetPortId": "vertex_s0hbjf"
+    },
+    {
+      "id": "edge_o0ink3_node_655q21_ai-agent_0_node_s33fu8_ollama-chat_0",
+      "sourceNodeId": "node_655q21_ai-agent",
+      "sourcePortId": "vertex_h8mpot",
+      "targetNodeId": "node_s33fu8_ollama-chat",
+      "targetPortId": "vertex_ji6mjq"
+    },
+    {
+      "id": "edge_node_655q21_ai-agent_0_node_xdzg8g_switch_0",
+      "sourceNodeId": "node_655q21_ai-agent",
+      "sourcePortId": "vertex_s3bg44",
+      "targetNodeId": "node_xdzg8g_switch",
+      "targetPortId": "vertex_u47e5r"
+    },
+    {
+      "id": "edge_x9c8zw_node_xdzg8g_switch_2_node_s6c8se_send-email_0",
+      "sourceNodeId": "node_xdzg8g_switch",
+      "sourcePortId": "vertex_cgwpbk",
+      "targetNodeId": "node_s6c8se_send-email",
+      "targetPortId": "vertex_m8r4in"
+    },
+    {
+      "id": "edge_4rdhoy_node_xdzg8g_switch_0_node_jvcgwp_ai-agent_0",
+      "sourceNodeId": "node_xdzg8g_switch",
+      "sourcePortId": "vertex_29era8",
+      "targetNodeId": "node_jvcgwp_ai-agent",
+      "targetPortId": "vertex_5z5kb4"
+    },
+    {
+      "id": "edge_wx0s4a_node_jvcgwp_ai-agent_0_node_y949dc_ollama-chat_0",
+      "sourceNodeId": "node_jvcgwp_ai-agent",
+      "sourcePortId": "vertex_e8ou7j",
+      "targetNodeId": "node_y949dc_ollama-chat",
+      "targetPortId": "vertex_8fxi6d"
+    },
+    {
+      "id": "edge_709shj_node_jvcgwp_ai-agent_2_node_ftmxpq_create-draft_0",
+      "sourceNodeId": "node_jvcgwp_ai-agent",
+      "sourcePortId": "vertex_dd97m2",
+      "targetNodeId": "node_ftmxpq_create-draft",
+      "targetPortId": "vertex_2te8gu"
+    },
+    {
+      "id": "edge_tyhj7k_node_jvcgwp_ai-agent_2_node_fevl0p_vector-store_0",
+      "sourceNodeId": "node_jvcgwp_ai-agent",
+      "sourcePortId": "vertex_dd97m2",
+      "targetNodeId": "node_fevl0p_vector-store"
+    },
+    {
+      "id": "edge_b0biyl_node_fevl0p_vector-store_0_node_n8ipzx_pg-vector_0",
+      "sourceNodeId": "node_fevl0p_vector-store",
+      "sourcePortId": "vertex_vzrqti",
+      "targetNodeId": "node_n8ipzx_pg-vector"
+    },
+    {
+      "id": "edge_at30mh_node_fevl0p_vector-store_1_node_3a5p1r_ollama-chat_0",
+      "sourceNodeId": "node_fevl0p_vector-store",
+      "sourcePortId": "vertex_a7ky0x",
+      "targetNodeId": "node_3a5p1r_ollama-chat",
+      "targetPortId": "vertex_l07dks"
+    },
+    {
+      "id": "edge_gzb253_node_n8ipzx_pg-vector_0_node_n1w4lq_embedding_0",
+      "sourceNodeId": "node_n8ipzx_pg-vector",
+      "sourcePortId": "vertex_824dfj",
+      "targetNodeId": "node_n1w4lq_embedding",
+      "targetPortId": "vertex_7ziyrh"
+    }
+  ]
+}

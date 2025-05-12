@@ -111,7 +111,7 @@ const SideBar: Component<SideBarProps> = (props) => {
           </div>
         </div>
         {/* nodes */}
-        <div class={style.nodesContainer}>
+        <div class={style.nodeList}>
           <For each={props.nodeMark}>
             {(nodeMark: nodeMarkType, index: Accessor<number>) => {
               return (

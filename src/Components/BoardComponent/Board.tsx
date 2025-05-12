@@ -15,16 +15,24 @@ import EdgeComponent from "../FlowContent/EdgeComponents";
 import { customNodeProps } from "../ButtonComponents/Types";
 
 // ***************
-// node data type 
+// node data type
 // ***************
 interface Node {
   id: string;
+  name: string;
   numberInputs: number;
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
+  isDownVertex?: boolean;
+  isUpVertex?: boolean;
+  downVertexNumber?: number;
+  upVertexNumber?: number;
+  downVertexOrientation?: string;
   inputVertexIds: Array<string>;
   outputVertexIds: Array<string>;
+  downVertexIds: Array<string>;
+  upVertexIds: Array<string>;
   // inputVertexIds: Record<string, HTMLElement | undefined>;
   // outputVertexIds: Record<string, HTMLElement | undefined>;
   busyIndex: {
@@ -51,11 +59,12 @@ interface Node {
 }
 
 // ***************
-// edge data type 
+// edge data type
 // ***************
 interface Edge {
   id: string;
   nodeStartId: string;
+  typeOfEdge: string;
   nodeEndId: string;
   inputIndex: number;
   outputIndex: number;
@@ -108,6 +117,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     setSelectedNode,
     setLastClickPosition,
     setEdgeLength,
+    setTypeOfVertex,
   } = useStateContext();
   // const [cursor, setCursor] = createSignal({ x: 0, y: 0 });
 
@@ -407,7 +417,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         // *********** input edges ************
         for (let i = 0; i < node.inputEdgeIds.get().length; i++) {
           const edgeId = node.inputEdgeIds.get()[i];
-          console.log(edgeId);
+          // console.log(edgeId);
           const edge = edges().find((edge) => edge.id === edgeId);
           if (edge) {
             // console.log(edge, "input");
@@ -452,12 +462,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     // *********** new edge movement and snapping effect ************
     if (newEdge() !== null) {
       // console.log(newEdge(), "newEdge");
-      setEdgeLength(
-        Math.abs(
-          newEdge()!.currEndPosition.get().x -
-            newEdge()!.currStartPosition.get().x
-        )
-      );
+      setEdgeLength(getPathLength());
       const boardWrapperElement = document.getElementById("boardWrapper");
       const BUFFER_RADIUS = 50;
       if (boardWrapperElement) {
@@ -469,8 +474,12 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
 
         // ************* check nearest input vertex ************
         for (const node of nodes()) {
-          if (node.id !== newEdge()!.nodeStartId && node.isInputVertex) {
-            const inputVertexId = node.inputVertexIds[0];
+          const leftOrTopInputVertex = node.isInputVertex || node.isUpVertex;
+          if (node.id !== newEdge()!.nodeStartId && leftOrTopInputVertex) {
+            console.log(node);
+            const inputVertexId = node.isInputVertex
+              ? node.inputVertexIds[0]
+              : node.upVertexIds[0];
             // console.log(inputVertexId, "inputVertexId");
             const inputVertexRef = document.getElementById(inputVertexId);
             const { left, right, top, bottom } =
@@ -598,6 +607,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         });
       }
     }
+    // console.log(newEdge(), insideInput())
 
     // *********** If newEdge is not inside input, remove it ************
     if (newEdge() !== null && insideInput() === null) {
@@ -615,8 +625,8 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       const nodeStartId = newEdge()!.nodeStartId;
       const nodeEndId = insideInput()!.nodeId;
 
-      // console.log(nodeStartId, "nodeStartId");
-      // console.log(nodeEndId, "nodeEndId");
+      console.log(nodeStartId, "nodeStartId");
+      console.log(nodeEndId, "nodeEndId");
 
       const nodeStart = nodes().find((node) => node.id === nodeStartId);
       const nodeEnd = nodes().find((node) => node.id === nodeEndId);
@@ -626,9 +636,9 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       const boardWrapperElement = document.getElementById("boardWrapper");
 
       if (nodeStart && nodeEnd && boardWrapperElement) {
-        const edgeId = `edge_${nodeStart.id}_${newEdge()?.outputIndex}_${
-          nodeEnd.id
-        }_${insideInput()?.inputIndex}`;
+        const edgeId = `edge_${Math.random().toString(36).substring(2, 8)}_${
+          nodeStart.id
+        }_${newEdge()?.outputIndex}_${nodeEnd.id}_${insideInput()?.inputIndex}`;
 
         if (
           nodeStart.outputEdgeIds.get().includes(edgeId) &&
@@ -670,6 +680,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             ...newEdge()!,
             id: edgeId,
             nodeEndId: nodeEnd.id,
+            inputVertexId: nodeEnd.inputVertexIds[0],
             nodeEndInputIndex: insideInput()!.inputIndex,
           },
         ]);
@@ -778,9 +789,13 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     outputPositionY: number,
     nodeId: string,
     outputIndex: number,
-    vertexId: string
+    vertexId: string,
+    typeOfEdge: string
   ) {
     // setEdgeDragging(true);
+    // setTypeOfVertex(typeOfVertex);
+    // console.log(typeOfVertex)
+
     setSelectedNode(null);
     const boardWrapperElement = document.getElementById("pane");
     // console.log(scale());
@@ -822,6 +837,8 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         nodeEndId: "",
         inputIndex: -1,
         outputVertexId: vertexId,
+        inputVertexId: "",
+        typeOfEdge,
         prevStartPosition: { get: prevEdgeStart, set: setPrevEdgeStart },
         prevEndPosition: { get: prevEdgeEnd, set: setPrevEdgeEnd },
         currStartPosition: { get: currEdgeStart, set: setCurrEdgeStart },
@@ -847,6 +864,14 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       positionX: inputPositionX,
       positionY: inputPositionY,
     });
+    // console.log(insideInput())
+
+    // console.log({
+    //   nodeId,
+    //   inputIndex,
+    //   positionX: inputPositionX,
+    //   positionY: inputPositionY,
+    // })
   }
 
   //=====================================================
@@ -954,7 +979,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         const busyCheck = edges().filter(
           (e) => e.outputVertexId === edge.outputVertexId
         );
-        
+
         // ******** block vertex ********
         if (busyCheck.length <= 1 && nodeStart) {
           nodeStart.busyIndex.set([
@@ -1077,14 +1102,22 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           {(node: Node) => (
             <NodeMain
               id={node.id}
+              name={node.name}
               x={node.currPosition.get().x}
               y={node.currPosition.get().y}
               numberInputs={node.numberInputs}
               numberOutputs={node.numberOutputs}
+              downVertexNumber={node.downVertexNumber || 0}
+              upVertexNumber={node.upVertexNumber || 0}
               isInputVertex={node.isInputVertex}
               isOutputVertex={node.isOutputVertex}
+              isDownVertex={node.isDownVertex || false}
+              isUpVertex={node.isUpVertex || false}
               inputVertexIds={node.inputVertexIds}
               outputVertexIds={node.outputVertexIds}
+              downVertexIds={node.downVertexIds || []}
+              upVertexIds={node.upVertexIds || []}
+              downVertexOrientation={node.downVertexOrientation || ""}
               busyIndex={node.busyIndex}
               content={node.content}
               selected={
@@ -1106,6 +1139,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             selected={false}
             isNew={true}
             edgeLength={() => getPathLength()}
+            typeOfEdge={newEdge()!.typeOfEdge}
             position={{
               x0: newEdge()!.currStartPosition.get().x,
               y0: newEdge()!.currStartPosition.get().y,
@@ -1124,6 +1158,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
               selected={selectedEdge() === edges.id}
               isNew={false}
               edgeLength={() => getPathLength()}
+              typeOfEdge={edges.typeOfEdge}
               position={{
                 x0: edges.currStartPosition.get().x,
                 y0: edges.currStartPosition.get().y,

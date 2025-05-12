@@ -21,61 +21,8 @@ import {
 } from "../ButtonComponents/Types";
 import useStateContext from "./useStateContext";
 import Background from "./Background";
-// import { pendingOutput } from "./state";
-// interface CustomNode {
-//   id: string;
-//   numberInputs: number;
-//   numberOutputs: number;
-//   isInputVertex: boolean;
-//   isOutputVertex: boolean;
-//   inputVertexIds: Array<string>;
-//   outputVertexIds: Array<string>;
-//   busyIndex: {
-//     get: Accessor<string[]>;
-//     set: Setter<string[]>;
-//   };
-//   content: Component<customNodeProps>;
-//   prevPosition: {
-//     get: Accessor<{ x: number; y: number }>;
-//     set: Setter<{ x: number; y: number }>;
-//   };
-//   currPosition: {
-//     get: Accessor<{ x: number; y: number }>;
-//     set: Setter<{ x: number; y: number }>;
-//   };
-//   inputEdgeIds: {
-//     get: Accessor<string[]>;
-//     set: Setter<string[]>;
-//   };
-//   outputEdgeIds: {
-//     get: Accessor<string[]>;
-//     set: Setter<string[]>;
-//   };
-// }
-
-interface Edge {
-  id: string;
-  nodeStartId: string;
-  nodeEndId: string;
-  inputIndex: number;
-  outputIndex: number;
-  prevStartPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  prevEndPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  currStartPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  currEndPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-}
+import SendData from "./SendData";
+import Modal from "./Modal";
 
 interface DotFlowProps {
   node: nodeType;
@@ -95,6 +42,8 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
     edges,
     transform,
     scale,
+    isShowModal,
+    setIsModalOpen,
   } = useStateContext();
 
   //==================================================
@@ -109,7 +58,8 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
   function handleOnClickAddNode(nodeName: string) {
     let nodeX = window.innerWidth / 2;
     let nodeY = window.innerHeight / 2;
-
+    // console.log(nodes());
+    // console.log(edges());
     const selected = selectedNode();
     const pending = pendingOutput();
     const lastClick = lastClickPosition();
@@ -176,18 +126,43 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
           return id;
         }),
     ];
+    const downVertexIds = [
+      ...Array(Number(node[nodeName].downVertexNumber || 0))
+        .keys()
+        .map(() => {
+          const id = `vertex_${Math.random().toString(36).substring(2, 8)}`;
+          return id;
+        }),
+    ];
+
+    const upVertexIds = [
+      ...Array(Number(node[nodeName].upVertexNumber || 0))
+        .keys()
+        .map(() => {
+          const id = `vertex_${Math.random().toString(36).substring(2, 8)}`;
+          return id;
+        }),
+    ];
     // **** node injection
     createRoot(() => {
       setNodes([
         ...nodes(),
         {
-          id: `nodes_${Math.random().toString(36).substring(2, 8)}`,
+          id: `node_${Math.random().toString(36).substring(2, 8)}_${nodeName}`,
+          name: nodeName,
           numberInputs: node[nodeName].numberInputs,
           numberOutputs: node[nodeName].numberOutputs,
           isInputVertex: node[nodeName].isInputVertex,
           isOutputVertex: node[nodeName].isOutputVertex,
           inputVertexIds: inputVertexIds,
           outputVertexIds: outputVertexIds,
+          isDownVertex: node[nodeName].isDownVertex || false,
+          isUpVertex: node[nodeName].isUpVertex || false,
+          downVertexNumber: node[nodeName].downVertexNumber || 0,
+          upVertexNumber: node[nodeName].upVertexNumber || 0,
+          downVertexIds: downVertexIds,
+          upVertexIds: upVertexIds,
+          downVertexOrientation: node[nodeName].downVertexOrientation,
           busyIndex: { get: busyIndex, set: setBusyIndex },
           content: node[nodeName].content,
           prevPosition: { get: nodePrev, set: setNodePrev },
@@ -200,7 +175,6 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
 
     // connect with base node
     // console.log(baseNode()!.outputVertexIds);
-
 
     //==================================================
     // connect edge of selected/pending node with new node
@@ -272,7 +246,9 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
           nodeStartId: baseNode()!.id,
           nodeEndId: newNode.id,
           inputIndex: 0,
+          typeOfEdge: "solid",
           outputIndex: outputVertexIndex,
+          inputVertexId: newNode.inputVertexIds[0],
           outputVertexId: baseNode()!.outputVertexIds[outputVertexIndex],
           prevStartPosition: { get: prevEdgeStart, set: setPrevEdgeStart },
           prevEndPosition: { get: prevEdgeEnd, set: setPrevEdgeEnd },
@@ -289,13 +265,33 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
     }
 
     if (selected) {
-      autoConnectEdge();
+      baseNode()?.isOutputVertex && newNode.isInputVertex
+        ? autoConnectEdge()
+        : "";
     } else if (pending) {
-      autoConnectEdge(pending!.outputVertexIndex);
+      baseNode()?.isOutputVertex && newNode.isInputVertex
+        ? autoConnectEdge(pending!.outputVertexIndex)
+        : "";
     }
 
-    setSelectedNode(newNode.id);
+    if (nodes().length <= 1 && nodes()[0].isOutputVertex) {
+      setSelectedNode(nodes()[0].id);
+    } else if (baseNode()?.isOutputVertex && newNode.isInputVertex) {
+      setSelectedNode(newNode.id);
+    }
+
+    // baseNode()?.isOutputVertex && newNode.isInputVertex
+    //   ? setSelectedNode(newNode.id)
+    //   : "";
   }
+
+  const handleModalClose = () => {
+    const modal = document.getElementById("modal") as HTMLDialogElement;
+    if (modal) {
+      modal.close();
+      setIsModalOpen(false);
+    }
+  };
 
   return (
     <div
@@ -303,6 +299,15 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
       class="w-screen h-screen overflow-hidden relative z-0"
       tabIndex={0}
     >
+      {/* <ModalForm isShowModal={isShowModal}/> */}
+      <StateContextProvider>
+        <SendData />
+      </StateContextProvider>
+      <StateContextProvider>
+        {/* <DialogForm handleModalClose={handleModalClose} /> */}
+        <Modal />
+        {/* <Effect /> */}
+      </StateContextProvider>
       <StateContextProvider>
         <SideBar onClickAdd={handleOnClickAddNode} nodeMark={nodeMark} />
       </StateContextProvider>

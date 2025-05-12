@@ -70,6 +70,89 @@
   pointer-events: all;
 }
 
+.inputsUPWrapper {
+  position: absolute;
+  top: -50%;
+  left: 45%;
+  transform: rotate(90deg);
+  /* right: 0px; */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 12px;
+  pointer-events: none;
+}
+
+.inputUp {
+  width: 13px;
+  height: 13px;
+  /* border-radius: 100%; */
+  background-color: #c3c9d5;
+  cursor: crosshair;
+  pointer-events: all;
+  transform: rotate(45deg);
+}
+
+.inputUp:hover {
+  background-color: #ff6f5c;
+}
+
+.outputsDownWrapper {
+  position: absolute;
+  left: 45%;
+  bottom: -92.5%;
+  /* bottom: -74px; */
+  /* transform: rotate(90deg); */
+  height: 100%;
+  display: flex;
+  /* flex-direction: column; */
+  align-items: top;
+  justify-content: center;
+  gap: 12px;
+  width: 12px;
+  pointer-events: none;
+}
+
+.outputDown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+}
+
+.outputDownVertex {
+  width: 13px;
+  height: 13px;
+  transform: rotate(45deg);
+  background-color: #c3c9d5;
+  cursor: crosshair;
+  pointer-events: all;
+}
+
+.downOutputLine {
+  width: 2.5px ;
+  height: 40px;
+  background-color: #c3c9d5;
+  cursor: crosshair;
+  pointer-events: all;
+}
+
+.downPlusLine {
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  
+  align-items: center;
+  pointer-events: all;
+  /* cursor: crosshair; */
+  /* opacity: 1; */
+  /* pointer-events: all; */
+  transition: opacity 0.3s ease-in;
+}
+
 .input:hover {
   background-color: #ff6f5c;
 }

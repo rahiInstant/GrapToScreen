@@ -7,8 +7,8 @@ const FilterIcon: Component = (props) => {
       stroke-width="0"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 512 512"
-      height="2em"
-      width="2em"
+      height="1em"
+      width="1em"
       style="overflow: visible; color: #58ABFF;"
     >
       <path

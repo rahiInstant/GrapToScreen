@@ -9,10 +9,16 @@ export type nodeMarkType = {
 
 export type nodeType = {
   [key: string]: {
+    name: string;
     numberInputs: number;
     numberOutputs: number;
     isInputVertex: boolean;
     isOutputVertex: boolean;
+    isDownVertex?: boolean;
+    downVertexNumber?: number;
+    upVertexNumber?: number;
+    downVertexOrientation?: string;
+    isUpVertex?: boolean;
     content: Component<customNodeProps>;
   };
 };
@@ -24,11 +30,13 @@ export interface customNodeProps {
 export interface Edge {
   id: string;
   nodeStartId: string;
+  typeOfEdge: string;
   nodeEndId: string;
   inputIndex: number;
   outputIndex: number;
   nodeEndInputIndex?: number;
   outputVertexId: string;
+  inputVertexId: string;
   prevStartPosition: {
     get: Accessor<{ x: number; y: number }>;
     set: Setter<{ x: number; y: number }>;
@@ -53,6 +61,9 @@ export interface Node {
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
+  isDownVertex: boolean;
+  isUpVertex: boolean;
+
   inputVertexIds: Array<string>;
   outputVertexIds: Array<string>;
   busyIndex: {
@@ -80,12 +91,20 @@ export interface Node {
 
 export interface CustomNode {
   id: string;
+  name: string;
   numberInputs: number;
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
+  isDownVertex?: boolean;
+  isUpVertex?: boolean;
+  downVertexNumber?: number;
+  upVertexNumber?: number;
+  downVertexOrientation?: string;
   inputVertexIds: Array<string>;
   outputVertexIds: Array<string>;
+  downVertexIds: Array<string>;
+  upVertexIds: Array<string>;
   // inputVertexIds: Record<string, HTMLElement | undefined>;
   // outputVertexIds: Record<string, HTMLElement | undefined>;
   busyIndex: {
@@ -114,3 +133,9 @@ export interface CustomNode {
 export interface outputVertexDuty {
   [key: string]: string[];
 }
+
+export interface finalJSON {
+  
+}
+
+

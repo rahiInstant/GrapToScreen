@@ -5,10 +5,18 @@ import useStateContext from "../../BoardComponent/useStateContext";
 
 interface VertexProps {
   id: string;
+  name: string;
   numberInputs: number;
   numberOutputs: number;
   isInputVertex: boolean;
   isOutputVertex: boolean;
+  isDownVertex: boolean;
+  isUpVertex: boolean;
+  downVertexNumber: number;
+  upVertexNumber: number;
+  downVertexIds: Array<string>;
+  upVertexIds: Array<string>;
+  downVertexOrientation: string;
   // inputVertexIds: Record<string, HTMLElement | undefined>;
   // outputVertexIds: Record<string, HTMLElement | undefined>;
   inputVertexIds: Array<string>;
@@ -22,7 +30,8 @@ interface VertexProps {
     outputPositionY: number,
     nodeId: string,
     outputIndex: number,
-    vertexId: string
+    vertexId: string,
+    typeOfEdge: string
   ) => void;
   onMouseEnterInput: (
     inputPositionX: number,
@@ -46,6 +55,7 @@ const Vertex: Component<VertexProps> = (props) => {
     const centerX = left + Math.abs(left - right) / 2;
     const centerY = top + Math.abs(top - bottom) / 2;
     props.onMouseEnterInput(centerX, centerY, props.id, index);
+    // console.log(inputRef);
   }
 
   //=====================================================
@@ -63,15 +73,24 @@ const Vertex: Component<VertexProps> = (props) => {
     outputRef: any,
     event: any,
     outputIndex: number,
-    vertexId: string
+    vertexId: string,
+    typeOfEdge: string
   ) {
     // console.log(props.busyIndex.get());
+    // console.log(typeOfEdge)
     event.stopPropagation();
     const { left, right, top, bottom } = outputRef.getBoundingClientRect();
     const centerX = left + Math.abs(left - right) / 2;
     const centerY = top + Math.abs(top - bottom) / 2;
     // console.log({ centerX, centerY });
-    props.onMouseDownOutput(centerX, centerY, props.id, outputIndex, vertexId);
+    props.onMouseDownOutput(
+      centerX,
+      centerY,
+      props.id,
+      outputIndex,
+      vertexId,
+      typeOfEdge
+    );
   }
 
   return (
@@ -119,7 +138,7 @@ const Vertex: Component<VertexProps> = (props) => {
                     });
                   }}
                   onMouseDown={(event: any) =>
-                    handleMouseDownOutput(outputRef, event, index(), id)
+                    handleMouseDownOutput(outputRef, event, index(), id, "solid")
                   }
                 >
                   <div id={id} ref={outputRef} class={style.outputCircle}></div>
@@ -129,7 +148,7 @@ const Vertex: Component<VertexProps> = (props) => {
                       [style.plusLine]: true,
                       [style.plusLineHidden]:
                         (newEdge()?.outputVertexId == id &&
-                          edgeLength() > 40) ||
+                          edgeLength() > 10) ||
                         props.busyIndex.get().includes(id),
                     }}
                   >
@@ -137,10 +156,7 @@ const Vertex: Component<VertexProps> = (props) => {
                       <div class={style.vertexNum}>{index()}</div>
                     )}
                     <div class={style.outputLine}></div>
-                    <div
-                      class={style.outputPlus}
-                      id="plus"
-                    >
+                    <div class={style.outputPlus} id="plus">
                       <PlusIcon />
                     </div>
                   </div>
@@ -149,6 +165,80 @@ const Vertex: Component<VertexProps> = (props) => {
             }}
           </For>
         </div>
+      )}
+      {/* render down vertex */}
+      {props.isDownVertex && (
+        <div class={`${style.outputsDownWrapper} `}>
+          <For each={props.downVertexIds}>
+            {(id, index: Accessor<number>) => {
+              let outputRef: any = null;
+              // console.log(props.busyIndex.get());
+              return (
+                <div
+                  id={`output-${id}`}
+                  class={style.outputDown}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsOpen(true);
+                    setPendingOutput({
+                      nodeId: props.id,
+                      outputVertexIndex: index(),
+                    });
+                  }}
+                  onMouseDown={(event: any) =>
+                    handleMouseDownOutput(outputRef, event, index(), id, "dash")
+                  }
+                >
+                  <div
+                    id={id}
+                    ref={outputRef}
+                    class={style.outputDownVertex}
+                  ></div>
+                  <div
+                    // class={style.plusLine}
+                    classList={{
+                      [style.downPlusLine]: true,
+                      [style.plusLineHidden]:
+                        (newEdge()?.outputVertexId == id &&
+                          edgeLength() > 10) ||
+                        props.busyIndex.get().includes(id),
+                    }}
+                  >
+                    {/* {props.numberOutputs > 1 && (
+                      <div class={style.vertexNum}>{index()}</div>
+                    )} */}
+                    <div class={style.downOutputLine}></div>
+                    <div class={style.outputPlus} id="plus">
+                      <PlusIcon />
+                    </div>
+                  </div>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      )}
+      {/* render up vertex */}
+      {props.isUpVertex ? (
+        <div class={style.inputsUPWrapper}>
+          <For each={props.upVertexIds}>
+            {(id, index: Accessor<number>) => {
+              let inputRef: any = null;
+              let bufferRef: any = null;
+              return (
+                <div
+                  id={`input-${id}`}
+                  onMouseEnter={() => handleMouseEnterInput(inputRef, index())}
+                  onMouseLeave={() => handleMouseLeaveInput(index())}
+                >
+                  <div id={id} ref={inputRef} class={style.inputUp}></div>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      ) : (
+        <div></div>
       )}
     </div>
   );
