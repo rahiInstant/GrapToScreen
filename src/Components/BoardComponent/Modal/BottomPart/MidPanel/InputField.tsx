@@ -7,7 +7,7 @@ const InputField = () => {
   return (
     <div class="relative w-full">
       <input
-        id="name"
+        // id="name"
         type="text"
         title="input"
         placeholder="placeHolder"
