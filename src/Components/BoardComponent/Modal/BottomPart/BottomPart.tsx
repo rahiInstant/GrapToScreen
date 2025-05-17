@@ -5,7 +5,7 @@ import RightPanel from "./RightPanel/RightPanel";
 
 const BottomPart: Component<{}> = (props) => {
   return (
-    <div class="flex items-start flex-1">
+    <div class="flex items-start h-full w-full overflow-hidden">
       <LeftPanel />
       <MidPanel />
       <RightPanel />

@@ -43,6 +43,10 @@ import {
   setIsOpening,
   typeOfVertex,
   setTypeOfVertex,
+  formConfig,
+  setFormConfig,
+  isModalOpen2,
+  setIsModalOpen2,
 } from "./state";
 import { CustomNode, Edge } from "../ButtonComponents/Types";
 
@@ -106,8 +110,12 @@ export const StateContext = createContext<{
   setIsOpening: (isOpening: boolean) => void;
   isModalOpen: () => boolean;
   setIsModalOpen: (isModalOpen: boolean) => void;
+  isModalOpen2: () => boolean;
+  setIsModalOpen2: (isModalOpen: boolean) => void;
   typeOfVertex: () => string;
   setTypeOfVertex: (typeOfVertex: string) => void;
+  formConfig: () => string;
+  setFormConfig: (formConfig: string) => void;
 }>({
   scale,
   setScale,
@@ -152,4 +160,8 @@ export const StateContext = createContext<{
   setIsModalOpen,
   typeOfVertex,
   setTypeOfVertex,
+  formConfig,
+  setFormConfig,
+  isModalOpen2,
+  setIsModalOpen2,
 });

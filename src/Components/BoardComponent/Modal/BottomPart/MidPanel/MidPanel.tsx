@@ -1,14 +1,22 @@
 import { Component, createSignal } from "solid-js";
-import Parameters from "./Parameters";
+import Parameters from "./parameterMain";
 import Settings from "./Settings";
+import style from "./style.module.css";
 
 const MidPanel: Component<{}> = (props) => {
   const title = "switch";
   const [activeTab, setActiveTab] = createSignal(0);
+
   return (
-    <div class="max-w-[500px] min-w-[500px]">
+    <div
+      id="mid-panel"
+      classList={{
+        [style.midPanel]: true,
+      }}
+      class="flex flex-col h-full bg-gradient-to-b from-[#2A2A3A] to-[#232333] w-2/4 overflow-auto"
+    >
       {/* Header */}
-      <div class="flex justify-between flex-1 items-center p-4 bg-gradient-to-r from-[#2A2A40] via-[#323248] to-[#2A2A40] border-b border-gray-700/50">
+      <div class="flex justify-between items-center p-4 bg-gradient-to-r from-[#2A2A40] via-[#323248] to-[#2A2A40] border-b border-gray-700/50">
         <div class="flex items-center">
           <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center mr-2">
             <svg
@@ -34,7 +42,7 @@ const MidPanel: Component<{}> = (props) => {
       </div>
 
       {/* Content */}
-      <div class="flex-1 overflow-hidden">
+      <div class="h-full flex-1 overflow-visible">
         <div class="w-full">
           <div class="border-b border-gray-700/50 bg-[#232130]">
             <div class="flex border-b border-gray-700/30 rounded-none w-full justify-start px-4 h-auto pb-1 *:cursor-pointer">
@@ -58,8 +66,14 @@ const MidPanel: Component<{}> = (props) => {
               </div>
             </div>
           </div>
-          
-          {activeTab() == 0 ? <Parameters /> : <Settings />}
+          <div class="overflow-visible">
+            <div class={activeTab() === 0 ? "" : "hidden"}>
+              <Parameters />
+            </div>
+            <div class={activeTab() === 1 ? "" : "hidden"}>
+              <Settings />
+            </div>
+          </div>
         </div>
       </div>
     </div>

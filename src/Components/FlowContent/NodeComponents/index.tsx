@@ -64,7 +64,7 @@ interface NodeProps {
 }
 
 const NodeMain: Component<NodeProps> = (props) => {
-  const { setIsShowModal, isShowModal, setPositionButton, setIsOpening,setIsModalOpen } = useStateContext();
+  const { setIsShowModal, isShowModal, setPositionButton, setIsOpening,setIsModalOpen, setFormConfig } = useStateContext();
   let nodeRef: HTMLDivElement | undefined = undefined;
   return (
     <div
@@ -74,16 +74,15 @@ const NodeMain: Component<NodeProps> = (props) => {
         // console.log(isShowModal())
 
         // setIsShowModal(true)
-        const { left, top, width, height } = nodeRef!.getBoundingClientRect();
-        const centerX = left + width / 2;
-        const centerY = top + height / 2;
-        setPositionButton({ x: centerX, y: centerY });
-        setIsOpening(true);
+
+        // setIsOpening(true);
         const modal = document.getElementById("modal") as HTMLDialogElement;
-        setTimeout(() => {
-          setIsOpening(false);
-          setIsModalOpen(true);
-      }, 50);
+        // setIsOpening(false);
+        setIsModalOpen(true);
+        console.log(props.name)
+        setFormConfig(props.name)
+      //   setTimeout(() => {
+      // }, 50);
         // modal.showModal();
         
       }}

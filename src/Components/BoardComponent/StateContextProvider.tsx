@@ -44,6 +44,10 @@ import {
   setIsOpening,
   typeOfVertex,
   setTypeOfVertex,
+  formConfig,
+  setFormConfig,
+  isModalOpen2,
+  setIsModalOpen2,
 } from "./state";
 
 const StateContextProvider: ParentComponent = (props) => {
@@ -94,6 +98,10 @@ const StateContextProvider: ParentComponent = (props) => {
         setIsOpening,
         typeOfVertex,
         setTypeOfVertex,
+        formConfig,
+        setFormConfig,
+        isModalOpen2,
+        setIsModalOpen2,
       }}
     >
       {props.children}

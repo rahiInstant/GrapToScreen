@@ -1,11 +1,27 @@
+import { createSignal } from "solid-js";
+import Tooltip from "./Tooltip";
+
 const InputField = () => {
+  const [showTooltip, setShowTooltip] = createSignal(false);
+
   return (
-    <div class="">
+    <div class="relative w-full">
       <input
         id="name"
         type="text"
-        placeholder="Enter your name"
-        class="w-full px-4 py-2 rounded-md border border-neutral-700 bg-[#282a39] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#dad7d742] focus:border-[#dad7d742] transition"
+        title="input"
+        placeholder="placeHolder"
+        autocomplete="off"
+        onFocusIn={() => setShowTooltip(true)}
+        onFocusOut={() => setShowTooltip(false)}
+        class="w-full px-4 py-2 rounded-md border border-neutral-700 bg-[#282a39] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#dad7d742] focus:border-[#dad7d742] focus:bg-[#282a39] transition"
+      />
+      <Tooltip
+        showTooltip={showTooltip}
+        toolTipContent={{
+          label: "Tip:",
+          text: "Execute previous nodes to use input data."
+        }}
       />
     </div>
   );

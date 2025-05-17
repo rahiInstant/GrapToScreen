@@ -1,16 +1,23 @@
 import { Component, createSignal, onCleanup, onMount } from "solid-js";
 import { Portal } from "solid-js/web";
+import useStateContext from "../../../useStateContext";
 
 interface DropdownProps {
-  options: Array<{ label: string; value: string; description?: string }>;
-  // onOption?: (
-  //   options: Array<{ label: string; value: string; description?: string }>
-  // ) => void;
+  //   options: Array<{ label: string; value: string; description?: string }>;
+  onOption?: (
+    options: Array<{ label: string; value: string; description?: string }>
+  ) => void;
 }
 
-const Dropdown: Component<DropdownProps> = ({ options }) => {
+const CredentialDropDown: Component<DropdownProps> = ({ onOption }) => {
+  const { setIsModalOpen2 } = useStateContext();
   const [isOpen, setIsOpen] = createSignal(false);
-  const [selected, setSelected] = createSignal(options[0]);
+  const [options, setOPtions] = createSignal<
+    Array<{ label: string; value: string; description?: string }>
+  >([]);
+  const [selected, setSelected] = createSignal<
+    { label: string; value: string; description?: string } | undefined
+  >(undefined);
   const [coords, setCoords] = createSignal({ top: 0, left: 0, width: 0 });
   const [openUpward, setOpenUpward] = createSignal(false);
   let triggerRef: HTMLButtonElement | undefined;
@@ -43,8 +50,12 @@ const Dropdown: Component<DropdownProps> = ({ options }) => {
     setIsOpen(!isOpen());
   };
 
-  const handleSelect = (option: (typeof options)[0]) => {
-    setSelected(option);
+  const handleSelect = (option: {
+    label: string;
+    value: string;
+    description?: string;
+  }) => {
+    setOPtions([...options(), option]);
     setIsOpen(false);
   };
 
@@ -75,7 +86,7 @@ const Dropdown: Component<DropdownProps> = ({ options }) => {
         onClick={toggleDropdown}
         class="w-full bg-[#282a39] cursor-pointer text-white px-4 py-2 rounded-md border border-neutral-700 shadow-sm flex justify-between items-center hover:border-[#dad7d742] focus:outline-none focus:ring-2 focus:ring-[#dad7d742] transition"
       >
-        {selected().label}
+        {selected() ? selected()!.label : "Select an option"}
         <svg
           class={`w-4 h-4 transition-transform ${isOpen() ? "rotate-180" : ""}`}
           fill="none"
@@ -101,13 +112,13 @@ const Dropdown: Component<DropdownProps> = ({ options }) => {
               "max-height": "200px",
             }}
           >
-            {options.map((option) => {
+            {options().map((option) => {
               // onOption
               return (
                 <li>
                   <button
                     class={`w-full text-left px-4 py-2 hover:bg-[#dad7d742] hover:text-white transition ${
-                      selected().value === option.value
+                      selected()?.value === option.value
                         ? "bg-[#282a39] text-[#ff6f5c]"
                         : "text-gray-200"
                     }`}
@@ -121,6 +132,15 @@ const Dropdown: Component<DropdownProps> = ({ options }) => {
                 </li>
               );
             })}
+            <li>
+              <button
+                class={`w-full text-left px-4 py-2 hover:bg-[#dad7d742] text-white transition cursor-pointer font-medium `}
+                onClick={() => setIsModalOpen2(true)}
+              >
+                + create new credentials
+                {/* <div class="text-sm font-medium"></div> */}
+              </button>
+            </li>
           </ul>
         </Portal>
       )}
@@ -128,4 +148,4 @@ const Dropdown: Component<DropdownProps> = ({ options }) => {
   );
 };
 
-export default Dropdown;
+export default CredentialDropDown;

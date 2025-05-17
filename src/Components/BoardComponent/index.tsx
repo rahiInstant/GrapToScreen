@@ -23,6 +23,9 @@ import useStateContext from "./useStateContext";
 import Background from "./Background";
 import SendData from "./SendData";
 import Modal from "./Modal";
+import BottomPart from "./Modal/BottomPart/BottomPart";
+import TopPart from "./Modal/TopPart/TopPart";
+import SubModal from "./Modal2";
 
 interface DotFlowProps {
   node: nodeType;
@@ -31,6 +34,7 @@ interface DotFlowProps {
 const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
   // const [nodes, setNodes] = createSignal<CustomNode[]>([]);
   const [baseNode, setBaseNode] = createSignal<CustomNode>();
+
   const {
     nodes,
     setNodes,
@@ -44,6 +48,9 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
     scale,
     isShowModal,
     setIsModalOpen,
+    isModalOpen,
+    isModalOpen2,
+    setIsModalOpen2,
   } = useStateContext();
 
   //==================================================
@@ -305,7 +312,22 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
       </StateContextProvider>
       <StateContextProvider>
         {/* <DialogForm handleModalClose={handleModalClose} /> */}
-        <Modal />
+        <Modal
+          isOpen={() => isModalOpen()}
+          onClose={() => setIsModalOpen(false)}
+          zIndex={9999}
+        >
+          <TopPart />
+          <BottomPart />
+        </Modal>
+        <Modal
+          isOpen={() => isModalOpen2()}
+          onClose={() => setIsModalOpen2(false)}
+          zIndex={100000}
+          widthClass="w-[900px] max-w-[1200px] h-fit max-h-[90vh] "
+        >
+          <SubModal/>
+        </Modal>
         {/* <Effect /> */}
       </StateContextProvider>
       <StateContextProvider>

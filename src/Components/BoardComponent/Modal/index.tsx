@@ -1,43 +1,44 @@
-import { Component, createEffect, createSignal, onMount } from "solid-js";
-import TopPart from "./TopPart/TopPart";
-import BottomPart from "./BottomPart/BottomPart";
+import { Component, createEffect, onMount } from "solid-js";
 import useStateContext from "../useStateContext";
 
-const Modal: Component<{}> = (props) => {
-  // const [isModalOpen, setIsModalOpen] = createSignal(false);
-  const { isModalOpen, setIsModalOpen } = useStateContext();
+interface ModalProps {
+  children?: any;
+  isOpen: () => boolean;
+  onClose: () => void;
+  zIndex?: number;
+  widthClass?: string;
+}
 
-  createEffect(() => {
-    // console.log(isModalOpen());
-  });
+const Modal: Component<ModalProps> = (props) => {
+  let modalRef: HTMLDivElement | undefined;
+
+  const zIndex = props.zIndex ?? 9999;
+  const widthClass =
+    props.widthClass ?? "w-[90vw] max-w-[95vw] h-[90vh] max-h-[95vh] ";
 
   onMount(() => {
-    const modal = document.getElementById("modal");
-    window.addEventListener("click", (e) => {
-      // console.log(e.target === modal);
-      if (e.target === modal) {
-        setIsModalOpen(false);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (e.target === modalRef) {
+        props.onClose();
       }
-    });
+    };
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
   });
-
-  function handleOnClick(event: MouseEvent | TouchEvent) {
-    event.stopPropagation();
-    setIsModalOpen(true);
-  }
 
   return (
     <div
-      id="modal"
-      // onClick={handleOnClick}
-      class={`fixed inset-0 z-[9999] w-full h-full bg-[#45455042] backdrop-blur-xs flex items-center justify-center overflow-auto ${
-        isModalOpen() ? "block" : "hidden"
+      ref={modalRef}
+      class={`fixed inset-0 bg-[#45455042] backdrop-blur-xs flex items-center justify-center overflow-auto ${
+        props.isOpen() ? "block" : "hidden"
       }`}
+      style={{ "z-index": zIndex }}
     >
-      <div class="border border-white/20 rounded-[9px]">
-        <div class="w-[90vw] max-w-[1000px] h-[95vh] max-h-[90vh] border border-purple-500/20 rounded-[9px] flex flex-col">
-          <TopPart />
-          <BottomPart />
+      <div class="border border-white/20 rounded-[9px] flex">
+        <div
+          class={`${widthClass} border border-purple-500/20 rounded-[9px] flex flex-col`}
+        >
+          {props.children}
         </div>
       </div>
     </div>

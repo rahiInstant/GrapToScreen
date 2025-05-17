@@ -2,7 +2,7 @@ import { Component } from "solid-js";
 
 const Button: Component<{
     title: string,
-    width: string
+    width?: string
 }> = ({title, width = "w-auto"}) => {
   return (
     <button

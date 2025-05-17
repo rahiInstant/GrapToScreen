@@ -32,8 +32,13 @@ export const [lastClickPosition, setLastClickPosition] = createSignal<{
   y: number;
 } | null>(null);
 export const [isShowModal, setIsShowModal] = createSignal<boolean>(false);
-export const [positionButton, setPositionButton] = createSignal<{ x: number; y: number }>({ x: 0, y: 0 });
+export const [positionButton, setPositionButton] = createSignal<{
+  x: number;
+  y: number;
+}>({ x: 0, y: 0 });
 export const [isOpening, setIsOpening] = createSignal<boolean>(false);
 export const [isModalOpen, setIsModalOpen] = createSignal<boolean>(false);
-export const [typeOfVertex, setTypeOfVertex] = createSignal<string>("")
-export const [] = createSignal(null)
+export const [isModalOpen2, setIsModalOpen2] = createSignal<boolean>(false);
+export const [typeOfVertex, setTypeOfVertex] = createSignal<string>("");
+export const [] = createSignal(null);
+export const [formConfig, setFormConfig] = createSignal<string>("");
