@@ -20,25 +20,11 @@ const GmailNodeParameter: Component<{}> = (props) => {
       renameOutput: boolean;
     }>
   >([]);
+
   const [getOption, setOption] = createSignal<
     Array<{ label: string; value: string; description?: string }>
-  >([
-    // {
-    //   label: "fallback output",
-    //   value: "fallback output",
-    //   description: "",
-    // },
-    // {
-    //   label: "ignore case",
-    //   value: "ignore case",
-    //   description: "",
-    // },
-    // {
-    //   label: "send data to all matching outputs",
-    //   value: "send data to all matching outputs",
-    //   description: "",
-    // },
-  ]);
+  >([]);
+  
   const [activeOption, setActiveOption] = createSignal<
     Array<{ label: string; value: string; description?: string }>
   >([]);
@@ -58,7 +44,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
     items.splice(to, 0, movedItem);
 
     setRuleNo(items);
-    setDraggedIndex(to); // Update new index as the dragged item moves
+    setDraggedIndex(to); 
   };
 
   const handleDragEnd = () => {
@@ -69,7 +55,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
       <div class="space-y-6">
         <div>
           <label class="text-white text-sm block mb-2">Mode</label>
-          <CredentialDropDown/>
+          <CredentialDropDown />
         </div>
 
         <div class="bg-[#1E1E2E]/40 p-4 rounded-lg border border-gray-700/30 overflow-visible">
