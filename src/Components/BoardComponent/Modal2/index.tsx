@@ -65,7 +65,7 @@ export default function SubModal() {
         {/* Main content */}
         <div class=" p-4 h-full">
           <Show when={activeTab() === "connection"}>
-            <form id="modal2">
+
               <div class="flex h-full">
                 {/* Left form section */}
                 <div class="flex-1 pr-4">
@@ -271,7 +271,6 @@ export default function SubModal() {
                   </div>
                 </div>
               </div>
-            </form>
           </Show>
 
           <Show when={activeTab() === "sharing"}>

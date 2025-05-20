@@ -23,5 +23,7 @@ form.addEventListener('submit', function(e) {
 
 
  submitBtn.addEventListener('formSubmitEvent', function(e) {
-  console.log(e.detail.data); 
+  for(let value in e.detail) {
+    console.log(value)
+  }
 });
