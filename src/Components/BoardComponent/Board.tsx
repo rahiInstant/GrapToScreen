@@ -476,7 +476,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         for (const node of nodes()) {
           const leftOrTopInputVertex = node.isInputVertex || node.isUpVertex;
           if (node.id !== newEdge()!.nodeStartId && leftOrTopInputVertex) {
-            console.log(node);
+            // console.log(node);
             const inputVertexId = node.isInputVertex
               ? node.inputVertexIds[0]
               : node.upVertexIds[0];
@@ -625,8 +625,8 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       const nodeStartId = newEdge()!.nodeStartId;
       const nodeEndId = insideInput()!.nodeId;
 
-      console.log(nodeStartId, "nodeStartId");
-      console.log(nodeEndId, "nodeEndId");
+      // console.log(nodeStartId, "nodeStartId");
+      // console.log(nodeEndId, "nodeEndId");
 
       const nodeStart = nodes().find((node) => node.id === nodeStartId);
       const nodeEnd = nodes().find((node) => node.id === nodeEndId);

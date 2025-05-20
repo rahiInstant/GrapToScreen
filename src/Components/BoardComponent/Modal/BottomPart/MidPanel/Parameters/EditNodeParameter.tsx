@@ -1,4 +1,4 @@
-import { Component, createSignal, For } from "solid-js";
+import { Component, createEffect, createSignal, For, onMount } from "solid-js";
 import Dropdown from "../Dropdown";
 import style from "../style.module.css";
 import MoveIcon from "../../../Icons/MoveIcon";
@@ -7,8 +7,11 @@ import InputField from "../InputField";
 import CrossIcon from "../CrossIcon";
 import Button from "../Button";
 import Switch from "../Switch";
+import useStateContext from "../../../../useStateContext";
+// import { formData } from "../../../../state";
 
 const EditNodeParameter: Component<{}> = (props) => {
+  const { setFormData, formConfig, formData } = useStateContext();
   const [ruleNo, setRuleNo] = createSignal([1]);
   const [draggedIndex, setDraggedIndex] = createSignal<number | null>(null);
   const [paramData, setParamData] = createSignal<
@@ -17,6 +20,22 @@ const EditNodeParameter: Component<{}> = (props) => {
       renameOutput: boolean;
     }>
   >([]);
+  const initialId = crypto.randomUUID();
+  const [editNodeData, setEditNodeData] = createSignal<
+    Array<{
+      uuid: string;
+      name: string;
+      type: string;
+      value: string;
+    }>
+  >([
+    {
+      uuid: initialId,
+      name: "",
+      type: "",
+      value: "",
+    },
+  ]);
   const [getOption, setOption] = createSignal<
     Array<{ label: string; value: string; description?: string }>
   >([
@@ -39,6 +58,22 @@ const EditNodeParameter: Component<{}> = (props) => {
   const [activeOption, setActiveOption] = createSignal<
     Array<{ label: string; value: string; description?: string }>
   >([]);
+
+
+  createEffect(() => {
+    setParamData(
+      ruleNo().map((_, i) => ({
+        key: `key${i}`,
+        renameOutput: false,
+      }))
+    );
+  });
+
+  createEffect(() => {
+    console.log(formData());
+    console.log(editNodeData());
+    // setFormData(formConfig().id, "assignments", editNodeData());
+  });
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
@@ -79,6 +114,15 @@ const EditNodeParameter: Component<{}> = (props) => {
                 description: "Write an expression to return the output index.",
               },
             ]}
+            onOption={(option) => {
+              setFormData({
+                ...formData(),
+                [formConfig().id]: {
+                  ...formData()[formConfig().id],
+                  mode: option.value,
+                },
+              });
+            }}
           />
         </div>
 
@@ -91,10 +135,6 @@ const EditNodeParameter: Component<{}> = (props) => {
           <div class="routing-rules-wrapper space-y-2 w-full">
             <For each={ruleNo()}>
               {(item, index) => {
-                setParamData([
-                  ...paramData(),
-                  { key: `key${index}`, renameOutput: false },
-                ]);
                 return (
                   <div
                     id=""
@@ -111,6 +151,7 @@ const EditNodeParameter: Component<{}> = (props) => {
                     onDragStart={() => handleDragStart(index())}
                     onDragEnter={() => handleDragEnter(index())}
                     onDragEnd={handleDragEnd}
+                    onDragOver={(e) => e.preventDefault()}
                   >
                     <div class="flex flex-row gap-1.5 ">
                       <div class="flex flex-col items-center gap-1">
@@ -128,7 +169,25 @@ const EditNodeParameter: Component<{}> = (props) => {
 
                       <div class="w-full">
                         <div class="flex gap-2 mb-2 items-center">
-                          <InputField />
+                          <InputField
+                            onInput={(input) => {
+                              setEditNodeData((prev) => {
+                                const newData = [...prev];
+                                newData[index()] = {
+                                  ...newData[index()],
+                                  name: input,
+                                };
+                                return newData;
+                              });
+                              setFormData({
+                                ...formData(),
+                                [formConfig().id]: {
+                                  ...formData()[formConfig().id],
+                                  assignments: editNodeData(),
+                                },
+                              });
+                            }}
+                          />
                           <div class="flex-1">
                             <Dropdown
                               options={[
@@ -138,6 +197,23 @@ const EditNodeParameter: Component<{}> = (props) => {
                                 { label: "Boolean", value: "Boolean" },
                                 { label: "Object", value: "Object" },
                               ]}
+                              onOption={(option) => {
+                                setEditNodeData((prev) => {
+                                  const newData = [...prev];
+                                  newData[index()] = {
+                                    ...newData[index()],
+                                    type: option.value,
+                                  };
+                                  return newData;
+                                });
+                                setFormData({
+                                  ...formData(),
+                                  [formConfig().id]: {
+                                    ...formData()[formConfig().id],
+                                    assignments: editNodeData(),
+                                  },
+                                });
+                              }}
                             />
                           </div>
                           <button
@@ -148,11 +224,28 @@ const EditNodeParameter: Component<{}> = (props) => {
                           </button>
                         </div>
                         <div>
-                          <InputField />
+                          <InputField
+                            onInput={(input) => {
+                              setEditNodeData((prev) => {
+                                const newData = [...prev];
+                                newData[index()] = {
+                                  ...newData[index()],
+                                  value: input,
+                                };
+                                return newData;
+                              });
+                              setFormData({
+                                ...formData(),
+                                [formConfig().id]: {
+                                  ...formData()[formConfig().id],
+                                  assignments: editNodeData(),
+                                },
+                              });
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
-
                   </div>
                 );
               }}
@@ -162,7 +255,19 @@ const EditNodeParameter: Component<{}> = (props) => {
 
         <div
           onClick={() => {
-            setRuleNo([...ruleNo(), ruleNo().length + 1]);
+            console.log(formData());
+            const newId = crypto.randomUUID();
+            const newIndex = ruleNo().length;
+            setRuleNo([...ruleNo(), newIndex + 1]);
+            setEditNodeData((prev) => [
+              ...prev,
+              {
+                uuid: newId,
+                name: "",
+                type: "",
+                value: "",
+              },
+            ]);
           }}
         >
           <Button title="Add Routing Rule" width="w-full" />
@@ -173,6 +278,15 @@ const EditNodeParameter: Component<{}> = (props) => {
           toolTipContent={{
             label: "",
             text: `If the type of an expression doesn't match the type of the comparison, n8n will try to cast the expression to the required type. E.g. for booleans "false" or 0 will be cast to false`,
+          }}
+          onChange={(state) => {
+            setFormData({
+              ...formData(),
+              [formConfig().id]: {
+                ...formData()[formConfig().id],
+                includeOtherInputFields: state,
+              },
+            });
           }}
         />
         <div>

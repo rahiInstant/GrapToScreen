@@ -1,19 +1,20 @@
 import { Component, createSignal } from "solid-js";
-import Switch from "./Switch";
+// import Switch from "./Switch";
 import Dropdown from "./Dropdown";
 import NoteBox from "./NoteBox";
 import Tooltip from "./Tooltip";
 import useStateContext from "../../../useStateContext";
 import ModalConfig from "../../../../FlowContent/NodeComponents/ModalConfig";
+import Switch from "./Switch";
 
 const Settings: Component<{}> = (props) => {
   const [showTooltip, setShowTooltip] = createSignal(false);
-  const { formConfig } = useStateContext();
-  const componentConfig = {
-    switch: Switch,
-    dropdown: Dropdown,
-    // "note-box": NoteBox,
-  };
+  const { formConfig, settingConfig } = useStateContext();
+  // const componentConfig = {
+  //   switch: Switch,
+  //   dropdown: Dropdown,
+  //   // "note-box": NoteBox,
+  // };
 
   const options = [
     {
@@ -46,7 +47,7 @@ const Settings: Component<{}> = (props) => {
         /> */}
 
         <div class="mt-3 space-y-3">
-          {ModalConfig[formConfig()]?.settings.map((item, index) => {
+          {settingConfig()?.settings.map((item, index) => {
             if (item.type === "dropdown") {
               return (
                 <Dropdown
@@ -55,16 +56,16 @@ const Settings: Component<{}> = (props) => {
                 />
               );
             } else if (item.type === "switch") {
-              return (
-                <Switch
-                  // key={index}
-                  switchText={item.label}
-                  toolTipContent={{
-                    label: "",
-                    text: item.description,
-                  }}
-                />
-              );
+              // return (
+              //   <Switch
+              //     // key={index}
+              //     switchText={item.label}
+              //     toolTipContent={{
+              //       label: "",
+              //       text: item.description,
+              //     }}
+              //   />
+              // );
             }
           })}
           <NoteBox
@@ -73,13 +74,14 @@ const Settings: Component<{}> = (props) => {
               text: "Optional note to save with the node",
             }}
           />
-          <Switch
-            switchText="Display Note in Flow?"
-            toolTipContent={{
-              label: "",
-              text: "If active, the note above will display in the flow as a subtitle",
-            }}
-          />
+<Switch
+switchText=""
+toolTipContent={{
+  label:"",
+  text: ""
+}}
+
+/>
           <div class="mt-6">
             <hr class="border-[#373749]" />
             <p class="mt-1 text-[#737475] text-sm">

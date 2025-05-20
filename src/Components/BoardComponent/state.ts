@@ -1,4 +1,5 @@
 import { createSignal } from "solid-js";
+import { createStore } from "solid-js/store";
 import { CustomNode, Edge } from "../ButtonComponents/Types";
 
 export const [draggable, setDraggable] = createSignal<boolean>(false);
@@ -40,5 +41,21 @@ export const [isOpening, setIsOpening] = createSignal<boolean>(false);
 export const [isModalOpen, setIsModalOpen] = createSignal<boolean>(false);
 export const [isModalOpen2, setIsModalOpen2] = createSignal<boolean>(false);
 export const [typeOfVertex, setTypeOfVertex] = createSignal<string>("");
-export const [] = createSignal(null);
-export const [formConfig, setFormConfig] = createSignal<string>("");
+export const [settingConfig, setSettingConfig] = createSignal<{
+  parameters: any[];
+  settings: any[];
+} | null>(null);
+export const [formConfig, setFormConfig] = createSignal<{
+  name: string;
+  id: string;
+}>({
+  name: "",
+  id: "",
+});
+export const [credentialOptions, setCredentialOptions] = createSignal([]);
+export const [selectedCredential, setSelectedCredential] = createSignal(null);
+export const [formData, setFormData] = createSignal<{
+  [key: string]: {
+    [key: string]: any;
+  };
+}>({});

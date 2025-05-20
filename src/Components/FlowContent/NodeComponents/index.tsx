@@ -15,6 +15,7 @@ import PowerIcon from "./PowerIcon";
 import DeleteIcon from "./DeleteIcon";
 import OptionIcon from "./OptionIcon";
 import useStateContext from "../../BoardComponent/useStateContext";
+import ModalConfig from "./ModalConfig";
 
 interface NodeProps {
   id: string;
@@ -64,7 +65,15 @@ interface NodeProps {
 }
 
 const NodeMain: Component<NodeProps> = (props) => {
-  const { setIsShowModal, isShowModal, setPositionButton, setIsOpening,setIsModalOpen, setFormConfig } = useStateContext();
+  const {
+    setIsShowModal,
+    isShowModal,
+    setPositionButton,
+    setIsOpening,
+    setIsModalOpen,
+    setFormConfig,
+    setSettingConfig
+  } = useStateContext();
   let nodeRef: HTMLDivElement | undefined = undefined;
   return (
     <div
@@ -79,12 +88,12 @@ const NodeMain: Component<NodeProps> = (props) => {
         const modal = document.getElementById("modal") as HTMLDialogElement;
         // setIsOpening(false);
         setIsModalOpen(true);
-        console.log(props.name)
-        setFormConfig(props.name)
-      //   setTimeout(() => {
-      // }, 50);
+        console.log(props.name);
+        setFormConfig({ name: props.name, id: props.id });
+        setSettingConfig(ModalConfig[props.name])
+        //   setTimeout(() => {
+        // }, 50);
         // modal.showModal();
-        
       }}
       // classList={{
       //   [style.nodeSelected]: props.selected,

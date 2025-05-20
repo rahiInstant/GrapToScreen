@@ -21,13 +21,13 @@ const Parameters: Component = () => {
       class={`mt-0 px-5 py-4 `}
       classList={{ [style.param]: true }}
     >
-      <Show when={formConfig() === "switch"}>
+      <Show when={formConfig().name === "switch"}>
         <SwitchNodeParameter />
       </Show>
-      <Show when={formConfig() === "edit"}>
+      <Show when={formConfig().name === "edit"}>
         <EditNodeParameter/>
       </Show>
-      <Show when={formConfig() === "gmail-trigger"}>
+      <Show when={formConfig().name === "gmail-trigger"}>
         <GmailNodeParameter/>
       </Show>
     </div>

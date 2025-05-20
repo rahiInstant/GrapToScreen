@@ -7,32 +7,27 @@ const Switch: Component<{
     label: string;
     text: string;
   } | null;
+  name: string;
   onChange?: (state: boolean) => void;
-}> = ({ switchText, toolTipContent, onChange }) => {
-  const [enabled, setEnabled] = createSignal(false);
-
+}> = ({ switchText, toolTipContent, onChange, name }) => {
   const [showTooltip, setShowTooltip] = createSignal(false);
 
-  const toggle = () => {
-    const newState = !enabled();
-    setEnabled(newState);
-    onChange?.(newState); // notify parent
+  const handleChange = (e: Event) => {
+    onChange?.((e.target as HTMLInputElement).checked);
   };
 
   return (
-    <div class="text-white bg-[#1e1e2f] p-2 rounded justify-between">
+    <div class="text-white bg-[#1e1e2f] p-2 rounded">
       <div class="flex flex-col gap-2">
-        {/* switch */}
+        {/* Label + Tooltip */}
         <div class="flex items-center justify-between">
           <div class="text-sm flex items-center gap-1 group">
             <div>{switchText}</div>
-
-            {/* Hover Target with Tooltip inside */}
             {toolTipContent && (
               <div
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
-                class="relative w-3 select-none h-3 text-xs rounded-full bg-white text-black flex items-center justify-center font-semibold group-hover:opacity-100 opacity-0 cursor-auto"
+                class="relative w-3 h-3 text-xs rounded-full bg-white text-black flex items-center justify-center font-semibold group-hover:opacity-100 opacity-0 cursor-auto"
               >
                 ?
                 <Tooltip
@@ -48,20 +43,18 @@ const Switch: Component<{
           </div>
         </div>
 
-        <button
-          title="toggle"
-          type="button"
-          class={`w-12 h-6 flex items-center rounded-full transition-colors duration-100 cursor-pointer ${
-            enabled() ? "bg-green-400" : "bg-gray-400"
-          }`}
-          onClick={() => toggle()}
-        >
-          <span
-            class={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-100 ${
-              enabled() ? "translate-x-6" : "translate-x-1"
-            }`}
+        {/* Toggle with Tailwind */}
+        <label class="relative inline-block w-12 h-6">
+          <input
+          name={name}
+            title="switch"
+            type="checkbox"
+            class="sr-only peer"
+            onChange={handleChange}
           />
-        </button>
+          <div class="w-12 h-6 bg-gray-400 peer-checked:bg-green-400 rounded-full transition-colors duration-200"></div>
+          <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 transform peer-checked:translate-x-6"></div>
+        </label>
       </div>
     </div>
   );

@@ -47,6 +47,14 @@ import {
   setFormConfig,
   isModalOpen2,
   setIsModalOpen2,
+  credentialOptions,
+  setCredentialOptions,
+  selectedCredential,
+  setSelectedCredential,
+  formData,
+  setFormData,
+  settingConfig,
+  setSettingConfig,
 } from "./state";
 import { CustomNode, Edge } from "../ButtonComponents/Types";
 
@@ -114,8 +122,35 @@ export const StateContext = createContext<{
   setIsModalOpen2: (isModalOpen: boolean) => void;
   typeOfVertex: () => string;
   setTypeOfVertex: (typeOfVertex: string) => void;
-  formConfig: () => string;
-  setFormConfig: (formConfig: string) => void;
+  formConfig: () => {
+    name: string;
+    id: string;
+  };
+  setFormConfig: (formConfig: { name: string; id: string }) => void;
+  credentialOptions: () => any[];
+  setCredentialOptions: (credentialOptions: any[]) => void;
+  selectedCredential: () => any;
+  setSelectedCredential: (selectedCredential: any) => void;
+  formData: () => {
+    [key: string]: {
+      [key: string]: any;
+    };
+  };
+  setFormData: (formData: {
+    [key: string]: {
+      [key: string]: any;
+    };
+  }) => void;
+  settingConfig: () => {
+    parameters: any[];
+    settings: any[];
+  } | null;
+  setSettingConfig: (
+    settingConfig: {
+      parameters: any[];
+      settings: any[];
+    } | null
+  ) => void;
 }>({
   scale,
   setScale,
@@ -164,4 +199,12 @@ export const StateContext = createContext<{
   setFormConfig,
   isModalOpen2,
   setIsModalOpen2,
+  credentialOptions,
+  setCredentialOptions,
+  selectedCredential,
+  setSelectedCredential,
+  formData,
+  setFormData,
+  settingConfig,
+  setSettingConfig,
 });

@@ -1,25 +1,77 @@
-import { Component, createSignal } from "solid-js";
+import { Component, createSignal, onCleanup, onMount } from "solid-js";
 import style from "./style.module.css";
 import useStateContext from "./useStateContext";
 
+declare global {
+  interface Document {
+    workFlowData?: Promise<void>;
+  }
+}
+
+declare global {
+  interface Window {
+    handleData: () => any;
+  }
+}
+
 const SendData: Component<{}> = (props) => {
-  const { nodes, edges } = useStateContext();
+  const { nodes, edges, formData } = useStateContext();
   const [backendUrl, setBackendUrl] = createSignal<string>("");
   const [loading, setLoading] = createSignal<boolean>(false);
+
   interface nodeDataType {
     id: string;
     description: string;
     type: string;
     parameters: {
-      credentials: string;
+      mode?: string;
+      assignments?: Array<{
+        id: string;
+        name: string;
+        value: string;
+        type: string;
+      }>;
+      credentials?: {
+        id: string;
+        name: string;
+        provider: string;
+        ctype: string;
+      };
+      poolTime?: Array<{
+        mode: string;
+      }>;
+      simple?: boolean;
+      filter?: {
+        includeSpamTrash?: boolean;
+        includeDrafts?: boolean;
+        labelIds?: string[];
+        q?: string;
+        readStatus?: string;
+        sender?: string;
+      };
+      options?: {
+        downloadAttachments: boolean;
+        attachmentPrefix: string;
+      };
     };
     position: {
       x: number;
       y: number;
     };
-    inputs: any[];
-    outputs: any[];
+    inputs?: Array<{
+      id: string;
+      name: string;
+      description: string;
+      type: string;
+    }>;
+    outputs?: Array<{
+      id: string;
+      name: string;
+      description: string;
+      type: string;
+    }>;
   }
+
   interface edgeDataType {
     id: string;
     sourceNodeId: string;
@@ -27,74 +79,120 @@ const SendData: Component<{}> = (props) => {
     targetNodeId: string;
     targetPortId: string;
   }
+
   const [nodeData, setNodeData] = createSignal<nodeDataType[]>([]);
   const [edgeData, setEdgeData] = createSignal<edgeDataType[]>([]);
 
-  const handleSendingData = async () => {
-    setLoading(true);
+const handleData = () => {
+    // setLoading(true);
+
+    const newNodeData: nodeDataType[] = [];
+    const newEdgeData: edgeDataType[] = [];
+
     nodes().forEach((value) => {
-      setNodeData([
-        ...nodeData(),
-        {
+      if (value.name === "gmail-trigger") {
+        newNodeData.push({
           id: value.id,
-          description: "no description",
+          description: value.name,
           type: value.name,
           parameters: {
-            credentials: "no credentials",
+            credentials: {
+              id: formData()[value.id]["Client ID"],
+              name: "Gmail Account",
+              provider: "gmail",
+              ctype: formData()[value.id]["connection type"],
+            },
+            poolTime: formData()[value.id]["poolTime"],
+            simple: formData()[value.id]["simplify"],
+            filter: {
+              includeSpamTrash: formData()[value.id]["includeSpamTrash"],
+              includeDrafts: formData()[value.id]["includeDrafts"],
+              labelIds: formData()[value.id]["labelNamesOrIds"],
+              q: formData()[value.id]["search"],
+              sender: formData()[value.id]["sender"],
+              readStatus: formData()[value.id]["readStatus"],
+            },
+            options: {
+              downloadAttachments: formData()[value.id]["downloadAttachments"],
+              attachmentPrefix: formData()[value.id]["attachmentsPrefix"],
+            },
           },
           position: {
             x: Math.round(value.currPosition.get().x),
             y: Math.round(value.currPosition.get().y),
           },
           inputs: [],
-          outputs: [],
-        },
-      ]);
-    });
-    edges().forEach((value) => {
-      setEdgeData([
-        ...edgeData(),
-        {
+          outputs: [
+            {
+              id: "output",
+              name: "Last Email",
+              description: "Read last email from your gmail inbox",
+              type: "object",
+            },
+          ],
+        });
+      } else if (value.name === "edit") {
+        newNodeData.push({
           id: value.id,
-          sourceNodeId: value.nodeStartId,
-          sourcePortId: value.outputVertexId,
-          targetNodeId: value.nodeEndId,
-          targetPortId: value.inputVertexId,
-        },
-      ]);
+          description: value.name,
+          type: value.name,
+          parameters: {
+            mode: formData()[value.id]["mode"],
+            assignments: formData()[value.id]["assignments"],
+          },
+          position: {
+            x: Math.round(value.currPosition.get().x),
+            y: Math.round(value.currPosition.get().y),
+          },
+          inputs: [
+            {
+              id: "input",
+              name: "Input",
+              description: "Data to filter",
+              type: "array",
+            },
+          ],
+          outputs: [
+            {
+              id: "output",
+              name: "Output",
+              description: "Outcode of the node after process",
+              type: "object",
+            },
+          ],
+        });
+      }
     });
+
+    edges().forEach((value) => {
+      newEdgeData.push({
+        id: value.id,
+        sourceNodeId: value.nodeStartId,
+        sourcePortId: value.outputVertexId,
+        targetNodeId: value.nodeEndId,
+        targetPortId: value.inputVertexId,
+      });
+    });
+
+    setNodeData(newNodeData);
+    setEdgeData(newEdgeData);
+
     const finalData = {
-      name: "Your workflow",
-      description: "no description",
+      name: "Email Analyzer",
+      description:
+        "A workflow demonstrating multiple inputs and outputs per node",
       nodes: nodeData(),
       connections: edgeData(),
     };
 
-    try {
-      const response = await fetch(backendUrl(), {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(finalData),
-      });
+    const event = new CustomEvent("data", { detail: finalData });
+    document.dispatchEvent(event);
 
-      if (!response.ok) throw new Error("Failed to send data");
-
-      const result = await response.json();
-      setTimeout(() => {
-        console.log(result);
-      }, 400);
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setNodeData([]);
-        setEdgeData([]);
-      }, 400);
-    }
+    setNodeData([])
+    setEdgeData([])
+    return finalData;
   };
+
   return (
     <div class={style.testWorkFlow}>
       <div
@@ -107,16 +205,14 @@ const SendData: Component<{}> = (props) => {
       </div>
       <div>
         <input
-          onChange={(e) => {
-            setBackendUrl(e.target.value);
-          }}
+          onChange={(e) => setBackendUrl(e.target.value)}
           class="border rounded-md px-4 py-2 outline-none border-white"
           title="backendUrl"
           name="url"
           type="text"
         />
       </div>
-      <div onClick={handleSendingData} class={style.testButton}>
+      <div onClick={handleData} class={style.testButton}>
         Test WorkFlow
       </div>
     </div>
@@ -147,3 +243,30 @@ export default SendData;
 //     inputs: [],
 //     outputs: [],
 //   };
+// const response = await fetch(backendUrl(), {
+//   method: "POST",
+//   headers: {
+//     "content-type": "application/json",
+//   },
+//   body: JSON.stringify(finalData),
+// });
+
+// if (!response.ok) throw new Error("Failed to send data");
+
+// const result = await response.json();
+
+// try {
+//   document.dispatchEvent(new CustomEvent("data", { detail: finalData }));
+//   document.addEventListener('data', (e) => {
+//     const customEvent = e as CustomEvent;
+//   })
+//   console.log(finalData)
+// } catch (e) {
+//   console.error(e);
+// } finally {
+//   setTimeout(() => {
+//     setLoading(false);
+//     setNodeData([]);
+//     setEdgeData([]);
+//   }, 400);
+// }

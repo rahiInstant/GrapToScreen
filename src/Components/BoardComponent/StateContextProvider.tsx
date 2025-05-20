@@ -48,6 +48,13 @@ import {
   setFormConfig,
   isModalOpen2,
   setIsModalOpen2,
+  credentialOptions,
+  setCredentialOptions,
+  selectedCredential,
+  setSelectedCredential,
+  formData,
+  setFormData,
+  settingConfig,setSettingConfig
 } from "./state";
 
 const StateContextProvider: ParentComponent = (props) => {
@@ -102,6 +109,14 @@ const StateContextProvider: ParentComponent = (props) => {
         setFormConfig,
         isModalOpen2,
         setIsModalOpen2,
+        credentialOptions,
+        setCredentialOptions,
+        selectedCredential,
+        setSelectedCredential,
+        formData,
+        setFormData,
+        settingConfig,
+        setSettingConfig
       }}
     >
       {props.children}
