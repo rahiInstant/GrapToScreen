@@ -24,11 +24,7 @@ const SideBar: Component<SideBarProps> = (props) => {
       }
     });
 
-    if (
-      sidebar &&
-      !sidebar.contains(event.target as Node) &&
-      !clickedOnPlus
-    ) {
+    if (sidebar && !sidebar.contains(event.target as Node) && !clickedOnPlus) {
       setIsOpen(false);
     }
   };
@@ -50,7 +46,8 @@ const SideBar: Component<SideBarProps> = (props) => {
         type="button"
         id="add-node"
         class={style.addNode}
-        onclick={() => {
+        onclick={(e) => {
+          e.stopPropagation();
           setIsOpen(true);
           if (inputRef) {
             inputRef.focus();
@@ -119,7 +116,11 @@ const SideBar: Component<SideBarProps> = (props) => {
                   class={
                     index() == 0 ? style.firstWrapper : style.restNodeWrapper
                   }
-                  onclick={(event) => handleOnClickAdd(event, nodeMark.name)}
+                  onclick={(event) => {
+                    event.stopPropagation();
+
+                    handleOnClickAdd(event, nodeMark.name);
+                  }}
                 >
                   <div class={style.node}>
                     <div class={style.nodeIcon}>

@@ -43,10 +43,14 @@ import {
   setIsOpening,
   typeOfVertex,
   setTypeOfVertex,
-  formConfig,
-  setFormConfig,
+  currentFormConfig,
+  setCurrentFormConfig,
+  previousFormConfig,
+  setPreviousFormConfig,
   isModalOpen2,
   setIsModalOpen2,
+  isModalOpen3,
+  setIsModalOpen3,
   credentialOptions,
   setCredentialOptions,
   selectedCredential,
@@ -120,13 +124,30 @@ export const StateContext = createContext<{
   setIsModalOpen: (isModalOpen: boolean) => void;
   isModalOpen2: () => boolean;
   setIsModalOpen2: (isModalOpen: boolean) => void;
+  isModalOpen3: () => boolean;
+  setIsModalOpen3: (isModalOpen: boolean) => void;
   typeOfVertex: () => string;
   setTypeOfVertex: (typeOfVertex: string) => void;
-  formConfig: () => {
+  currentFormConfig: () => {
     name: string;
     id: string;
+    title: string;
   };
-  setFormConfig: (formConfig: { name: string; id: string }) => void;
+  setCurrentFormConfig: (currentFormConfig: {
+    name: string;
+    id: string;
+    title: string;
+  }) => void;
+  previousFormConfig: () => {
+    name: string;
+    id: string;
+    title: string;
+  };
+  setPreviousFormConfig: (currentFormConfig: {
+    name: string;
+    id: string;
+    title: string;
+  }) => void;
   credentialOptions: () => any[];
   setCredentialOptions: (credentialOptions: any[]) => void;
   selectedCredential: () => any;
@@ -195,10 +216,14 @@ export const StateContext = createContext<{
   setIsModalOpen,
   typeOfVertex,
   setTypeOfVertex,
-  formConfig,
-  setFormConfig,
+  currentFormConfig,
+  setCurrentFormConfig,
+  previousFormConfig,
+  setPreviousFormConfig,
   isModalOpen2,
   setIsModalOpen2,
+  isModalOpen3,
+  setIsModalOpen3,
   credentialOptions,
   setCredentialOptions,
   selectedCredential,

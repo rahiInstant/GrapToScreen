@@ -3,17 +3,10 @@
   flex-direction: column;
   position: absolute;
   cursor: pointer;
-  /* background-color: white; */
-  /* border: 2px solid #C3C9D5; */
   border-radius: 6px;
-  /* box-shadow: 1px 1px 11px -6px rgba(0, 0, 0, 0.75); */
   -webkit-user-select: none;
   user-select: none;
-  /* z-index: 100; */
   transition: border ease 0.2s, box-shadow ease 0.2s;
-  /* width: 120px;
-  height: 220px; */
-  /* padding: 1rem; */
   pointer-events: all;
 }
 
@@ -26,20 +19,11 @@
   flex-direction: column;
   position: absolute;
   cursor: pointer;
-  /* background-color: white; */
-  /* border: 2px solid #e38c29; */
-  /* outline: 8px solid #626262; */
-
   border-radius: 6px;
-  /* box-shadow: 1px 1px 11px -6px rgba(0, 0, 0, 0.75); */
   -webkit-user-select: none;
   user-select: none;
-  /* z-index: 100; */
   transition: border ease 0.2s, box-shadow ease 0.2s;
-  /* width: 120px;
-  height: auto; */
   pointer-events: all;
-  /* padding: 1rem; */
 }
 
 .nodeSelected:hover {
@@ -64,7 +48,6 @@
 .input {
   width: 10px;
   height: 16px;
-  /* border-radius: 100%; */
   background-color: #c3c9d5;
   cursor: crosshair;
   pointer-events: all;
@@ -75,7 +58,6 @@
   top: -50%;
   left: 45%;
   transform: rotate(90deg);
-  /* right: 0px; */
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -89,7 +71,6 @@
 .inputUp {
   width: 13px;
   height: 13px;
-  /* border-radius: 100%; */
   background-color: #c3c9d5;
   cursor: crosshair;
   pointer-events: all;
@@ -104,11 +85,8 @@
   position: absolute;
   left: 45%;
   bottom: -92.5%;
-  /* bottom: -74px; */
-  /* transform: rotate(90deg); */
   height: 100%;
   display: flex;
-  /* flex-direction: column; */
   align-items: top;
   justify-content: center;
   gap: 12px;

@@ -3,7 +3,7 @@ import { Portal } from "solid-js/web";
 
 interface DropdownProps {
   options: Array<{ label: string; value: string }>;
-  onOption?: (options: { label: string; value: string }) => void;
+  onOption?: (options: { label: string; value: string }[]) => void;
 }
 
 const DynamicDropdown: Component<DropdownProps> = ({ options, onOption }) => {

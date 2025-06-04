@@ -1,4 +1,4 @@
-import { Accessor, Component, For, Setter } from "solid-js";
+import { Accessor, Component, createEffect, For, Setter } from "solid-js";
 import style from "./style.module.css";
 import PlusIcon from "./PlusIcon";
 import useStateContext from "../../BoardComponent/useStateContext";
@@ -92,6 +92,10 @@ const Vertex: Component<VertexProps> = (props) => {
       typeOfEdge
     );
   }
+
+  // createEffect(() => {
+  //   console.log("from vertex", props.outputVertexIds)
+  // })
 
   return (
     <div>

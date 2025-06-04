@@ -3,10 +3,10 @@ import Dropdown from "../Dropdown";
 import style from "../style.module.css";
 import MoveIcon from "../../../Icons/MoveIcon";
 import DeleteIcon from "../../../Icons/DeleteIcon";
-import InputField from "../InputField";
 import CrossIcon from "../CrossIcon";
 import Button from "../Button";
-import Switch from "../Switch";
+import Switch from "../../../Component lib/Switch/Switch";
+import InputField from "../../../Component lib/Input/NormalInput/InputField";
 
 const SwitchNodeParameter: Component<{}> = (props) => {
   const [ruleNo, setRuleNo] = createSignal([1]);

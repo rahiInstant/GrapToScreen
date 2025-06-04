@@ -1,6 +1,7 @@
 .node {
   border: 2px solid #c3c9d5;
-  height: 100px;
+  min-height: 100px;
+  height: auto;
   width: 100px;
   border-radius: 10px;
   background-color: #414244;
@@ -11,7 +12,8 @@
 }
 .selectedNode {
   border: 2px solid #c3c9d5;
-  height: 100px;
+  min-height: 100px;
+  height: auto;
   width: 100px;
   border-radius: 10px;
   background-color: #414244;

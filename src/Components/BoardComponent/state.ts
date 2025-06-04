@@ -40,17 +40,29 @@ export const [positionButton, setPositionButton] = createSignal<{
 export const [isOpening, setIsOpening] = createSignal<boolean>(false);
 export const [isModalOpen, setIsModalOpen] = createSignal<boolean>(false);
 export const [isModalOpen2, setIsModalOpen2] = createSignal<boolean>(false);
+export const [isModalOpen3, setIsModalOpen3] = createSignal<boolean>(false);
 export const [typeOfVertex, setTypeOfVertex] = createSignal<string>("");
 export const [settingConfig, setSettingConfig] = createSignal<{
   parameters: any[];
   settings: any[];
 } | null>(null);
-export const [formConfig, setFormConfig] = createSignal<{
+export const [currentFormConfig, setCurrentFormConfig] = createSignal<{
   name: string;
   id: string;
+  title: string;
 }>({
   name: "",
   id: "",
+  title: ""
+});
+export const [previousFormConfig, setPreviousFormConfig] = createSignal<{
+  name: string;
+  id: string;
+  title: string;
+}>({
+  name: "",
+  id: "",
+  title: ""
 });
 export const [credentialOptions, setCredentialOptions] = createSignal([]);
 export const [selectedCredential, setSelectedCredential] = createSignal(null);

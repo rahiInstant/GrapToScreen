@@ -10,7 +10,7 @@ const AiAgent: Component<customNodeProps> = (props) => {
         <AiAgentIcon/>
       </div>
       <div class={style.AiAgentNodeText}>
-        <div class={style.AiAgentNodeTitle}>AI Agent</div>
+        <div class={style.AiAgentNodeTitle}>{props.title}</div>
         <div class={style.AiAgentNodeDescription}>Tools Agent</div>
       </div>
     </div>

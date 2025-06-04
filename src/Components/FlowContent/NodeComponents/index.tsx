@@ -1,6 +1,7 @@
 import {
   Accessor,
   Component,
+  createEffect,
   createSignal,
   JSX,
   onMount,
@@ -20,6 +21,7 @@ import ModalConfig from "./ModalConfig";
 interface NodeProps {
   id: string;
   name: string;
+  title: string;
   x: number;
   y: number;
   numberInputs: number;
@@ -71,26 +73,24 @@ const NodeMain: Component<NodeProps> = (props) => {
     setPositionButton,
     setIsOpening,
     setIsModalOpen,
-    setFormConfig,
-    setSettingConfig
+    setCurrentFormConfig,
+    setSettingConfig,
+    currentFormConfig,
   } = useStateContext();
   let nodeRef: HTMLDivElement | undefined = undefined;
+  // createEffect(() => {
+  //   console.log("from nodeMain", props.outputVertexIds);
+  // });
   return (
     <div
       id={props.id}
       class={props.selected ? style.nodeSelected : style.node}
       onDblClick={() => {
-        // console.log(isShowModal())
-
-        // setIsShowModal(true)
-
-        // setIsOpening(true);
-        const modal = document.getElementById("modal") as HTMLDialogElement;
-        // setIsOpening(false);
         setIsModalOpen(true);
         console.log(props.name);
-        setFormConfig({ name: props.name, id: props.id });
-        setSettingConfig(ModalConfig[props.name])
+        setCurrentFormConfig({ name: props.name, id: props.id, title: props.title });
+        console.log(currentFormConfig());
+        setSettingConfig(ModalConfig[props.name]);
         //   setTimeout(() => {
         // }, 50);
         // modal.showModal();
@@ -131,7 +131,7 @@ const NodeMain: Component<NodeProps> = (props) => {
         </div>
       </div>
       <div>
-        <props.content selected={props.selected} />
+        <props.content selected={props.selected} title={props.title}/>
       </div>
       {/* <TestNode selected={props.selected} onMouseDownNode={props.onMouseDownNode} id={props.id}/> */}
       <Vertex

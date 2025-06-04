@@ -47,6 +47,13 @@ export const nodeMark: nodeMarkType[] = [
     icon: AiAgentIcon,
   },
   {
+    name: "customer-support-agent",
+    title: "Customer Support Agent",
+    description:
+      "Runs the flow when a user send a chat message. For use with AI nodes.",
+    icon: AiAgentIcon,
+  },
+  {
     name: "send-email",
     title: "Send Email",
     description: "Send email to a user.",
@@ -73,7 +80,7 @@ export const nodeMark: nodeMarkType[] = [
   },
   {
     name: "gmail-trigger",
-    title: "When Chat Message Received",
+    title: "Gmail Trigger",
     description:
       "Runs the flow when a user send a chat message. For use with AI nodes.",
     icon: GmailIcon,

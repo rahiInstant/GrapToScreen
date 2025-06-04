@@ -4,68 +4,68 @@ import useStateContext from "../useStateContext";
 export default function SubModal() {
   const [activeTab, setActiveTab] = createSignal("connection");
   const [connectMethod, setConnectMethod] = createSignal("oauth2");
-  const { setIsModalOpen2, setFormData, formConfig, formData } =
+  const { setIsModalOpen2, setFormData, currentFormConfig, formData } =
     useStateContext();
 
   return (
-    <div class=" bg-[#2a2a3a] text-white rounded-md shadow-lg overflow-hidden z-[1000000] w-full h-full">
-      {/* Header */}
-      <div class="p-4 flex justify-between items-center border-b border-gray-700 ">
-        <div class="flex items-center gap-2">
-          <h2 class="text-base font-medium">Gmail account 4</h2>
-          <span class="text-xs text-gray-400">Gmail OAuth2 API</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <button
-            type="submit"
-            form="modal2"
-            class="bg-[#ff5c5c] hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
-          >
-            Save
-          </button>
-          <button
-            onClick={() => setIsModalOpen2(false)}
-            class="text-gray-400 hover:text-white"
-          >
-            ×
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div class="flex h-full">
-        {/* Left sidebar */}
-        <div class="w-[150px] bg-[#252535] p-4 flex flex-col gap-3 h-full">
-          <button
-            class={`text-left text-sm ${
-              activeTab() === "connection" ? "text-white" : "text-gray-400"
-            }`}
-            onClick={() => setActiveTab("connection")}
-          >
-            Connection
-          </button>
-          <button
-            class={`text-left text-sm ${
-              activeTab() === "sharing" ? "text-white" : "text-gray-400"
-            }`}
-            onClick={() => setActiveTab("sharing")}
-          >
-            Sharing
-          </button>
-          <button
-            class={`text-left text-sm ${
-              activeTab() === "details" ? "text-white" : "text-gray-400"
-            }`}
-            onClick={() => setActiveTab("details")}
-          >
-            Details
-          </button>
+    <form>
+      <div class="bg-[#2a2a3a] text-white rounded-md shadow-lg w-full h-full">
+        {/* Header */}
+        <div class="p-4 flex justify-between items-center border-b border-gray-700 ">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-medium">Gmail account 4</h2>
+            <span class="text-xs text-gray-400">Gmail OAuth2 API</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              type="submit"
+              form="modal2"
+              class="bg-[#ff5c5c] hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setIsModalOpen2(false)}
+              class="text-gray-400 hover:text-white"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
-        {/* Main content */}
-        <div class=" p-4 h-full">
-          <Show when={activeTab() === "connection"}>
+        {/* Content */}
+        <div class="flex w-full h-full">
+          {/* Left sidebar */}
+          <div class="min-w-[150px] w-[200px] max-w-[250px] bg-[#252535] p-4 flex flex-col gap-3 rounded-bl-md">
+            <button
+              class={`text-left text-sm ${
+                activeTab() === "connection" ? "text-white" : "text-gray-400"
+              }`}
+              onClick={() => setActiveTab("connection")}
+            >
+              Connection
+            </button>
+            <button
+              class={`text-left text-sm ${
+                activeTab() === "sharing" ? "text-white" : "text-gray-400"
+              }`}
+              onClick={() => setActiveTab("sharing")}
+            >
+              Sharing
+            </button>
+            <button
+              class={`text-left text-sm ${
+                activeTab() === "details" ? "text-white" : "text-gray-400"
+              }`}
+              onClick={() => setActiveTab("details")}
+            >
+              Details
+            </button>
+          </div>
 
+          {/* Main content */}
+          <div class=" p-4 h-full w-full">
+            <Show when={activeTab() === "connection"}>
               <div class="flex h-full">
                 {/* Left form section */}
                 <div class="flex-1 pr-4">
@@ -76,37 +76,41 @@ export default function SubModal() {
                     <div class="flex gap-2">
                       <label class="flex items-center gap-1 bg-[#333345] px-2 py-1 rounded cursor-pointer">
                         <input
-                          type="radio"
+                          // form="gmailParam"
                           name="connectMethod"
+                          type="radio"
+                          value={"oauth2"}
                           checked={connectMethod() === "oauth2"}
-                          onChange={() => {
-                            setConnectMethod("oauth2");
-                            setFormData({
-                              ...formData(),
-                              [formConfig().id]: {
-                                ...formData()[formConfig().id],
-                                "connection type": connectMethod(),
-                              },
-                            });
-                          }}
+                          // onChange={() => {
+                          //   setConnectMethod("oauth2");
+                          //   setFormData({
+                          //     ...formData(),
+                          //     [formConfig().id]: {
+                          //       ...formData()[formConfig().id],
+                          //       "connection type": connectMethod(),
+                          //     },
+                          //   });
+                          // }}
                         />
                         <span class="text-sm">OAuth2 (recommended)</span>
                       </label>
                       <label class="flex items-center gap-1 bg-[#333345] px-2 py-1 rounded cursor-pointer">
                         <input
+                          // form="gmailParam"
                           type="radio"
                           name="connectMethod"
+                          value={"service"}
                           checked={connectMethod() === "service"}
-                          onChange={() => {
-                            setConnectMethod("service");
-                            setFormData({
-                              ...formData(),
-                              [formConfig().id]: {
-                                ...formData()[formConfig().id],
-                                "connection type": connectMethod(),
-                              },
-                            });
-                          }}
+                          // onChange={() => {
+                          //   setConnectMethod("service");
+                          //   setFormData({
+                          //     ...formData(),
+                          //     [formConfig().id]: {
+                          //       ...formData()[formConfig().id],
+                          //       "connection type": connectMethod(),
+                          //     },
+                          //   });
+                          // }}
                         />
                         <span class="text-sm">Service Account</span>
                       </label>
@@ -116,7 +120,9 @@ export default function SubModal() {
                   <div class="mb-4">
                     <label class="block text-sm mb-1">OAuth Redirect URL</label>
                     <input
+                      // form="gmailParam"
                       type="text"
+                      name="oauthRedirectUrl"
                       class="w-full bg-[#333345] border border-gray-700 rounded p-2 text-sm"
                       value="https://workflow.juwelt.net/rest/oauth2-credentials/callback"
                       // readOnly
@@ -125,8 +131,8 @@ export default function SubModal() {
                       onChange={(e) => {
                         setFormData({
                           ...formData(),
-                          [formConfig().id]: {
-                            ...formData()[formConfig().id],
+                          [currentFormConfig().id]: {
+                            ...formData()[currentFormConfig().id],
                             "OAuth Redirect URL": e.target.value,
                           },
                         });
@@ -140,15 +146,17 @@ export default function SubModal() {
 
                   <div class="mb-4">
                     <input
+                      // form="gmailParam"
                       type="text"
+                      name="clientId"
                       class="w-full bg-[#333345] border border-gray-700 rounded p-2 text-sm"
                       title="Client ID"
                       placeholder="Enter your Client ID"
                       onChange={(e) => {
                         setFormData({
                           ...formData(),
-                          [formConfig().id]: {
-                            ...formData()[formConfig().id],
+                          [currentFormConfig().id]: {
+                            ...formData()[currentFormConfig().id],
                             "Client ID": e.target.value,
                           },
                         });
@@ -157,7 +165,10 @@ export default function SubModal() {
                   </div>
                   <div class="mb-4">
                     <input
+                      // form="gmailParam"
+                      autocomplete="off"
                       type="password"
+                      name="clientSecret"
                       class="w-full bg-[#333345] border border-gray-700 rounded p-2 text-sm"
                       value=""
                       title="Client Secret"
@@ -165,8 +176,8 @@ export default function SubModal() {
                       onChange={(e) => {
                         setFormData({
                           ...formData(),
-                          [formConfig().id]: {
-                            ...formData()[formConfig().id],
+                          [currentFormConfig().id]: {
+                            ...formData()[currentFormConfig().id],
                             "Client Secret": e.target.value,
                           },
                         });
@@ -271,17 +282,18 @@ export default function SubModal() {
                   </div>
                 </div>
               </div>
-          </Show>
+            </Show>
 
-          <Show when={activeTab() === "sharing"}>
-            <div class="text-sm">Sharing settings content goes here...</div>
-          </Show>
+            <Show when={activeTab() === "sharing"}>
+              <div class="text-sm">Sharing settings content goes here...</div>
+            </Show>
 
-          <Show when={activeTab() === "details"}>
-            <div class="text-sm">Details content goes here...</div>
-          </Show>
+            <Show when={activeTab() === "details"}>
+              <div class="text-sm">Details content goes here...</div>
+            </Show>
+          </div>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

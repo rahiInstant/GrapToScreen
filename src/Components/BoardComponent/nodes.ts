@@ -15,6 +15,7 @@ import Embedding from "../FlowContent/NodeComponents/Embedding/Embedding";
 export const node: nodeType = {
   chat: {
     name: "chat",
+    title: "Chat",
     numberInputs: 0,
     numberOutputs: 1,
     isInputVertex: false,
@@ -23,14 +24,16 @@ export const node: nodeType = {
   },
   switch: {
     name: "switch",
+    title: "Switch",
     isInputVertex: true,
     numberInputs: 1,
     isOutputVertex: true,
-    numberOutputs: 3,
+    numberOutputs: 1,
     content: SwitchNode,
   },
   edit: {
     name: "edit",
+    title: "EditNode",
     isInputVertex: true,
     numberInputs: 1,
     isOutputVertex: true,
@@ -39,6 +42,7 @@ export const node: nodeType = {
   },
   filter: {
     name: "filter",
+    title: "Filter",
     isInputVertex: true,
     numberInputs: 1,
     isOutputVertex: true,
@@ -47,6 +51,19 @@ export const node: nodeType = {
   },
   "ai-agent": {
     name: "ai-agent",
+    title: "AI Agent",
+    isInputVertex: true,
+    numberInputs: 1,
+    isOutputVertex: true,
+    numberOutputs: 1,
+    isDownVertex: true,
+    downVertexNumber: 3,
+    downVertexOrientation: "1 1 2",
+    content: AiAgent,
+  },
+  "customer-support-agent": {
+    name: "customer-support-agent",
+    title: "Customer Support Agent",
     isInputVertex: true,
     numberInputs: 1,
     isOutputVertex: true,
@@ -58,6 +75,7 @@ export const node: nodeType = {
   },
   "send-email": {
     name: "send-email",
+    title: "Send Email",
     isInputVertex: true,
     numberInputs: 1,
     isOutputVertex: true,
@@ -66,6 +84,7 @@ export const node: nodeType = {
   },
   "vector-store": {
     name: "vector-store",
+    title: "Vector Store",
     isInputVertex: false,
     numberInputs: 0,
     isOutputVertex: false,
@@ -79,6 +98,7 @@ export const node: nodeType = {
   },
   "pg-vector": {
     name: "pg-vector",
+    title: "PgVector Store",
     isInputVertex: false,
     numberInputs: 0,
     isOutputVertex: false,
@@ -92,6 +112,7 @@ export const node: nodeType = {
   },
   "ollama-chat": {
     name: "ollama-chat",
+    title: "Ollama Chat",
     isInputVertex: false,
     numberInputs: 1,
     isOutputVertex: false,
@@ -102,6 +123,7 @@ export const node: nodeType = {
   },
   "gmail-trigger": {
     name: "gmail-trigger",
+    title: "GmailReader",
     numberInputs: 0,
     numberOutputs: 1,
     isInputVertex: false,
@@ -110,6 +132,7 @@ export const node: nodeType = {
   },
   "create-draft": {
     name: "create-draft",
+    title: "Create Draft",
     isInputVertex: false,
     numberInputs: 1,
     isOutputVertex: false,
@@ -119,7 +142,8 @@ export const node: nodeType = {
     content: CreateDraft,
   },
   "embedding": {
-    name: "embedding",
+    name: "embeddings",
+    title: "Embeddings",
     isInputVertex: false,
     numberInputs: 1,
     isOutputVertex: false,

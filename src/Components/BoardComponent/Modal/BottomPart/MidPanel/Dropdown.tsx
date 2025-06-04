@@ -27,6 +27,7 @@ const Dropdown: Component<DropdownProps> = ({ options, onOption, name }) => {
   return (
     <div class="relative w-full">
       <select
+        multiple
         name={name}
         title="select"
         onChange={handleChange}

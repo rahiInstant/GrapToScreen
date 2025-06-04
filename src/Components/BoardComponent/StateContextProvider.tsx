@@ -44,8 +44,10 @@ import {
   setIsOpening,
   typeOfVertex,
   setTypeOfVertex,
-  formConfig,
-  setFormConfig,
+  currentFormConfig,
+  setCurrentFormConfig,
+  previousFormConfig,
+  setPreviousFormConfig,
   isModalOpen2,
   setIsModalOpen2,
   credentialOptions,
@@ -54,7 +56,10 @@ import {
   setSelectedCredential,
   formData,
   setFormData,
-  settingConfig,setSettingConfig
+  settingConfig,
+  setSettingConfig,
+  isModalOpen3,
+  setIsModalOpen3,
 } from "./state";
 
 const StateContextProvider: ParentComponent = (props) => {
@@ -105,8 +110,10 @@ const StateContextProvider: ParentComponent = (props) => {
         setIsOpening,
         typeOfVertex,
         setTypeOfVertex,
-        formConfig,
-        setFormConfig,
+        currentFormConfig,
+        setCurrentFormConfig,
+        previousFormConfig, 
+        setPreviousFormConfig,
         isModalOpen2,
         setIsModalOpen2,
         credentialOptions,
@@ -116,7 +123,9 @@ const StateContextProvider: ParentComponent = (props) => {
         formData,
         setFormData,
         settingConfig,
-        setSettingConfig
+        setSettingConfig,
+        isModalOpen3,
+        setIsModalOpen3
       }}
     >
       {props.children}

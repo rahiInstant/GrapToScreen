@@ -1,6 +1,7 @@
 import {
   Accessor,
   Component,
+  createEffect,
   createSignal,
   For,
   JSX,
@@ -12,88 +13,88 @@ import style from "./style.module.css";
 import NodeMain from "../FlowContent/NodeComponents";
 import useStateContext from "./useStateContext";
 import EdgeComponent from "../FlowContent/EdgeComponents";
-import { customNodeProps } from "../ButtonComponents/Types";
+import { customNodeProps, Edge, Node } from "../ButtonComponents/Types";
 
 // ***************
 // node data type
 // ***************
-interface Node {
-  id: string;
-  name: string;
-  numberInputs: number;
-  numberOutputs: number;
-  isInputVertex: boolean;
-  isOutputVertex: boolean;
-  isDownVertex?: boolean;
-  isUpVertex?: boolean;
-  downVertexNumber?: number;
-  upVertexNumber?: number;
-  downVertexOrientation?: string;
-  inputVertexIds: Array<string>;
-  outputVertexIds: Array<string>;
-  downVertexIds: Array<string>;
-  upVertexIds: Array<string>;
-  // inputVertexIds: Record<string, HTMLElement | undefined>;
-  // outputVertexIds: Record<string, HTMLElement | undefined>;
-  busyIndex: {
-    get: Accessor<string[]>;
-    set: Setter<string[]>;
-  };
-  content: Component<customNodeProps>;
-  prevPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  currPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  inputEdgeIds: {
-    get: Accessor<string[]>;
-    set: Setter<string[]>;
-  };
-  outputEdgeIds: {
-    get: Accessor<string[]>;
-    set: Setter<string[]>;
-  };
-}
+// interface Node {
+//   id: string;
+//   name: string;
+//   numberInputs: number;
+//   numberOutputs: number;
+//   isInputVertex: boolean;
+//   isOutputVertex: boolean;
+//   isDownVertex?: boolean;
+//   isUpVertex?: boolean;
+//   downVertexNumber?: number;
+//   upVertexNumber?: number;
+//   downVertexOrientation?: string;
+//   inputVertexIds: Array<string>;
+//   outputVertexIds: Array<string>;
+//   downVertexIds: Array<string>;
+//   upVertexIds: Array<string>;
+//   // inputVertexIds: Record<string, HTMLElement | undefined>;
+//   // outputVertexIds: Record<string, HTMLElement | undefined>;
+//   busyIndex: {
+//     get: Accessor<string[]>;
+//     set: Setter<string[]>;
+//   };
+//   content: Component<customNodeProps>;
+//   prevPosition: {
+//     get: Accessor<{ x: number; y: number }>;
+//     set: Setter<{ x: number; y: number }>;
+//   };
+//   currPosition: {
+//     get: Accessor<{ x: number; y: number }>;
+//     set: Setter<{ x: number; y: number }>;
+//   };
+//   inputEdgeIds: {
+//     get: Accessor<string[]>;
+//     set: Setter<string[]>;
+//   };
+//   outputEdgeIds: {
+//     get: Accessor<string[]>;
+//     set: Setter<string[]>;
+//   };
+// }
 
 // ***************
 // edge data type
 // ***************
-interface Edge {
-  id: string;
-  nodeStartId: string;
-  typeOfEdge: string;
-  nodeEndId: string;
-  inputIndex: number;
-  outputIndex: number;
-  nodeEndInputIndex?: number;
-  outputVertexId: string;
-  prevStartPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  prevEndPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  currStartPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-  currEndPosition: {
-    get: Accessor<{ x: number; y: number }>;
-    set: Setter<{ x: number; y: number }>;
-  };
-}
+// interface Edge {
+//   id: string;
+//   nodeStartId: string;
+//   typeOfEdge: string;
+//   nodeEndId: string;
+//   inputIndex: number;
+//   outputIndex: number;
+//   nodeEndInputIndex?: number;
+//   outputVertexId: string;
+//   prevStartPosition: {
+//     get: Accessor<{ x: number; y: number }>;
+//     set: Setter<{ x: number; y: number }>;
+//   };
+//   prevEndPosition: {
+//     get: Accessor<{ x: number; y: number }>;
+//     set: Setter<{ x: number; y: number }>;
+//   };
+//   currStartPosition: {
+//     get: Accessor<{ x: number; y: number }>;
+//     set: Setter<{ x: number; y: number }>;
+//   };
+//   currEndPosition: {
+//     get: Accessor<{ x: number; y: number }>;
+//     set: Setter<{ x: number; y: number }>;
+//   };
+// }
 
 interface BoardComponent {
-  nodes: Accessor<Node[]>;
-  setNodes: (nodes: Node[]) => void;
+  // nodes: Accessor<Node[]>;
+  // setNodes: (nodes: Node[]) => void;
 }
 
-const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
+const Board: Component<BoardComponent> = () => {
   const [clickedPosition, setClickedPosition] = createSignal<{
     x: number;
     y: number;
@@ -117,8 +118,14 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
     setSelectedNode,
     setLastClickPosition,
     setEdgeLength,
-    setTypeOfVertex,
+    nodes,
+    setNodes,
   } = useStateContext();
+
+  createEffect(() => {
+    // console.log("from board", nodes());
+    // console.log(edges());
+  });
   // const [cursor, setCursor] = createSignal({ x: 0, y: 0 });
 
   const [selectedEdge, setSelectedEdge] = createSignal<string | null>(null);
@@ -173,12 +180,25 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
       }
     };
 
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+    };
+
+    const paneElement = document.getElementById("pane");
+
+    if (paneElement) {
+      paneElement.addEventListener("wheel", handleWheel, { passive: false });
+    }
+
     // document.addEventListener("mouseup", handleMouseUp);
     document.addEventListener("keydown", handleOnDeleteKeyDown);
 
     onCleanup(() => {
       // document.removeEventListener("mouseup", handleMouseUp);
       document.removeEventListener("keydown", handleOnDeleteKeyDown);
+      if (paneElement) {
+        paneElement.removeEventListener("wheel", handleWheel);
+      }
     });
   });
 
@@ -375,7 +395,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             const edge = edges().find((edge) => edge.id === edgeId);
             if (edge) {
               const prevEnd = edge.currEndPosition.get();
-              edge.currEndPosition.set((_) => {
+              edge.currEndPosition.set(() => {
                 return {
                   x: prevEnd.x + dx / scale(),
                   y: prevEnd.y + dy / scale(),
@@ -388,7 +408,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             const edge = edges().find((edge) => edge.id === edgeId);
             if (edge) {
               const prevStart = edge.currStartPosition.get();
-              edge.currStartPosition.set((_) => {
+              edge.currStartPosition.set(() => {
                 return {
                   x: prevStart.x + dx / scale(),
                   y: prevStart.y + dy / scale(),
@@ -421,7 +441,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           const edge = edges().find((edge) => edge.id === edgeId);
           if (edge) {
             // console.log(edge, "input");
-            edge.currEndPosition.set((_) => {
+            edge.currEndPosition.set(() => {
               return {
                 x: (edge.prevEndPosition.get().x + deltaX) / scale(),
                 y: (edge.prevEndPosition.get().y + deltaY) / scale(),
@@ -436,7 +456,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
           const edge = edges().find((edge) => edge.id === edgeId);
           if (edge) {
             // console.log(edge, "output");
-            edge.currStartPosition.set((_) => {
+            edge.currStartPosition.set(() => {
               return {
                 x: (edge.prevStartPosition.get().x + deltaX) / scale(),
                 y: (edge.prevStartPosition.get().y + deltaY) / scale(),
@@ -652,21 +672,21 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         nodeEnd.inputEdgeIds.set([...nodeEnd.inputEdgeIds.get(), edgeId]);
 
         // ********** Update edge current positions ********
-        newEdge()!.prevStartPosition.set((_) => {
+        newEdge()!.prevStartPosition.set(() => {
           return {
             x: (newEdge()!.currStartPosition.get().x - transform().x) / scale(),
             y: (newEdge()!.currStartPosition.get().y - transform().y) / scale(),
           };
         });
 
-        newEdge()!.prevEndPosition.set((_) => {
+        newEdge()!.prevEndPosition.set(() => {
           return {
             x: (insideInput()!.positionX - transform().x) / scale(),
             y: (insideInput()!.positionY - transform().y) / scale(),
           };
         });
 
-        newEdge()!.currEndPosition.set((_) => {
+        newEdge()!.currEndPosition.set(() => {
           return {
             x: (insideInput()!.positionX - transform().x) / scale(),
             y: (insideInput()!.positionY - transform().y) / scale(),
@@ -1020,7 +1040,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
         [style["dragging"]]: boardDragging(),
         [style["selection"]]: false,
       }}
-      onWheel={(e) => e.preventDefault()}
+      // onWheel={(e) => e.preventDefault()}
       onPointerDown={handleOnMouseDown}
       onMouseUp={handleOnMouseUp}
       onMouseMove={handleOnMouseMove}
@@ -1103,6 +1123,7 @@ const Board: Component<BoardComponent> = ({ nodes, setNodes }) => {
             <NodeMain
               id={node.id}
               name={node.name}
+              title={node.title}
               x={node.currPosition.get().x}
               y={node.currPosition.get().y}
               numberInputs={node.numberInputs}

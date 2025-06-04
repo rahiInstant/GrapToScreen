@@ -1,9 +1,11 @@
 import {
   Accessor,
   Component,
+  createEffect,
   createRoot,
   createSignal,
   JSX,
+  onMount,
   ParentComponent,
   Setter,
 } from "solid-js";
@@ -26,6 +28,7 @@ import Modal from "./Modal";
 import BottomPart from "./Modal/BottomPart/BottomPart";
 import TopPart from "./Modal/TopPart/TopPart";
 import SubModal from "./Modal2";
+import Modal3 from "./Modal3/Modal3";
 
 interface DotFlowProps {
   node: nodeType;
@@ -33,6 +36,7 @@ interface DotFlowProps {
 
 const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
   // const [nodes, setNodes] = createSignal<CustomNode[]>([]);
+
   const [baseNode, setBaseNode] = createSignal<CustomNode>();
 
   const {
@@ -51,7 +55,39 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
     isModalOpen,
     isModalOpen2,
     setIsModalOpen2,
+    isModalOpen3,
+    setIsModalOpen3,
+    currentFormConfig,
+    setPreviousFormConfig,
   } = useStateContext();
+
+  // onMount(() => {
+  //   const flow = localStorage.getItem("flow");
+  //   if (flow) {
+  //     const parsedFlow = JSON.parse(flow);
+  //     console.log(parsedFlow)
+  //     setNodes([...nodes(), ...parsedFlow.nodes])
+  //     setEdges([...edges(), ...parsedFlow.edges]);
+
+  //   }
+  // });
+
+  // createEffect(() => {
+  //   const flow = {
+  //     nodes: nodes(),
+  //     edges: edges(),
+  //   };
+  //   console.log(flow)
+  //   localStorage.setItem("flow", JSON.stringify(flow));
+  // });
+
+  createEffect(() => {
+    if (!isModalOpen()) {
+      if (currentFormConfig()) {
+        setPreviousFormConfig(currentFormConfig());
+      }
+    }
+  });
 
   //==================================================
   // inject node in the board,
@@ -152,11 +188,12 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
     ];
     // **** node injection
     createRoot(() => {
-      setNodes([
+      return setNodes([
         ...nodes(),
         {
           id: `node_${Math.random().toString(36).substring(2, 8)}_${nodeName}`,
           name: nodeName,
+          title: node[nodeName].title,
           numberInputs: node[nodeName].numberInputs,
           numberOutputs: node[nodeName].numberOutputs,
           isInputVertex: node[nodeName].isInputVertex,
@@ -324,9 +361,17 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
           isOpen={() => isModalOpen2()}
           onClose={() => setIsModalOpen2(false)}
           zIndex={100000}
-          widthClass="w-[900px] max-w-[1200px] h-fit max-h-[90vh] "
+          widthClass="w-[1100px] min-w-[750px] max-w-[1200px] h-fit max-h-[90vh]"
         >
-          <SubModal/>
+          <SubModal />
+        </Modal>
+        <Modal
+          isOpen={() => isModalOpen3()}
+          onClose={() => setIsModalOpen3(false)}
+          zIndex={100000}
+          widthClass="w-[80vw] max-w-[85vw] h-fit max-h-[90vh]"
+        >
+          <Modal3 />
         </Modal>
         {/* <Effect /> */}
       </StateContextProvider>
@@ -337,7 +382,7 @@ const BoardComponent: ParentComponent<DotFlowProps> = ({ node }) => {
         <Zoom />
       </StateContextProvider>
       <StateContextProvider>
-        <Board nodes={nodes} setNodes={setNodes} />
+        <Board />
       </StateContextProvider>
     </div>
   );

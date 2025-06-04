@@ -9,13 +9,13 @@ interface Option {
 interface DropdownProps {
   options: Option[];
   onOptionChange?: (selectedOptions: Option[]) => void;
-  name: string;
+  name?: string;
 }
 
 const FilteredDropDown: Component<DropdownProps> = ({
   options,
   onOptionChange,
-  name
+  name,
 }) => {
   const [currentOptions, setCurrentOptions] = createSignal<Option[]>([]);
   const [filteredOptions, setFilteredOptions] = createSignal<Option[]>([]);
@@ -53,7 +53,7 @@ const FilteredDropDown: Component<DropdownProps> = ({
     <div class="space-y-2 text-sm text-white">
       <div class="relative w-full">
         <select
-          name={name}
+          name={name ? name : ""}
           title="select"
           onChange={handleChange}
           class="w-full appearance-none bg-[#1e1f2b] text-white px-4 py-2 rounded-md border border-neutral-700 shadow-sm hover:border-[#dad7d742] focus:outline-none focus:ring-2 focus:ring-[#dad7d742] transition"

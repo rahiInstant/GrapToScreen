@@ -18,21 +18,45 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
   });
 
-  const { typeOfVertex } = useStateContext();
+  const [dx, setDx] = createSignal(0);
 
   createEffect(() => {
-    const middleX =
-      props.position.x0 + (props.position.x1 - props.position.x0) / 2;
-    const middleY =
-      props.position.y0 + (props.position.y1 - props.position.y0) / 2;
+    const x0 = props.position.x0;
+    const y0 = props.position.y0;
+    const x1 = props.position.x1;
+    const y1 = props.position.y1;
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    // console.log(dy)
+
+    // Check if we're using smooth step path
+    const usingSmoothStep =
+      props.typeOfEdge !== "dash" &&
+      ((props.isNew && props.edgeLength() > 40 && dx < 40) ||
+        (!props.isNew && dx < 40));
+
+    let middleX, middleY;
+
+    if (usingSmoothStep) {
+      // For smooth step
+      const midTopX = x0 + 40;
+      const midLeftX = x1 - 40;
+      const verticalBuffer = 120;
+
+      middleX = (midTopX + midLeftX) / 2;
+      middleY = y0 + verticalBuffer;
+    } else {
+      // For curved edges
+      middleX = x0 + (x1 - x0) / 2;
+      middleY = y0 + (y1 - y0) / 2;
+    }
+
     setMiddlePoint({ x: middleX, y: middleY });
-    // console.log(typeOfVertex());
   });
 
   const handleOnMouseDownEdge = (event: any) => {
     event.stopPropagation();
     props.onMouseDownEdge();
-    // console.log(document.getElementById("boardWrapper")?.offsetHeight);
   };
 
   const handleOnMouseDeleteEdge = (event: any) => {
@@ -53,15 +77,10 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     const midLeftX = x1 - 40;
 
     const dx = x1 - x0;
+    setDx(dx);
     const dy = y1 - y0;
-    // const midTopY = y0 + 40;
-    // const midLeftY = y1 - 40;
-    // const midX = (x0 + x1) / 2;
-    // const midY = (y0 + y1) / 2;
     const verticalBuffer = 120;
     const edgeDirectionChangeThreshold = 105;
-    // console.log(dx, dy);
-    // let buffer = 20;
     const offset = getSmoothCurvedOffset();
 
     function getCorner() {
@@ -70,7 +89,6 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
       }
       return cornerRadius;
     }
-    // console.log(x1, "dx", x0, "dx", props.edgeLength(), "edgeLength()");
 
     // ******* logical 5 step path
     function getSmoothSteep() {
@@ -92,6 +110,7 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
       }
   
       L ${midLeftX} ${
+        // y1-cornerRadius
         dy > edgeDirectionChangeThreshold ? y1 - getCorner() : y1 + getCorner()
       }
       Q ${midLeftX} ${y1} ${midLeftX + cornerRadius} ${y1}
@@ -123,7 +142,6 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
     <svg class={style.wrapper}>
       <defs>
         <marker
-          // class="z-100"
           id="arrowhead"
           markerWidth="6"
           markerHeight="6"
@@ -135,22 +153,41 @@ const EdgeComponent: Component<EdgeProps> = (props) => {
           <path d="M 0 0 L 6 3 L 0 6 z" fill="#c3c9d5" />
         </marker>
       </defs>
+
+      {/* Invisible hit area for consistent hover detection */}
       <path
-        class={`${props.isNew ? style.edgeNew : style.edge} ${
-          props.typeOfEdge == "dash" ? style.edgeDash : ""
-        }`}
+        class={style.hitArea}
         d={getPathString(
           props.position.x0,
           props.position.y0,
           props.position.x1,
           props.position.y1
         )}
-        marker-end="url(#arrowhead)"
+        fill="none"
+        stroke="transparent"
+        stroke-width="40"
+        style="pointer-events: stroke;"
+      />
+
+      {/* Visible path for display */}
+      <path
+        class={`${props.isNew ? style.edgeNew : style.edge} ${
+          props.typeOfEdge == "dash" ? style.edgeDash : ""
+        } ${props.selected ? style.edgeSelected : ""}`}
+        d={getPathString(
+          props.position.x0,
+          props.position.y0,
+          props.position.x1,
+          props.position.y1
+        )}
         onMouseDown={handleOnMouseDownEdge}
-      ></path>
+        fill="none"
+        marker-end="url(#arrowhead)"
+        style="pointer-events: none;"
+      />
 
       <g
-        class={style.delete}
+        class={props.isNew ? style.deleteHidden : style.delete}
         transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
         onMouseDown={handleOnMouseDeleteEdge}
       >

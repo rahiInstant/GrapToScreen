@@ -60,7 +60,7 @@ const CredentialDropDown = () => {
     // fetch("/api/credentials")
     //   .then((res) => res.json())
     //   .then((data) => {
-    //     setCredentialOptions(data); 
+    //     setCredentialOptions(data);
     //   });
   });
 
@@ -71,6 +71,7 @@ const CredentialDropDown = () => {
   return (
     <div class="overflow-visible">
       <button
+        type="button"
         ref={(el) => (triggerRef = el)}
         onClick={toggleDropdown}
         class="w-full bg-[#282a39] cursor-pointer text-white px-4 py-2 rounded-md border border-neutral-700 shadow-sm flex justify-between items-center"
@@ -120,6 +121,7 @@ const CredentialDropDown = () => {
             ))}
             <li>
               <button
+                type="button"
                 class="w-full text-left px-4 py-2 text-white hover:bg-[#dad7d742]"
                 onClick={() => {
                   setIsOpen(false);

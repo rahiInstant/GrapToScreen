@@ -5,11 +5,11 @@ import NoteBox from "./NoteBox";
 import Tooltip from "./Tooltip";
 import useStateContext from "../../../useStateContext";
 import ModalConfig from "../../../../FlowContent/NodeComponents/ModalConfig";
-import Switch from "./Switch";
+import Switch from "../../Component lib/Switch/Switch";
 
 const Settings: Component<{}> = (props) => {
   const [showTooltip, setShowTooltip] = createSignal(false);
-  const { formConfig, settingConfig } = useStateContext();
+  const { currentFormConfig, settingConfig } = useStateContext();
   // const componentConfig = {
   //   switch: Switch,
   //   dropdown: Dropdown,
@@ -74,14 +74,13 @@ const Settings: Component<{}> = (props) => {
               text: "Optional note to save with the node",
             }}
           />
-<Switch
-switchText=""
-toolTipContent={{
-  label:"",
-  text: ""
-}}
-
-/>
+          <Switch
+            switchText=""
+            toolTipContent={{
+              label: "",
+              text: "",
+            }}
+          />
           <div class="mt-6">
             <hr class="border-[#373749]" />
             <p class="mt-1 text-[#737475] text-sm">

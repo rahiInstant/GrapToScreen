@@ -2,9 +2,10 @@ import { Component, createSignal } from "solid-js";
 import Parameters from "./parameterMain";
 import Settings from "./Settings";
 import style from "./style.module.css";
+import useStateContext from "../../../useStateContext";
 
 const MidPanel: Component<{}> = (props) => {
-  const title = "switch";
+  const {currentFormConfig} = useStateContext()
   const [activeTab, setActiveTab] = createSignal(0);
 
   return (
@@ -34,9 +35,9 @@ const MidPanel: Component<{}> = (props) => {
               <path d="M2 12h10M9 6l6 6-6 6" />
             </svg>
           </div>
-          <span class="text-white font-medium">{title}</span>
+          <span class="text-white font-medium">{currentFormConfig().title}</span>
         </div>
-        <button id="submitBtn" type="submit" form="gmailParam" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all cursor-pointer px-5 py-2 rounded-md">
+        <button id="submitBtn" type="submit" form={`${currentFormConfig().name}Form`} class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all cursor-pointer px-5 py-2 rounded-md">
           Test step
         </button>
       </div>
