@@ -1,12 +1,13 @@
 import { createSignal } from "solid-js";
 
-export const editNodeDataFormatter = (editNodeData: any, nodeId: string) => {
+export const editNodeDataEncoder = (editNodeData: any, nodeId: string) => {
   const transformFieldData = (data: any) => {
     const [fieldNo, setFieldNo] = createSignal(1);
     return Object.values(
       Object.entries(data)
         .filter(([k, v]) => k.startsWith("field_"))
-        .reduce((acc, [key, value]: [string, string]) => {
+        .reduce((acc: any, curr: [string, unknown]) => {
+          const [key, value] = curr;
           const parts = key.split("_");
           const baseKey = `${parts[0]}_${parts[1]}`;
           const field = parts[2];
@@ -19,11 +20,11 @@ export const editNodeDataFormatter = (editNodeData: any, nodeId: string) => {
           }
 
           if (field === "name") {
-            acc[baseKey].name = value;
+            acc[baseKey].name = value as string;
           } else if (field === "value") {
-            acc[baseKey].value = value;
+            acc[baseKey].value = value as string;
           } else if (field === "type") {
-            acc[baseKey].type = value;
+            acc[baseKey].type = value as string;
           }
           return acc;
         }, {})

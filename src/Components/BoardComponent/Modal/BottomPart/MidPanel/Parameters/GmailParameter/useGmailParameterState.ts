@@ -1,15 +1,16 @@
 import { createSignal, createMemo, createEffect } from "solid-js";
 import { FilterOption } from "./GmailType";
 import { filterStore, optionStore, poolTimesOptions } from "./GmailConfig";
-import { gmailNodeDataFormatter } from "./gmailNodeDataFormatter";
+import { gmailNodeDataEncoder } from "./gmailNodeDataEncoder";
 import useStateContext from "../../../../../useStateContext";
 import { ReproductiveChildren } from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
+import { gmailNodeDataDecoder } from "./gmailNodeDataDecoder";
 
-export default function useGmailParameterState(nodeId: string) {
-  const { formData, setFormData, previousFormConfig, currentFormConfig } =
-    useStateContext();
-
-  const [poolTimes, setPoolTimes] = createSignal<string[]>([]);
+export default function useGmailParameterState() {
+  const { formData, setFormData, currentFormConfig } = useStateContext();
+  const [filters, setFilters] = createSignal<FilterOption[]>([]);
+  const [options, setOptions] = createSignal<FilterOption[]>([]);
+  const [pollTimes, setPollTimes] = createSignal<string[]>([]);
   const [mode, setMode] = createSignal<Record<string, string>>({});
   const [modeChild, setModeChild] = createSignal<Record<string, any>>({});
   const [modeChildValue, setModeChildValue] = createSignal<
@@ -23,21 +24,59 @@ export default function useGmailParameterState(nodeId: string) {
     {}
   );
   const [previousData, setPreviousData] = createSignal<Record<string, any>>({});
-  const [parsedData, setParsedData] = createSignal<Record<string, any>>({});
 
   const triggerKey = new Set();
 
   const reset = () => {
-    setParsedData({});
     setSubmittedData({});
-    setPoolTimes([]);
+    setPollTimes([]);
     setMode({});
     setModeChild({});
-    // setSelectedFilter([]);
-    // setSelectedOptions([]);
+    setSelectedFilter([]);
+    setSelectedOptions([]);
     setPreviousData({});
+    setFilters(filterStore);
+    setOptions(optionStore);
   };
 
+  // const dataHandler = (fieldName: string, data: any) => {
+  //   // const isKeyExistInPreviousData = previousData()[fieldName];
+  //   console.log("from data handler raw >>>> ", fieldName, " >>>>> ", data);
+  //   console.log(
+  //     "from data handler, 2 >>> both key and data changed",
+  //     previousData()
+  //   );
+  //   console.log(
+  //     "from data handler:::: >> submitted data 1  >>> both key and data changed",
+  //     submittedData()
+  //   );
+  //   setSubmittedData((prev) => ({
+  //     ...prev,
+  //     [fieldName]: data,
+  //   }));
+  //   console.log(
+  //     "from data handler:::: >> submitted data 2 >>> both key and data changed",
+  //     submittedData()
+  //   );
+
+  //   const formatted = gmailNodeDataEncoder(
+  //     submittedData(),
+  //     currentFormConfig().id
+  //   );
+  //   console.log(
+  //     "from data handler:::: >> formatted >>> both key and data changed",
+  //     formatted
+  //   );
+
+  //   setFormData({
+  //     ...formData(),
+  //     [currentFormConfig().id]: formatted,
+  //   });
+  //   console.log(
+  //     "from data handler:::: >> formData() >>> both key and data changed",
+  //     formData()
+  //   );
+  // };
   const dataHandler = (fieldName: string, data: any) => {
     // const isKeyExistInPreviousData = previousData()[fieldName];
     console.log("from data handler raw >>>> ", fieldName, " >>>>> ", data);
@@ -45,8 +84,17 @@ export default function useGmailParameterState(nodeId: string) {
       if (previousData()[fieldName] === data) {
         console.log(
           "from data handler:::: >> previous Data,>>> data unchanged, key unchanged",
-          previousData()
+          submittedData()
         );
+        setSubmittedData((prev) => ({
+          ...prev,
+          [fieldName]: data,
+        }));
+        console.log(
+          "from data handler:::: >> submitted data from previous data >>> data unchanged, key unchanged",
+          submittedData()
+        );
+        console.log("from data handler:::: >> form data >>> data unchanged, key unchanged",formData())
         return;
       } else if (previousData()[fieldName] !== data) {
         console.log(
@@ -66,7 +114,7 @@ export default function useGmailParameterState(nodeId: string) {
           submittedData()
         );
 
-        const formatted = gmailNodeDataFormatter(
+        const formatted = gmailNodeDataEncoder(
           submittedData(),
           currentFormConfig().id
         );
@@ -102,7 +150,7 @@ export default function useGmailParameterState(nodeId: string) {
         submittedData()
       );
 
-      const formatted = gmailNodeDataFormatter(
+      const formatted = gmailNodeDataEncoder(
         submittedData(),
         currentFormConfig().id
       );
@@ -122,99 +170,57 @@ export default function useGmailParameterState(nodeId: string) {
     }
   };
 
+  const dataRemoveHandler = (fieldName: string) => {
+    console.log("from data remover raw >>>> ", fieldName, " >>>>>> ");
+    console.log(" from data remover submitted>>>> pre data", submittedData());
+    setSubmittedData((prev) => {
+      return Object.entries(prev).reduce((acc, [k, v]: [string, any]) => {
+        if (!k.includes(fieldName)) {
+          acc[k] = v;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+    });
+    console.log(" from data remover submitted>>>> post data", submittedData());
+    const formattedPrev = gmailNodeDataEncoder(
+      submittedData(),
+      currentFormConfig().id
+    );
 
-  const decode = (data: any) => {
-    if (data) {
-      const { parameters } = data;
-      const poolTimes = parameters.pollTimes;
-      const parsedPoolTimes: string[] = [];
-      const parsedModes: Record<string, string> = {};
-      const parseModesData: Record<string, string | number | boolean> = {};
+    console.log("from data remover >>>>> formattedPrev", formattedPrev);
 
-      if (poolTimes) {
-        poolTimes.forEach((item: any) => {
-          const pollTimeId = `poolTime_${Math.random()
-            .toString(36)
-            .substring(2, 8)}`;
-          parsedPoolTimes.push(pollTimeId);
-          parsedModes[pollTimeId] = item.mode;
-          parseModesData[pollTimeId] = item.mode;
+    setFormData({
+      ...formData(),
+      [currentFormConfig().id]: formattedPrev,
+    });
+    console.log("from data remover >>> form data", formData());
+  };
 
-
-          // if(item.hour) {
-          //   parseModesData[`${pollTimeId}_Hour`] = item.hour;
-          // } 
-          // if(item.minute) {
-          //   parseModesData[`${pollTimeId}_Minute`] = item.minute;
-
-          // }
-          // if(item.dayOfMonth) {
-          //   parseModesData[`${pollTimeId}_Day of Month`] = item.dayOfMonth;
-          // }
-          // if(item.weekday) {
-          //   parseModesData[`${pollTimeId}_Weekday`] = item.weekday;
-          // }
-
-          if ("hour" in item) {
-            parseModesData[`${pollTimeId}_Hour`] = item["hour"];
-          }
-          if ("minute" in item) {
-            parseModesData[`${pollTimeId}_Minute`] = item["minute"];
-          }
-          if ("dayOfMonth" in item) {
-            parseModesData[`${pollTimeId}_Day of Month`] = item["dayOfMonth"];
-          }
-          if ("weekday" in item) {
-            parseModesData[`${pollTimeId}_Weekday`] = item["weekday"];
-          }
-          if ("value" in item) {
-            parseModesData[`${pollTimeId}_Value`] = item["value"];
-          }
-          if ("unit" in item) {
-            parseModesData[`${pollTimeId}_Unit`] = item["unit"];
-          }
-          if ("cronExpression" in item) {
-            parseModesData[`${pollTimeId}_Cron Expression`] =
-              item["cronExpression"];
-          }
-        });
-        // console.log(parsedModes);
-        // console.log(parsedPoolTimes);
-      }
-
-      return {
-        simplify: parameters.simple,
-        poolTimes: parsedPoolTimes,
-        modes: parsedModes,
-        modesData: parseModesData,
-      };
-    }
+  const setDropDownFilterOption = (
+    keys: string[],
+    store: FilterOption[],
+    setSelected: (update: (prev: FilterOption[]) => FilterOption[]) => void
+  ) => {
+    console.log(keys, "not ok");
+    const newOptions = keys.flatMap((item) =>
+      store.filter((option) => option.value === item)
+    );
+    console.log(newOptions, "ok");
+    setSelected((prev) => [...prev, ...newOptions]);
   };
 
   createEffect(() => {
-    // const previousFormId = previousFormConfig().id;
-    // if (previousFormId) {
-    //   if (previousFormId !== nodeId) {
-    //     reset();
-    //   }
-    // }
-    // if(triggerKey.has(nodeId)) {
-    //   reset()
-    // }
-    // console.log(
-    //   "check has trigger",
-    //   triggerKey.has(currentFormConfig().id),
-    //   triggerKey
-    // );
     console.log(
       currentFormConfig().id,
       "  >  node data  >  ",
       "\n",
-      poolTimes(),
+      selectedOptions(),
       "\n",
-      mode()
+      selectedFilter()
     );
     console.log(">>>>>>.>>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>>>>>>>>>>");
+    // console.log(parsedData(), "parsed data");
+    console.log(previousData(), "from outside");
     if (!triggerKey.has(currentFormConfig().id)) {
       triggerKey.clear();
       triggerKey.add(currentFormConfig().id);
@@ -224,30 +230,56 @@ export default function useGmailParameterState(nodeId: string) {
         reset();
         return;
       }
-      reset()
-      // setPreviousData({});
-      // setPoolTimes([]);
-      // setMode({});
-      // setModeChild({});
-      // setSubmittedData({});
-      // setParsedData({});
-      // console.log("data2", data);
-      const decoded = decode(data);
+      reset();
+      console.log("data2", data);
+      const decoded = gmailNodeDataDecoder(data);
       if (decoded) {
         console.log(
           "decoded from observer, >>>>>> ",
           currentFormConfig().id,
-          decoded?.modes,
-          decoded.modesData
+          decoded?.filters,
+          decoded.options
         );
-        setPreviousData((prev) => ({
+        setPreviousData((prev: any) => ({
           ...prev,
           simplify: decoded.simplify,
-          ...decoded.modesData,
+          ...decoded.pollTimes.parseModesData,
+          ...decoded.filters,
+          ...decoded.options,
+          // ...decoded.pollTimes.parseModesData,
         }));
-        setParsedData(decoded ?? {});
-        setPoolTimes(decoded?.poolTimes ?? []);
-        setMode(decoded?.modes ?? {});
+        console.log(previousData(), "from inside");
+        console.log(
+          decoded.pollTimes.parseModesData,
+          "from inside parseModesData"
+        );
+        // setParsedData(decoded ?? {});
+        setPollTimes(decoded.pollTimes.parsedPollTimes ?? []);
+        setMode(decoded.pollTimes.parsedModes ?? {});
+        setDropDownFilterOption(
+          Object.keys(decoded.filters),
+          filterStore,
+          setSelectedFilter
+        );
+        setFilters(() => {
+          return filterStore.filter((item) => {
+            return selectedFilter().every((selected) => {
+              return selected.value !== item.value;
+            });
+          });
+        });
+        setDropDownFilterOption(
+          Object.keys(decoded.options),
+          optionStore,
+          setSelectedOptions
+        );
+        setOptions(() => {
+          return optionStore.filter((item) => {
+            return selectedOptions().every((selected) => {
+              return selected.value !== item.value;
+            });
+          });
+        });
       }
       // setSelectedFilter(decoded.selectedFilter);
       // setSelectedOptions(decoded.selectedOptions);
@@ -255,8 +287,8 @@ export default function useGmailParameterState(nodeId: string) {
   });
 
   return {
-    poolTimes,
-    setPoolTimes,
+    pollTimes,
+    setPollTimes,
     mode,
     setMode,
     selectedOptions,
@@ -264,9 +296,16 @@ export default function useGmailParameterState(nodeId: string) {
     selectedFilter,
     setSelectedFilter,
     submittedData,
-    parsedData,
     dataHandler,
     modeChild,
     setModeChild,
+    filters,
+    setFilters,
+    options,
+    setOptions,
+    previousData,
+    setPreviousData,
+    setSubmittedData,
+    dataRemoveHandler,
   };
 }

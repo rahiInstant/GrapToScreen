@@ -1,11 +1,4 @@
-import {
-  Component,
-  createEffect,
-  createSignal,
-  For,
-  onMount,
-  Show,
-} from "solid-js";
+import { Component, createSignal, For, onMount, Show } from "solid-js";
 import "../parameters.css";
 import Switch from "../../../../Component lib/Switch/Switch";
 import DeleteIcon from "../../../../Icons/DeleteIcon";
@@ -15,95 +8,68 @@ import DropDownFilter from "../../../../Component lib/DropDown/DropDownFilter/Dr
 import DependentDropDown from "../../../../Component lib/DropDown/DependentDropDown/DependentDropDown";
 import DynamicInput from "../../../../Component lib/Input/DynamicInput/DynamicInput";
 import ButtonSolid from "../../../../Component lib/Button/ButtonSolid";
-import ReproductiveDropDown, {
-  ReproductiveChildren,
-} from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
+import ReproductiveDropDown from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
 import { FilterOption } from "./GmailType";
 import { filterStore, optionStore, poolTimesOptions } from "./GmailConfig";
 import useStateContext from "../../../../../useStateContext";
-import { gmailNodeDataFormatter } from "./gmailNodeDataFormatter";
-import {
-  gmailNodeDataDecodeHelper,
-  gmailNodeDataManager,
-} from "./gmailNodeDataManager";
-import { gmailNodeDataParser } from "./gmailNodeDataParser";
+import { gmailNodeDataEncoder } from "./gmailNodeDataEncoder";
 import useGmailParameterState from "./useGmailParameterState";
 
-const GmailNodeParameter: Component<{
-  // key: string;
-}> = (props) => {
+const GmailNodeParameter: Component<{}> = (props) => {
   const { currentFormConfig, formData, setFormData } = useStateContext();
-  // const [selectedFilter, setSelectedFilter] = createSignal<FilterOption[]>([]);
-  const [filters, setFilters] = createSignal<FilterOption[]>([]);
-  // const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
-  //   []
-  // );
-  const [options, setOptions] = createSignal<FilterOption[]>([]);
-  // const [poolTimes, setPoolTimes] = createSignal<string[]>([]);
-
-  // const [mode, setMode] = createSignal<Record<string, ReproductiveChildren[]>>(
-  //   {}
-  // );
-
-  // const { setFormData, formData, formConfig } = useStateContext();
-  // const [submittedData, setSubmittedData] = createSignal<Record<string, any>>(
-  //   {}
-  // );
-  // const [parsedData, setParsedData] = createSignal<Record<string, any>>({});
-
-  // const resetNecessaryState = () => {
-  //   setParsedData({});
-  //   setPoolTimes([]);
-  //   setMode({});
-  //   setParsedData({});
-  //   setSubmittedData({});
-  //   setSelectedFilter([]);
-  //   setSelectedOptions([]);
-  // };
-
-  // const nodeId = currentFormConfig().id;
-  // const [nodeId, setNodeId] = createSignal<string>("");
-
-  // createEffect(() => {
-  //   setNodeId(currentFormConfig().id);
-  //   console.log(nodeId());
-  // });
-
-  onMount(() => {
-    setFilters(filterStore);
-    setOptions(optionStore);
-    // setNodeId(currentFormConfig().id);
-  });
+  // const [filters, setFilters] = createSignal<FilterOption[]>([]);
+  // const [options, setOptions] = createSignal<FilterOption[]>([]);
 
   const {
-    poolTimes,
-    setPoolTimes,
+    pollTimes,
+    setPollTimes,
     mode,
     setMode,
     selectedOptions,
     setSelectedOptions,
     selectedFilter,
     setSelectedFilter,
-    parsedData,
+    previousData,
     dataHandler,
     modeChild,
     setModeChild,
-  } = useGmailParameterState(currentFormConfig().id);
+    setFilters,
+    filters,
+    options,
+    setOptions,
+    setPreviousData,
+    setSubmittedData,
+    dataRemoveHandler,
+  } = useGmailParameterState();
+
+  onMount(() => {
+    setFilters(filterStore);
+    setOptions(optionStore);
+  });
+
+  const filterObj = (obj: Record<string, any>, item: string) => {
+    return Object.entries(obj).reduce((acc, [k, v]: [string, any]) => {
+      if (!k.startsWith(item)) {
+        acc[k] = v;
+      }
+      return acc;
+    }, {} as Record<string, any>);
+  };
 
   const handleOnSubmit = (e: Event) => {
     e.preventDefault();
     const gmailData = new FormData(e.target as HTMLFormElement);
     let data = {
       ...Object.fromEntries(gmailData.entries()),
-      labelNamesOrIds: gmailData.getAll("labelNamesOrIds"),
+      labelIds: gmailData.getAll("labelIds"),
     };
     console.log("unformatted data", data);
 
-    const nodeData = gmailNodeDataFormatter(data, currentFormConfig()?.id);
+    const nodeData = gmailNodeDataEncoder(data, currentFormConfig().id);
 
     setFormData({
       ...formData(),
-      GmailReader: nodeData,
+      [currentFormConfig().id]: nodeData,
     });
 
     console.log("formattedData", nodeData);
@@ -131,12 +97,12 @@ const GmailNodeParameter: Component<{
           <div>
             <div class="label hr-solid-line">Pool Times</div>
             <div class="mt-5">
-              {poolTimes().length <= 0 && (
+              {pollTimes().length <= 0 && (
                 <div class="text-[#9c9c9e] text-center text-sm border border-[#9c9c9e] p-4 rounded-md border-dashed">
                   Currently no items exist
                 </div>
               )}
-              <For each={poolTimes()}>
+              <For each={pollTimes()}>
                 {(item, index) => {
                   // console.log(item);
                   return (
@@ -150,10 +116,27 @@ const GmailNodeParameter: Component<{
                       <div class="pt-9">
                         <div
                           onClick={() => {
+                            setPollTimes(
+                              pollTimes().filter((i, _) => i !== item)
+                            );
+                            console.log("pre-previous", previousData());
+                            // setSubmittedData((prev) => filterObj(prev, item));
+                            console.log(
+                              "from delete handler: previous",
+                              mode(),
+                              modeChild()
+                            );
                             // delete mode()[item];
-                            // setPoolTimes(
-                            //   poolTimes().filter((i, _) => i !== item)
-                            // );
+                            // delete modeChild()[item];
+                            setMode((prev) => filterObj(prev, item));
+                            setModeChild((prev) => filterObj(prev, item));
+                            console.log(
+                              "from delete handler:after",
+                              mode(),
+                              modeChild()
+                            );
+                            dataRemoveHandler(item);
+                            console.log("post-previous", previousData());
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
@@ -163,6 +146,7 @@ const GmailNodeParameter: Component<{
                       <div class="w-full">
                         <ReproductiveDropDown
                           name={item}
+                          uniqueKey={item}
                           defaultValue={
                             mode()[item] || poolTimesOptions[1].value
                           }
@@ -170,18 +154,28 @@ const GmailNodeParameter: Component<{
                           title="Mode"
                           toolTipText="How often to trigger."
                           onChange={(selectedOption) => {
-                            console.log(
-                              "call from reproductive dropdown",
-                              selectedOption
-                            );
+                            // console.log(
+                            //   "call from reproductive dropdown",
+                            //   selectedOption
+                            // );
+
+                            // console.log(`
+                            //   >
+                            //   >
+                            //   >
+                            //   > ====================
+                            //   >
+                            //   >
+                            //   >
+                            //   `)
                             dataHandler(item, selectedOption.value);
                             setMode((prev) => {
                               const newMode = { ...prev };
                               newMode[item] = `${selectedOption.value}`;
                               return newMode;
                             });
-                            console.log("handling done");
-                            console.log(mode());
+                            // console.log("handling done");
+                            // console.log(mode());
                             setModeChild((prev) => {
                               const newMode = { ...prev };
                               newMode[item] = selectedOption.children ?? [];
@@ -205,7 +199,13 @@ const GmailNodeParameter: Component<{
                                       title={child.title}
                                       toolTipText={child.toolTipText}
                                       isArrow
-                                      value={child.value ?? ""}
+                                      value={
+                                        previousData()[
+                                          `${item}_${child.title}`
+                                        ] ||
+                                        child.value ||
+                                        ""
+                                      }
                                       onInput={(value, event) => {
                                         dataHandler(
                                           `${item}_${child.title}`,
@@ -218,9 +218,14 @@ const GmailNodeParameter: Component<{
                                   return (
                                     <DropDownN
                                       name={`${item}_${child.title}`}
+                                      uniqueKey={`${item}_${child.title}`}
                                       title={child.title}
                                       options={child.options ?? []}
-                                      defaultValue={child.options?.[0]?.value}
+                                      defaultValue={
+                                        previousData()[
+                                          `${item}_${child.title}`
+                                        ] || child.options?.[0]?.value
+                                      }
                                       toolTipText={child.toolTipText}
                                       onChange={(selectedOption) => {
                                         dataHandler(
@@ -243,19 +248,20 @@ const GmailNodeParameter: Component<{
             </div>
             <ButtonSolid
               onClick={() => {
-                setPoolTimes([
-                  ...poolTimes(),
-                  `poolTime_${Math.random().toString(36).substring(2, 8)}`,
+                setPollTimes([
+                  ...pollTimes(),
+                  `pollTime_${Math.random().toString(36).substring(2, 8)}`,
                 ]);
               }}
-              label="Add Pool Time"
+              label="Add Poll Time"
             />
           </div>
           <div>
             <DropDownN
-              name="Event"
+              name="event"
               title="Event"
-              defaultValue="Message received"
+              uniqueKey={`${currentFormConfig().id}_event`}
+              defaultValue={previousData()["event"] || "Message received"}
               options={[
                 { label: "Message received", value: "Message received" },
               ]}
@@ -268,9 +274,19 @@ const GmailNodeParameter: Component<{
             <Switch
               title="Simplify"
               name="simplify"
-              checked={parsedData()["simplify"] ?? false}
+              uniqueKey={`${currentFormConfig().id}_simplify`}
+              checked={previousData()["simplify"]}
               toolTipText="Whether to return a simplified version of the response instead of the raw data."
               onChange={(state) => {
+                // console.log(`
+                //   >
+                //   >
+                //   >
+                //   > ====================
+                //   >
+                //   >
+                //   >
+                //   `);
                 dataHandler("simplify", state);
               }}
             />
@@ -290,6 +306,7 @@ const GmailNodeParameter: Component<{
                             );
                             setSelectedFilter(newSelectedOption);
                             setFilters([...filters(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
@@ -298,6 +315,8 @@ const GmailNodeParameter: Component<{
                         <Switch
                           name={item.content.name}
                           title={item.content.title}
+                          uniqueKey={`${currentFormConfig().id}_${item.content.name}`}
+                          checked={previousData()[item.content.name]}
                           toolTipText={item.content.toolTipText}
                           onChange={(state) => {
                             dataHandler(item.content.name, state);
@@ -315,6 +334,7 @@ const GmailNodeParameter: Component<{
                             );
                             setSelectedFilter(newSelectedOption);
                             setFilters([...filters(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
@@ -327,6 +347,7 @@ const GmailNodeParameter: Component<{
                           isArrow
                           footNote={item.content.footNote}
                           placeholder={item.content.placeholder ?? ""}
+                          value={previousData()[item.content.name]}
                           onInput={(value) => {
                             dataHandler(item.content.name, value);
                           }}
@@ -343,6 +364,7 @@ const GmailNodeParameter: Component<{
                             );
                             setSelectedFilter(newSelectedOption);
                             setFilters([...filters(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
@@ -353,9 +375,11 @@ const GmailNodeParameter: Component<{
                           title={item.content.title}
                           options={item.content.options}
                           toolTipText={item.content.toolTipText}
+                          defaultSelectedOptions={
+                            previousData()[item.content.name] || []
+                          }
                           footNote={item.content.footNote}
                           onChange={(selectedOptions) => {
-                            // console.log(selectedOptions)
                             dataHandler(
                               item.content.name,
                               selectedOptions.map((opt) => opt.value)
@@ -374,13 +398,19 @@ const GmailNodeParameter: Component<{
                             );
                             setSelectedFilter(newSelectedOption);
                             setFilters([...filters(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
                           <DeleteIcon />
                         </div>
                         <DropDownN
-                          placeholder={item.content.options[0].label}
+                        uniqueKey={`${currentFormConfig().id}_${item.content.name}`}
+                          // placeholder={item.content.options[0].label}
+                          defaultValue={
+                            previousData()[item.content.name] ??
+                            item.content.options[0].value
+                          }
                           name={item.content.name}
                           title={item.content.title}
                           options={item.content.options}
@@ -427,6 +457,7 @@ const GmailNodeParameter: Component<{
                             );
                             setSelectedOptions(newSelectedOption);
                             setOptions([...options(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
@@ -436,6 +467,7 @@ const GmailNodeParameter: Component<{
                           name={item.content.name}
                           title={item.content.title}
                           toolTipText={item.content.toolTipText}
+                          checked={previousData()[item.content.name] ?? false}
                           onChange={(state) => {
                             dataHandler(item.content.name, state);
                           }}
@@ -452,6 +484,7 @@ const GmailNodeParameter: Component<{
                             );
                             setSelectedOptions(newSelectedOption);
                             setOptions([...options(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
@@ -463,7 +496,11 @@ const GmailNodeParameter: Component<{
                           toolTipText={item.content.toolTipText}
                           isArrow
                           footNote={item.content.footNote}
-                          value={item.content.value ?? ""}
+                          value={
+                            previousData()[item.content.name] ||
+                            item.content.value ||
+                            ""
+                          }
                           onInput={(value) => {
                             dataHandler(item.content.name, value);
                           }}

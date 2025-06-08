@@ -16,6 +16,7 @@ interface Option {
 
 interface DropDownMultipleProps {
   options: Option[];
+  defaultSelectedOptions?: string[];
   title?: string;
   footNote?: string;
   name?: string;
@@ -48,6 +49,17 @@ const DropDownMultiple = (props: DropDownMultipleProps) => {
   const closeDropdown = () => setIsOpen(false);
 
   onMount(() => {
+    if (props.defaultSelectedOptions) {
+      const defaultOptions = props.options.filter((opt) =>
+        props.defaultSelectedOptions!.includes(opt.value)
+      );
+      if (defaultOptions) {
+        setSelectedOptions(defaultOptions);
+        const selectedLabels = defaultOptions.map((opt) => opt.label);
+        setSelectedLabels(selectedLabels);
+        props.onChange?.(defaultOptions)
+      }
+    }
     // Add all event listeners that should close the dropdown
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("touchstart", handleOutsideClick, {
@@ -72,7 +84,7 @@ const DropDownMultiple = (props: DropDownMultipleProps) => {
   //     }
   //   });
 
-  const toggleDropdown = (e) => {
+  const toggleDropdown = (e:Event) => {
     e.stopPropagation();
     if (!isOpen()) {
       // Check direction before opening
@@ -241,4 +253,4 @@ const DropDownMultiple = (props: DropDownMultipleProps) => {
 
 export default DropDownMultiple;
 
-export type { Option, DropDownMultipleProps}
+export type { Option, DropDownMultipleProps };

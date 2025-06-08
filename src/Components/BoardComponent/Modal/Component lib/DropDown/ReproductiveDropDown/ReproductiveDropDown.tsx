@@ -42,6 +42,7 @@ interface ReproductiveDropDownProps {
   name: string;
   title?: string;
   toolTipText?: string;
+  uniqueKey: string;
   options: ReproductiveDropDownOption[];
   placeholder?: string;
   required?: boolean;
@@ -62,7 +63,7 @@ const ReproductiveDropDown: Component<ReproductiveDropDownProps> = (props) => {
   const [dropdownDirection, setDropdownDirection] = createSignal<"down" | "up">(
     "down"
   );
-
+  let prevValue = props.defaultValue;
   const hasTriggered = new Set<string>();
 
   let selectRef: any;
@@ -75,18 +76,24 @@ const ReproductiveDropDown: Component<ReproductiveDropDownProps> = (props) => {
       );
       // const key = `${props.name}-${defaultOption.value}`;
       if (defaultOption) {
+        // const key = `${props.uniqueKey}-${defaultOption.value}`;
+
         setSelectedOption(defaultOption);
         props.onChange(defaultOption);
+        // if (!hasTriggered.has(key)) {
+        //   hasTriggered.add(key);
+        // }
+        // props.onChange(defaultOption);
       }
-      
     }
   };
 
-  // createEffect(() => {
-  //   untrack(() => {
-  //     setDefaultValue();
-  //   });
-  // });
+  createEffect(() => {
+    if (props.defaultValue !== prevValue) {
+      prevValue = props.defaultValue;
+      setDefaultValue();
+    }
+  });
 
   // Close dropdown when clicking outside
   const handleOutsideClick = (e: MouseEvent | TouchEvent) => {

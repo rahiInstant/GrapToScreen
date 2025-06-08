@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js";
-import { editNodeDataFormatter } from "./editNodeDataFormatter";
+import { editNodeDataEncoder } from "./editNodeDataEncoder";
 import useStateContext from "../../../../../useStateContext";
 
 const [editNodeData, setEditNodeData] = createSignal<Record<string, any>>({});
@@ -14,7 +14,7 @@ export const editNodeDataManager = (
     ...prev,
     [fieldName]: data,
   }));
-  const formattedEditNodeData = editNodeDataFormatter(
+  const formattedEditNodeData = editNodeDataEncoder(
     editNodeData(),
     currentFormConfig().id
   );

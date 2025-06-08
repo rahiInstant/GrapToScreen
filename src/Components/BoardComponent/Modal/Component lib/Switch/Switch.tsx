@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount } from "solid-js";
+import { Component, createEffect, createSignal, onMount } from "solid-js";
 import Tooltip from "../../BottomPart/MidPanel/Tooltip";
 import "./style.css";
 
@@ -7,14 +7,37 @@ const Switch: Component<{
   toolTipText?: string;
   name: string;
   checked: boolean;
+  uniqueKey: string;
   onChange?: (state: boolean) => void;
 }> = (props) => {
   const handleChange = (e: Event) => {
     props.onChange?.((e.target as HTMLInputElement).checked);
   };
+  let prevChecked = props.checked;
+
+  createEffect(() => {
+    if (props.checked !== prevChecked) {
+      prevChecked = props.checked;
+      props.onChange?.(props.checked ?? false);
+    }
+  });
+  // const hasSwitchTriggered = new Set<string>();
+  // createEffect(() => {
+  //   console.log("effect triggered");
+
+  //   if (props.uniqueKey && props.checked !== undefined) {
+  //     console.log("checked or unique key changed");
+
+  //     if (!hasSwitchTriggered.has(props.uniqueKey)) {
+  //       console.log("triggered");
+  //       props.onChange?.(props.checked || false);
+  //       hasSwitchTriggered.add(props.uniqueKey);
+  //     }
+  //   }
+  // });
 
   onMount(() => {
-    props.onChange?.(false);
+    props.onChange?.(props.checked || false);
   });
 
   return (

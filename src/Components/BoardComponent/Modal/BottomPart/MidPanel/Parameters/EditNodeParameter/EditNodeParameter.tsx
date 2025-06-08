@@ -25,20 +25,24 @@ import {
 } from "./EditNodeParameterConfig";
 import useStateContext from "../../../../../useStateContext";
 import { editNodeDataManager } from "./editNodeDataManager";
-import { editNodeDataFormatter } from "./editNodeDataFormatter";
+// import useEditNodeParameterState from "./useEditNodeParameter";
+import { editNodeDataEncoder } from "./editNodeDataEncoder";
 
 const EditNodeParameter: Component<{}> = (props) => {
-  const { currentFormConfig } = useStateContext();
-  const [currentMode, setCurrentMode] = createSignal<DropDownNOption>(
-    modeStore[0]
-  );
-  const [field, setField] = createSignal<string[]>([]);
-  const [] = createSignal();
-  const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
-    []
-  );
-  const [options, setOptions] = createSignal<FilterOption[]>([]);
-  const { formData, setFormData } = useStateContext();
+  const { formData, setFormData, currentFormConfig } = useStateContext();
+  const {
+    setOptions,
+    currentMode,
+    setSelectedOptions,
+    setCurrentMode,
+    field,
+    setField,
+    previousData,
+    setPreviousData,
+    selectedOptions,
+    options
+
+  } = useEditNodeParameterState();
 
   onMount(() => {
     setOptions(optionStoreForManualMapping);
@@ -60,7 +64,10 @@ const EditNodeParameter: Component<{}> = (props) => {
     let data = Object.fromEntries(editData.entries());
     console.log("unformatted data", data);
 
-    const editNodeFormattedData = editNodeDataFormatter(data, currentFormConfig().id);
+    const editNodeFormattedData = editNodeDataEncoder(
+      data,
+      currentFormConfig().id
+    );
     console.log("formatted data", editNodeFormattedData);
 
     setFormData({
@@ -83,6 +90,7 @@ const EditNodeParameter: Component<{}> = (props) => {
         <DropDownN
           name="mode"
           title="Mode"
+          uniqueKey={`${currentFormConfig().id}_mode}`}
           options={modeStore}
           defaultValue={modeStore[0].value}
           onChange={(selectedOption) => {
@@ -138,6 +146,7 @@ const EditNodeParameter: Component<{}> = (props) => {
                           <div class="min-w-[130px]">
                             <DropDownN
                               name={`${item}_type`}
+                              uniqueKey={`${item}_type`}
                               options={typeStore}
                               defaultValue={typeStore[0].value}
                               onChange={(selectedOption) => {
@@ -209,6 +218,8 @@ const EditNodeParameter: Component<{}> = (props) => {
           {/* switch */}
           <div class="mt-5">
             <Switch
+              uniqueKey={`${currentFormConfig().id}_includeOtherInputFields`}
+              checked={previousData()["includeOtherInputFields"]}
               name="includeOtherInputFields"
               title="Include Other Input Fields"
               toolTipText="Whether to pass to the output all the input fields (along with the fields set in 'Fields to Set')"
@@ -238,6 +249,8 @@ const EditNodeParameter: Component<{}> = (props) => {
                       </div>
                       <div class="flex-1">
                         <Switch
+                          uniqueKey={`${currentFormConfig().id}_${item.content.name}`}
+                          checked={previousData()[item.content.name]}
                           title={item.content.title ?? ""}
                           toolTipText={item.content.toolTipText ?? ""}
                           name={item.content.name}

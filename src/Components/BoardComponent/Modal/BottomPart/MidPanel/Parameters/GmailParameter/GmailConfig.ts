@@ -31,10 +31,10 @@ const filterStore: FilterOption[] = [
   },
   {
     label: "Label Names or IDs",
-    value: "labelNamesOrIds",
+    value: "labelIds",
     content: {
       type: "dropdownMultiple",
-      name: "labelNamesOrIds",
+      name: "labelIds",
       title: "Label Names or IDs",
       toolTipText:
         "Only return messages with labels that match all of the specified label IDs. Choose from the list, or specify IDs using an expression.",
@@ -62,11 +62,11 @@ const filterStore: FilterOption[] = [
   },
   {
     label: "Search",
-    value: "search",
+    value: "q",
     content: {
       type: "dynamicInput",
-      name: "Search",
-      title: "search",
+      name: "q",
+      title: "Search",
       toolTipText: "Only return messages matching the specified query",
       footNote: "Use the same format as in the Gmail search box. More info.",
       options: [],

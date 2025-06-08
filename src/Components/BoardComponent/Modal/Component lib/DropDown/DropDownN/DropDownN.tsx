@@ -19,6 +19,7 @@ interface DropDownNOption {
 interface DropDownNProps {
   title?: string;
   toolTipText?: string;
+  uniqueKey: string;
   name: string;
   options: DropDownNOption[];
   placeholder?: string;
@@ -42,6 +43,7 @@ const DropDownN: Component<DropDownNProps> = (props) => {
 
   let selectRef: any;
   let dropdownRef: any;
+  const hasTriggered = new Set<string>();
 
   // Close dropdown when clicking outside
   const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
@@ -49,20 +51,38 @@ const DropDownN: Component<DropDownNProps> = (props) => {
       setIsOpen(false);
     }
   };
+  let prevValue = props.defaultValue;
 
-  // Close dropdown on various events
-  const closeDropdown = () => setIsOpen(false);
-
-  onMount(() => {
+  const setDefaultValue = () => {
     if (props.defaultValue) {
       const defaultOption = props.options.find(
         (opt) => opt.value === props.defaultValue
       );
       if (defaultOption) {
-        setSelectedOption(defaultOption);
-        props.onChange?.(defaultOption);
+        const key = `${props.uniqueKey}_${defaultOption.value}`;
+        if (!hasTriggered.has(key)) {
+          setSelectedOption(defaultOption);
+          props.onChange?.(defaultOption);
+          hasTriggered.add(key);
+        }
+        // setSelectedOption(defaultOption);
+        // props.onChange?.(defaultOption);
       }
     }
+  };
+
+  createEffect(() => {
+    if (props.defaultValue !== prevValue) {
+      prevValue = props.defaultValue;
+      setDefaultValue();
+    }
+  });
+
+  // Close dropdown on various events
+  const closeDropdown = () => setIsOpen(false);
+
+  onMount(() => {
+    setDefaultValue();
     // Add all event listeners that should close the dropdown
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("touchstart", handleOutsideClick, {
