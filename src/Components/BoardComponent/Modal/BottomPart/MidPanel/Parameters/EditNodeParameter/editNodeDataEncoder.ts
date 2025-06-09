@@ -1,6 +1,9 @@
 import { createSignal } from "solid-js";
+import useStateContext from "../../../../../useStateContext";
+
 
 export const editNodeDataEncoder = (editNodeData: any, nodeId: string) => {
+  const {nodes} = useStateContext()
   const transformFieldData = (data: any) => {
     const [fieldNo, setFieldNo] = createSignal(1);
     return Object.values(
@@ -31,6 +34,13 @@ export const editNodeDataEncoder = (editNodeData: any, nodeId: string) => {
     );
   };
 
+  const getNodePosition = () => {
+    const node = nodes().find((node) => node.id === nodeId);
+    if (node) {
+      return node.currPosition.get();
+    }
+  };
+
   return {
     id: nodeId,
     name: "Edit Fields",
@@ -39,10 +49,7 @@ export const editNodeDataEncoder = (editNodeData: any, nodeId: string) => {
     parameter: {
       mode: editNodeData?.mode,
       assignment: transformFieldData(editNodeData),
-      position: {
-        x: 400,
-        y: 100,
-      },
+      position: getNodePosition(),
       inputs: [
         {
           id: "input",

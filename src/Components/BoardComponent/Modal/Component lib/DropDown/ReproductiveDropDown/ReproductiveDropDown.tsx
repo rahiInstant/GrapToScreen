@@ -42,7 +42,7 @@ interface ReproductiveDropDownProps {
   name: string;
   title?: string;
   toolTipText?: string;
-  uniqueKey: string;
+  uniqueKey?: string;
   options: ReproductiveDropDownOption[];
   placeholder?: string;
   required?: boolean;
@@ -64,36 +64,55 @@ const ReproductiveDropDown: Component<ReproductiveDropDownProps> = (props) => {
     "down"
   );
   let prevValue = props.defaultValue;
-  const hasTriggered = new Set<string>();
+  const RDTriggered = new Set<string>();
 
   let selectRef: any;
   let dropdownRef: any;
+  const [mountKey, setMountKey] = createSignal<any>("");
 
   const setDefaultValue = () => {
-    if (props.defaultValue) {
-      const defaultOption = props.options.find(
-        (opt) => opt.value === props.defaultValue
-      );
-      // const key = `${props.name}-${defaultOption.value}`;
-      if (defaultOption) {
-        // const key = `${props.uniqueKey}-${defaultOption.value}`;
-
-        setSelectedOption(defaultOption);
-        props.onChange(defaultOption);
-        // if (!hasTriggered.has(key)) {
-        //   hasTriggered.add(key);
-        // }
-        // props.onChange(defaultOption);
-      }
-    }
+    console.log("hey, i am in setDefault value.");
+    const defaultOption = props.options.find(
+      (opt) => opt.value === props.defaultValue
+    );
+    setSelectedOption(defaultOption || props.options[0]);
+    props.onChange?.(defaultOption || props.options[0]);
   };
 
   createEffect(() => {
-    if (props.defaultValue !== prevValue) {
-      prevValue = props.defaultValue;
+    const key = `${props.uniqueKey}-${props.name}`;
+    console.log("from outside", key);
+    if (key !== mountKey()) {
+      setMountKey(key);
       setDefaultValue();
     }
   });
+
+  // const setDefaultValue = () => {
+  //   const defaultOption = props.options.find(
+  //     (opt) => opt.value === props.defaultValue
+  //   );
+  //   setSelectedOption(defaultOption || props.options[0]);
+  //   props.onChange(defaultOption || props.options[0]);
+  //   if (props.defaultValue) {
+  //     // if (defaultOption) {
+  //     //   // const key = `${props.uniqueKey}-${defaultOption.value}`;
+  //     //   // if (!hasTriggered.has(key)) {
+  //     //   //   hasTriggered.add(key);
+  //     //   // }
+  //     //   // props.onChange(defaultOption);
+  //     // }
+  //   }
+  // };
+
+  // createEffect(() => {
+  //   const key = `${props.uniqueKey}-${props.name}`;
+  //   if (!RDTriggered.has(key)) {
+  //     // RDTriggered.clear();
+  //     RDTriggered.add(key);
+  //     setDefaultValue();
+  //   }
+  // });
 
   // Close dropdown when clicking outside
   const handleOutsideClick = (e: MouseEvent | TouchEvent) => {

@@ -1,442 +1,4 @@
 {
-  "name": "Your workflow",
-  "description": "no description",
-  "nodes": [
-    {
-      "id": "node_jr0k2l_gmail-trigger",
-      "description": "no description",
-      "type": "gmail-trigger",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 58,
-        "y": 128
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_7p4y5e_edit",
-      "description": "no description",
-      "type": "edit",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 258,
-        "y": 128
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_655q21_ai-agent",
-      "description": "no description",
-      "type": "ai-agent",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 458,
-        "y": 128
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_s33fu8_ollama-chat",
-      "description": "no description",
-      "type": "ollama-chat",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 322,
-        "y": 445
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_xdzg8g_switch",
-      "description": "no description",
-      "type": "switch",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 882,
-        "y": 152
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_s6c8se_send-email",
-      "description": "no description",
-      "type": "send-email",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 904,
-        "y": 550
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_jvcgwp_ai-agent",
-      "description": "no description",
-      "type": "ai-agent",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 1380,
-        "y": 126
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_y949dc_ollama-chat",
-      "description": "no description",
-      "type": "ollama-chat",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 1162,
-        "y": 328
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_ftmxpq_create-draft",
-      "description": "no description",
-      "type": "create-draft",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 1757,
-        "y": 350
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_fevl0p_vector-store",
-      "description": "no description",
-      "type": "vector-store",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 1366,
-        "y": 424
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_n8ipzx_pg-vector",
-      "description": "no description",
-      "type": "pg-vector",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 1131,
-        "y": 612
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_3a5p1r_ollama-chat",
-      "description": "no description",
-      "type": "ollama-chat",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 1598,
-        "y": 693
-      },
-      "inputs": [],
-      "outputs": []
-    },
-    {
-      "id": "node_n1w4lq_embedding",
-      "description": "no description",
-      "type": "embedding",
-      "parameters": {
-        "credentials": "no credentials"
-      },
-      "position": {
-        "x": 1090,
-        "y": 792
-      },
-      "inputs": [],
-      "outputs": []
-    }
-  ],
-  "connections": [
-    {
-      "id": "edge_node_jr0k2l_gmail-trigger_0_node_7p4y5e_edit_0",
-      "sourceNodeId": "node_jr0k2l_gmail-trigger",
-      "sourcePortId": "vertex_lrmndo",
-      "targetNodeId": "node_7p4y5e_edit",
-      "targetPortId": "vertex_l5m0yx"
-    },
-    {
-      "id": "edge_node_7p4y5e_edit_0_node_655q21_ai-agent_0",
-      "sourceNodeId": "node_7p4y5e_edit",
-      "sourcePortId": "vertex_vj1sbv",
-      "targetNodeId": "node_655q21_ai-agent",
-      "targetPortId": "vertex_s0hbjf"
-    },
-    {
-      "id": "edge_o0ink3_node_655q21_ai-agent_0_node_s33fu8_ollama-chat_0",
-      "sourceNodeId": "node_655q21_ai-agent",
-      "sourcePortId": "vertex_h8mpot",
-      "targetNodeId": "node_s33fu8_ollama-chat",
-      "targetPortId": "vertex_ji6mjq"
-    },
-    {
-      "id": "edge_node_655q21_ai-agent_0_node_xdzg8g_switch_0",
-      "sourceNodeId": "node_655q21_ai-agent",
-      "sourcePortId": "vertex_s3bg44",
-      "targetNodeId": "node_xdzg8g_switch",
-      "targetPortId": "vertex_u47e5r"
-    },
-    {
-      "id": "edge_x9c8zw_node_xdzg8g_switch_2_node_s6c8se_send-email_0",
-      "sourceNodeId": "node_xdzg8g_switch",
-      "sourcePortId": "vertex_cgwpbk",
-      "targetNodeId": "node_s6c8se_send-email",
-      "targetPortId": "vertex_m8r4in"
-    },
-    {
-      "id": "edge_4rdhoy_node_xdzg8g_switch_0_node_jvcgwp_ai-agent_0",
-      "sourceNodeId": "node_xdzg8g_switch",
-      "sourcePortId": "vertex_29era8",
-      "targetNodeId": "node_jvcgwp_ai-agent",
-      "targetPortId": "vertex_5z5kb4"
-    },
-    {
-      "id": "edge_wx0s4a_node_jvcgwp_ai-agent_0_node_y949dc_ollama-chat_0",
-      "sourceNodeId": "node_jvcgwp_ai-agent",
-      "sourcePortId": "vertex_e8ou7j",
-      "targetNodeId": "node_y949dc_ollama-chat",
-      "targetPortId": "vertex_8fxi6d"
-    },
-    {
-      "id": "edge_709shj_node_jvcgwp_ai-agent_2_node_ftmxpq_create-draft_0",
-      "sourceNodeId": "node_jvcgwp_ai-agent",
-      "sourcePortId": "vertex_dd97m2",
-      "targetNodeId": "node_ftmxpq_create-draft",
-      "targetPortId": "vertex_2te8gu"
-    },
-    {
-      "id": "edge_tyhj7k_node_jvcgwp_ai-agent_2_node_fevl0p_vector-store_0",
-      "sourceNodeId": "node_jvcgwp_ai-agent",
-      "sourcePortId": "vertex_dd97m2",
-      "targetNodeId": "node_fevl0p_vector-store"
-    },
-    {
-      "id": "edge_b0biyl_node_fevl0p_vector-store_0_node_n8ipzx_pg-vector_0",
-      "sourceNodeId": "node_fevl0p_vector-store",
-      "sourcePortId": "vertex_vzrqti",
-      "targetNodeId": "node_n8ipzx_pg-vector"
-    },
-    {
-      "id": "edge_at30mh_node_fevl0p_vector-store_1_node_3a5p1r_ollama-chat_0",
-      "sourceNodeId": "node_fevl0p_vector-store",
-      "sourcePortId": "vertex_a7ky0x",
-      "targetNodeId": "node_3a5p1r_ollama-chat",
-      "targetPortId": "vertex_l07dks"
-    },
-    {
-      "id": "edge_gzb253_node_n8ipzx_pg-vector_0_node_n1w4lq_embedding_0",
-      "sourceNodeId": "node_n8ipzx_pg-vector",
-      "sourcePortId": "vertex_824dfj",
-      "targetNodeId": "node_n1w4lq_embedding",
-      "targetPortId": "vertex_7ziyrh"
-    }
-  ]
-}
-
-// n8n
-
-{
-  "nodes": [
-    {
-      "parameters": {
-        "pollTimes": {
-          "item": [
-            {
-              "mode": "everyMinute"
-            },
-            {},
-            {}
-          ]
-        },
-        "simple": false,
-        "filters": {
-          "readStatus": "both",
-          "sender": ""
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.gmailTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        0,
-        0
-      ],
-      "id": "09a2f00c-b352-4dfb-9b68-95e88934e761",
-      "name": "Gmail Trigger",
-      "notesInFlow": true,
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "xlA7Qdqbr3sYGLfG",
-          "name": "Gmail account 3"
-        }
-      },
-      "notes": "Email analyzer"
-    }
-  ],
-  "connections": {
-    "Gmail Trigger": {
-      "main": [
-        []
-      ]
-    }
-  },
-  "pinData": {},
-  "meta": {
-    "instanceId": "a6969912f8cba367b7764d0117ba81ea177e70ad7f979eee6921a34b6c9f5bd4"
-  }
-}
-
-
-// repoRunner
-{
-    "name": "Email Analyzer",
-    "description": "A workflow demonstrating multiple inputs and outputs per node",
-    "nodes": [
-        {
-            "id": "node_lrjcwb_gmail-trigger",
-            "description": "gmail-trigger",
-            "type": "gmail-trigger",
-            "parameters": {
-                "credentials": {
-                    "id": "rahiurp20@gmail.com",
-                    "name": "Gmail Account",
-                    "provider": "gmail",
-                    "ctype": "oauth2"
-                },
-                "poolTime": [
-                    {
-                        "mode": "Every minute"
-                    },
-                    {
-                        "mode": "Every hour"
-                    }
-                ],
-                "simple": true,
-                "filter": {
-                    "includeSpamTrash": true,
-                    "includeDrafts": true,
-                    "labelIds": [
-                        "INBOX",
-                        "UNREAD",
-                        "STARRED"
-                    ],
-                    "q": "has:read",
-                    "sender": "rahiurp20@gmail.com",
-                    "readStatus": "unread and read email"
-                },
-                "options": {
-                    "downloadAttachments": true,
-                    "attachmentPrefix": "attachment_"
-                }
-            },
-            "position": {
-                "x": 271,
-                "y": 196
-            },
-            "inputs": [],
-            "outputs": [
-                {
-                    "id": "output",
-                    "name": "Last Email",
-                    "description": "Read last email from your gmail inbox",
-                    "type": "object"
-                }
-            ]
-        },
-        {
-            "id": "node_4y8x4d_edit",
-            "description": "edit",
-            "type": "edit",
-            "parameters": {
-                "mode": "Manual Mapping",
-                "assignments": [
-                    {
-                        "uuid": "f6bca0d2-45d4-49e4-9156-9b6567f7b4e0",
-                        "name": "sender",
-                        "type": "String",
-                        "value": "address"
-                    },
-                    {
-                        "uuid": "0ce63cab-f9a0-40e9-ae20-ef0a7d0ec00f",
-                        "name": "threadId",
-                        "type": "String",
-                        "value": "threadId"
-                    }
-                ]
-            },
-            "position": {
-                "x": 781,
-                "y": 409
-            },
-            "inputs": [
-                {
-                    "id": "input",
-                    "name": "Input",
-                    "description": "Data to filter",
-                    "type": "array"
-                }
-            ],
-            "outputs": [
-                {
-                    "id": "output",
-                    "name": "Output",
-                    "description": "Outcode of the node after process",
-                    "type": "object"
-                }
-            ]
-        }
-    ],
-    "connections": [
-        {
-            "id": "edge_node_lrjcwb_gmail-trigger_0_node_4y8x4d_edit_0",
-            "sourceNodeId": "node_lrjcwb_gmail-trigger",
-            "sourcePortId": "vertex_1oh5m1",
-            "targetNodeId": "node_4y8x4d_edit",
-            "targetPortId": "vertex_kdldps"
-        }
-    ]
-}
-
-
-{
   "nodes": [
     {
       "parameters": {
@@ -526,6 +88,234 @@
       "id": "2245dad0-46e8-49f7-a031-25242e68496e",
       "name": "Edit Fields",
       "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body }}{{ $('Gmail Trigger').item.json.labelIds[0] }}",
+        "options": {
+          "systemMessage": "=Analyze the content of the provided email and determine if it is related to customer support. Use the following guidelines to make your decision:\n\n### **Customer Support Topics Include:**\n- Questions about order status, tracking, or changes.\n- Issues with damaged or defective products.\n- Refund or return requests.\n- Subscription cancellation or adjustments.\n- Technical issues with products, website, or app.\n- Payment or billing inquiries.\n- Requests to speak with a support representative.\n\n### **Output Format:**\n- Provide the result **strictly in JSON format** with a single field named `\"customerSupport\"` set to `true` or `false`.\n- Do not include any additional text, explanations, or commentary in the response.\n\n### **Example 1:**\n**Email:**  \n\"Hi, I placed an order last week and haven’t received a tracking number yet. Can you help?\"\n\n**Output:**  \n{\"customerSupport\": true}\n\n### **Example 2:**\n**Email:**  \n\"Hello, I’m interested in learning more about your pricing plans for enterprise customers.\"\n\n**Output:**  \n{\"customerSupport\": false}\n\n### Example 3:**\nHey, I have ordered one item, My order is not delivered yet, I need to talk to you, please cooperate with me.\n\n**Output:**  \n{\"customerSupport\": true}\n\n**Instructions:**\n1. Carefully read the email content.\n2. Determine if the email relates to any of the specified customer support topics.\n3. Output the result in JSON format **only**, with the field `\"customerSupport\"` set to `true` or `false`.\n4. Do not include any additional text or explanations."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        540,
+        0
+      ],
+      "id": "b0236a8e-8f93-4e2a-899d-416a32dce3ca",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        500,
+        500
+      ],
+      "id": "fe4aab0f-e416-4b6f-a988-94811e4c8e93",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.parseJson().customerSupport }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "078b5ad3-d395-4d48-aeb2-ca2b6b4fb0e3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Customer Support"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "336e8ba4-4b38-412f-b7c8-443e648fb151",
+                    "leftValue": "={{ $json.output.parseJson().customerSupport }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No Support"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        980,
+        60
+      ],
+      "id": "ce0c16ff-4b73-4437-8e22-cf4d99ee61d7",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        440
+      ],
+      "id": "789336cb-2b63-4881-8e3d-3c53ec04344e",
+      "name": "Ollama Chat Model1"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1940,
+        700
+      ],
+      "id": "a658f3b9-067f-4590-820b-871024177db6",
+      "name": "Ollama Chat Model2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1,
+      "position": [
+        1420,
+        720
+      ],
+      "id": "1df74adf-708f-45d1-94ef-40b4d401169b",
+      "name": "PGVector Store"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        920
+      ],
+      "id": "3dfddb7c-b0f0-40b7-8c75-7c54cc3ce71a",
+      "name": "Embeddings"
+    },
+    {
+      "parameters": {
+        "fromEmail": "mostain@reporunner.com",
+        "toEmail": "bill.rassel@gmail.com",
+        "subject": "No customer support email",
+        "emailFormat": "text",
+        "text": "=Hello email received at {{ $now.format('LLL dd yyyy, hh:mm:ss') }}\n\nFrom: {{ $('Gmail Trigger').item.json.from.value[0].address }}\n\nSubject:  {{ $('Gmail Trigger').item.json.subject }}\n\nBody:  {{ $('Gmail Trigger').item.json.text }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        440
+      ],
+      "id": "ef8fcb2e-8cd0-4fbc-b457-c004bc4e7f9e",
+      "name": "Send Email",
+      "webhookId": "4a6ee2b0-afeb-4a2f-8d97-5f5784c6db7c",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Edit Fields').item.json.body }}",
+        "options": {
+          "systemMessage": "=You are a highly skilled and empathetic customer support agent specializing in drafting professional, accurate, and helpful responses to incoming customer emails. Your primary responsibility is to ensure customer queries are resolved in alignment with company policies and FAQs while maintaining a polite and professional tone.\n\n### **Task Workflow**\n1. **Read the incoming customer email carefully** to understand the customer's issue or question.\n2. **Use the \"customerSuppertDocs\" tool** to search for relevant policies, FAQs, or guidelines that address the customer's query. Ensure the response is accurate and policy-compliant.\n3. **Draft a response using the \"createDraft\" tool.** This step is **mandatory** and must not be skipped. The draft must:\n   - Directly address the customer's query.\n   - Be clear, concise, and professional.\n   - End with the sign-off:  \n     *\"Best Regards,  \n     Mostain, Customer Support RepoRunner Inc.\"*\n4. **Provide a concise summary** of the email content after drafting the response. The summary should include:\n   - The issue addressed.\n   - The key points or resolution provided in the response.\n\n### **Rules and Guidelines**\n- **Always use the \"customerSuppertDocs\" tool** before drafting a response. This ensures the response aligns with company policies and FAQs.\n- **Always use the \"createDraft\" tool to finalize the response.** This step is **critical** and must not be skipped under any circumstances.\n- **Maintain a polite and professional tone** in all communications. Avoid jargon or overly complex language.\n- **Double-check the draft** to ensure it directly addresses the customer's query and provides a clear resolution or next steps.\n- **Summarize the response** after drafting to ensure clarity and accountability.\n\n\n### **Examples**\n\n#### **Example 1**\n**Incoming Email:**  \n\"I ordered a product a week ago, but it still hasn't shipped. When will it arrive?\"\n\n**Step 1: Use \"customerSuppertDocs\" Tool**  \n**Search Query:** \"shipping timelines\"  \n**Relevant Info Found:** Standard shipping takes 7-10 days. Delays may occur during high-demand periods.\n\n**Step 2: Draft Response (via createDraft)**  \nDear [Customer's Name],  \n\nThank you for reaching out regarding your order. Standard shipping typically takes 7-10 business days. However, during high-demand periods, there may be slight delays.  \n\nI’ve checked your order, and it’s currently being prepared for shipment. You should receive a tracking number shortly. If you have any further questions, feel free to let us know.  \n\nBest Regards,  \nMostain, Customer Support RepoRunner Inc.  \n\n**Step 3: Summary**  \nDrafted a response to inform the customer about standard shipping timelines (7-10 business days) and noted that their order is being prepared for shipment. Reassured the customer and invited further inquiries.\n\n#### **Example 2**\n**Incoming Email:**  \n\"I tried to cancel my subscription but was still charged this month. Can I get a refund?\"\n\n**Step 1: Use \"customerSuppertDocs\" Tool**  \n**Search Query:** \"subscription cancellation policy\"  \n**Relevant Info Found:** Cancellation must be made 48 hours before the next billing cycle to avoid charges.\n\n**Step 2: Draft Response (via createDraft)**  \nDear [Customer's Name],  \n\nThank you for contacting us about your subscription charge. According to our policy, cancellations must be made at least 48 hours before the next billing cycle to avoid charges.  \n\nAs a one-time courtesy, I’ve processed a refund for this month’s charge. Please allow 3-4 business days for the refund to appear on your statement. If you have any other questions, feel free to reach out.  \n\nBest Regards,  \nMostain, Customer Support RepoRunner Inc.  \n\n**Step 3: Summary**  \nDrafted a response explaining the subscription cancellation policy (48 hours notice) and initiated a one-time refund as a courtesy. Provided reassurance and invited further questions.\n\n### **Key Reminders**\n- **Always follow the workflow:**  \n  1. Read the email.  \n  2. Use \"customerSuppertDocs\" to find relevant information.  \n  3. **Mandatory:** Draft the response using \"createDraft.\"  \n  4. Summarize the response.  \n- **Do not skip the \"createDraft\" step.** This is a critical part of the process.  \n- **Ensure the tone is empathetic and professional.**  \n- **Double-check the draft for accuracy and completeness before finalizing.**\n\n### **Output Format**\n- Always provide the draft response using the `createDraft` tool.  \n- Always include a summary of the response.  \n- Do not skip any steps in the workflow."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1520,
+        40
+      ],
+      "id": "f805faaa-bcef-401c-8ff4-55ae769f3411",
+      "name": "Customer Support Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Consume the Gmail API to createDraft response",
+        "resource": "draft",
+        "subject": "={{ $fromAI(\"Subject\") }}",
+        "message": "={{ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "threadId": "={{ $('Edit Fields').item.json.threadid }}",
+          "sendTo": "={{ $('Edit Fields').item.json.sender }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        1940,
+        420
+      ],
+      "id": "da034d05-6f6c-4543-800e-0516e8620029",
+      "name": "createDraft",
+      "webhookId": "3ba7a47c-954e-459a-afee-3b3cab264826"
+    },
+    {
+      "parameters": {
+        "name": "customerSuppertDocs",
+        "description": "Retrieve information about our customer support policies and FAQs"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        440
+      ],
+      "id": "eaa8bab4-765f-4896-84a1-ec9963a0fc42",
+      "name": "Vector Store Tool",
+      "notesInFlow": true,
+      "notes": "customerSuppertDocs"
     }
   ],
   "connections": {
@@ -542,7 +332,119 @@
     },
     "Edit Fields": {
       "main": [
-        []
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PGVector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PGVector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "createDraft": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Support Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
       ]
     }
   },

@@ -7,17 +7,18 @@ const Switch: Component<{
   toolTipText?: string;
   name: string;
   checked: boolean;
-  uniqueKey: string;
+  uniqueKey?: any;
   onChange?: (state: boolean) => void;
 }> = (props) => {
   const handleChange = (e: Event) => {
     props.onChange?.((e.target as HTMLInputElement).checked);
   };
-  let prevChecked = props.checked;
+  const [mountKey, setMountKey] = createSignal<any>("");
 
   createEffect(() => {
-    if (props.checked !== prevChecked) {
-      prevChecked = props.checked;
+    const key = `${props.uniqueKey}-${props.name}`;
+    if (key !== mountKey()) {
+      setMountKey(key);
       props.onChange?.(props.checked ?? false);
     }
   });
@@ -37,7 +38,7 @@ const Switch: Component<{
   // });
 
   onMount(() => {
-    props.onChange?.(props.checked || false);
+    // props.onChange?.(props.checked || false);
   });
 
   return (

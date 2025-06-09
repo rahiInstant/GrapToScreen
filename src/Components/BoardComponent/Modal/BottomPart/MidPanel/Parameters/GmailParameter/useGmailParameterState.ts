@@ -24,6 +24,7 @@ export default function useGmailParameterState() {
     {}
   );
   const [previousData, setPreviousData] = createSignal<Record<string, any>>({});
+  const [uniqueKey, setUniqueKey] = createSignal<string>("")
 
   const triggerKey = new Set();
 
@@ -80,10 +81,11 @@ export default function useGmailParameterState() {
   const dataHandler = (fieldName: string, data: any) => {
     // const isKeyExistInPreviousData = previousData()[fieldName];
     console.log("from data handler raw >>>> ", fieldName, " >>>>> ", data);
+    console.log("before check from data handler", previousData());
     if (fieldName in previousData()) {
       if (previousData()[fieldName] === data) {
         console.log(
-          "from data handler:::: >> previous Data,>>> data unchanged, key unchanged",
+          "from data handler:::: >> submitted Data,>>> data unchanged, key unchanged",
           submittedData()
         );
         setSubmittedData((prev) => ({
@@ -94,7 +96,10 @@ export default function useGmailParameterState() {
           "from data handler:::: >> submitted data from previous data >>> data unchanged, key unchanged",
           submittedData()
         );
-        console.log("from data handler:::: >> form data >>> data unchanged, key unchanged",formData())
+        console.log(
+          "from data handler:::: >> form data >>> data unchanged, key unchanged",
+          formData()
+        );
         return;
       } else if (previousData()[fieldName] !== data) {
         console.log(
@@ -224,6 +229,7 @@ export default function useGmailParameterState() {
     if (!triggerKey.has(currentFormConfig().id)) {
       triggerKey.clear();
       triggerKey.add(currentFormConfig().id);
+      setUniqueKey(currentFormConfig().id);
       const data = formData()[currentFormConfig().id];
       console.log("data1", data);
       if (!data) {
@@ -307,5 +313,6 @@ export default function useGmailParameterState() {
     setPreviousData,
     setSubmittedData,
     dataRemoveHandler,
+    uniqueKey
   };
 }

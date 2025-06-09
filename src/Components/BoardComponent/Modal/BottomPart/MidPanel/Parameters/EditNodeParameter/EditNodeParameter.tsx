@@ -24,12 +24,13 @@ import {
   typeStore,
 } from "./EditNodeParameterConfig";
 import useStateContext from "../../../../../useStateContext";
-import { editNodeDataManager } from "./editNodeDataManager";
+// import { dataInsertHandler } from "./dataInsertHandler";
 // import useEditNodeParameterState from "./useEditNodeParameter";
 import { editNodeDataEncoder } from "./editNodeDataEncoder";
+import useEditNodeParameterState from "./useEditNodeParameter";
 
 const EditNodeParameter: Component<{}> = (props) => {
-  const { formData, setFormData, currentFormConfig } = useStateContext();
+  const { formData, setFormData, currentFormConfig, isModalOpen} = useStateContext();
   const {
     setOptions,
     currentMode,
@@ -40,16 +41,22 @@ const EditNodeParameter: Component<{}> = (props) => {
     previousData,
     setPreviousData,
     selectedOptions,
-    options
-
+    options,
+    dataInsertHandler,
+    reset,
+    uniqueKey,
+    dataRemoveHandler
   } = useEditNodeParameterState();
+  // const [prevValue] = createSignal()
 
   onMount(() => {
     setOptions(optionStoreForManualMapping);
   });
 
+  
+
   createEffect(() => {
-    if (currentMode().value === "Manual Mapping") {
+    if (currentMode() === "Manual Mapping") {
       setSelectedOptions([]);
       setOptions(optionStoreForManualMapping);
     } else {
@@ -84,23 +91,28 @@ const EditNodeParameter: Component<{}> = (props) => {
     }
   };
 
+  const getData = (name: string) => {
+    return previousData()[name];
+  };
+
   return (
     <form class="form" id="editForm" onSubmit={handleOnSubmit}>
       <div>
         <DropDownN
           name="mode"
           title="Mode"
-          uniqueKey={`${currentFormConfig().id}_mode}`}
+          uniqueKey={uniqueKey()}
           options={modeStore}
-          defaultValue={modeStore[0].value}
+          defaultValue={getData("mode") || modeStore[0].value}
           onChange={(selectedOption) => {
-            setCurrentMode(selectedOption);
-            editNodeDataManager("mode", selectedOption.value);
+            setCurrentMode(selectedOption.value);
+            dataInsertHandler("mode", selectedOption.value);
+            console.log("mode setting done");
           }}
         />
         <div class="mt-5">
           {/* field to set */}
-          <Show when={currentMode().value === "Manual Mapping"}>
+          <Show when={currentMode() === "Manual Mapping"}>
             <div class="label hr-solid-line">Fields to Set</div>
             <div class="flex flex-col gap-6 mt-5">
               <For each={field()}>
@@ -123,6 +135,7 @@ const EditNodeParameter: Component<{}> = (props) => {
                         <div
                           onClick={() => {
                             setField(field().filter((opt, _) => opt !== item));
+                            dataRemoveHandler(item)
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] p-1 rounded-md"
                         >
@@ -136,10 +149,10 @@ const EditNodeParameter: Component<{}> = (props) => {
                             <DynamicInput
                               placeholder="name"
                               name={`${item}_name`}
-                              value=""
+                              value={getData(`${item}_name`) || ""}
                               isArrow
                               onInput={(value) => {
-                                editNodeDataManager(`${item}_name`, value);
+                                dataInsertHandler(`${item}_name`, value);
                               }}
                             />
                           </div>
@@ -148,9 +161,11 @@ const EditNodeParameter: Component<{}> = (props) => {
                               name={`${item}_type`}
                               uniqueKey={`${item}_type`}
                               options={typeStore}
-                              defaultValue={typeStore[0].value}
+                              defaultValue={
+                                getData(`${item}_type`) || typeStore[0].value
+                              }
                               onChange={(selectedOption) => {
-                                editNodeDataManager(
+                                dataInsertHandler(
                                   `${item}_type`,
                                   selectedOption.value
                                 );
@@ -162,10 +177,10 @@ const EditNodeParameter: Component<{}> = (props) => {
                           <DynamicInput
                             placeholder="value"
                             name={`${item}_value`}
-                            value=""
+                            value={getData(`${item}_value`) || ""}
                             isArrow
                             onInput={(value) => {
-                              editNodeDataManager(`${item}_value`, value);
+                              dataInsertHandler(`${item}_value`, value);
                             }}
                           />
                         </div>
@@ -194,7 +209,7 @@ const EditNodeParameter: Component<{}> = (props) => {
             </div>
           </Show>
           <div class="mt-5">
-            <Show when={currentMode().value === "JSON"}>
+            <Show when={currentMode() === "JSON"}>
               <JsonEditor
                 name="json_editor"
                 placeholder="Enter JSON here"
@@ -209,7 +224,7 @@ const EditNodeParameter: Component<{}> = (props) => {
                 )}
                 isArrow
                 onInput={(value) => {
-                  editNodeDataManager("json_editor", value);
+                  dataInsertHandler("json_editor", value);
                 }}
               />
             </Show>
@@ -218,13 +233,13 @@ const EditNodeParameter: Component<{}> = (props) => {
           {/* switch */}
           <div class="mt-5">
             <Switch
-              uniqueKey={`${currentFormConfig().id}_includeOtherInputFields`}
+              uniqueKey={uniqueKey()}
               checked={previousData()["includeOtherInputFields"]}
               name="includeOtherInputFields"
               title="Include Other Input Fields"
               toolTipText="Whether to pass to the output all the input fields (along with the fields set in 'Fields to Set')"
               onChange={(state) => {
-                editNodeDataManager("includeOtherInputFields", state);
+                // dataInsertHandler("includeOtherInputFields", state);
               }}
             />
           </div>
@@ -249,16 +264,15 @@ const EditNodeParameter: Component<{}> = (props) => {
                       </div>
                       <div class="flex-1">
                         <Switch
-                          uniqueKey={`${currentFormConfig().id}_${item.content.name}`}
+                          uniqueKey={`${currentFormConfig().id}_${
+                            item.content.name
+                          }`}
                           checked={previousData()[item.content.name]}
                           title={item.content.title ?? ""}
                           toolTipText={item.content.toolTipText ?? ""}
                           name={item.content.name}
                           onChange={(state) => {
-                            editNodeDataManager(
-                              "includeOtherInputFields",
-                              state
-                            );
+                            dataInsertHandler("includeOtherInputFields", state);
                           }}
                         />
                       </div>

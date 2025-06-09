@@ -40,7 +40,11 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
         setDraggable(false);
         setIsCtrlPressed(false);
       }
-      if (event.code == "Space") {
+      if (
+        (event.code === "Space" || event.key === " ") 
+        &&
+        !(event.target instanceof HTMLInputElement)
+      ) {
         event.preventDefault();
         setIsSpacePressed(false);
         setDraggable(false);
@@ -52,7 +56,11 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
         setDraggable(true);
         setIsCtrlPressed(true);
       }
-      if (event.code == "Space") {
+      if (
+        (event.code === "Space" || event.key === " ") 
+        &&
+        !(event.target instanceof HTMLInputElement)
+      ) {
         event.preventDefault();
         setIsSpacePressed(true);
         setDraggable(true);
@@ -75,7 +83,7 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
           );
         } else {
           if (event.shiftKey) {
-            // horizontal scroll by wheel 
+            // horizontal scroll by wheel
             setTransform((prev) => ({
               x: prev.x - event.deltaY * 0.5,
               y: prev.y,
@@ -209,13 +217,13 @@ const Zoom: Component<ZoomProps> = ({ minScale = 0, maxScale = 2 }) => {
 
     // **********
     // Get the world/graph space position under the cursor before zoom
-    // ********** 
+    // **********
     const graphX = (cursorX - transform().x) / oldScale;
     const graphY = (cursorY - transform().y) / oldScale;
 
     // **********
     // Calculate the new transform so the graph point stays under the cursor
-    // ********** 
+    // **********
     const newX = cursorX - graphX * newScale;
     const newY = cursorY - graphY * newScale;
 

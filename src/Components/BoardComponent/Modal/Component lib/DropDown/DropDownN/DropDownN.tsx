@@ -10,7 +10,7 @@ import "./DropDownN.css";
 import Tooltip from "../../../BottomPart/MidPanel/Tooltip";
 
 interface DropDownNOption {
-  value: string | number;
+  value: string ;
   label: string;
   description?: string;
   icon?: string;
@@ -19,13 +19,13 @@ interface DropDownNOption {
 interface DropDownNProps {
   title?: string;
   toolTipText?: string;
-  uniqueKey: string;
+  uniqueKey?: any;
   name: string;
   options: DropDownNOption[];
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
-  defaultValue?: string | number;
+  defaultValue?: string;
   footNote?: string;
   onChange?: (selectedOption: DropDownNOption) => void;
 }
@@ -43,7 +43,8 @@ const DropDownN: Component<DropDownNProps> = (props) => {
 
   let selectRef: any;
   let dropdownRef: any;
-  const hasTriggered = new Set<string>();
+  const dnTriggered = new Set<string>();
+  const [mountKey, setMountKey] = createSignal<any>("")
 
   // Close dropdown when clicking outside
   const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
@@ -54,35 +55,37 @@ const DropDownN: Component<DropDownNProps> = (props) => {
   let prevValue = props.defaultValue;
 
   const setDefaultValue = () => {
-    if (props.defaultValue) {
-      const defaultOption = props.options.find(
-        (opt) => opt.value === props.defaultValue
-      );
-      if (defaultOption) {
-        const key = `${props.uniqueKey}_${defaultOption.value}`;
-        if (!hasTriggered.has(key)) {
-          setSelectedOption(defaultOption);
-          props.onChange?.(defaultOption);
-          hasTriggered.add(key);
-        }
-        // setSelectedOption(defaultOption);
-        // props.onChange?.(defaultOption);
-      }
-    }
+    console.log('hey, i am in setDefault value.')
+    const defaultOption = props.options.find(
+      (opt) => opt.value === props.defaultValue
+    );
+    setSelectedOption(defaultOption || props.options[0]);
+    props.onChange?.(defaultOption || props.options[0]);
   };
 
   createEffect(() => {
-    if (props.defaultValue !== prevValue) {
-      prevValue = props.defaultValue;
+    const key = `${props.uniqueKey}-${props.name}`;
+    console.log('from outside', key)
+    if (key !== mountKey()) {
+      setMountKey(key)
       setDefaultValue();
     }
   });
+  // createEffect(() => {
+  //   const key = `${props.uniqueKey}-${props.name}`;
+  //   console.log('from outside', key)
+  //   if (!dnTriggered.has(key)) {
+  //     dnTriggered.clear();
+  //     dnTriggered.add(key);
+  //     setDefaultValue();
+  //   }
+  // });
 
   // Close dropdown on various events
   const closeDropdown = () => setIsOpen(false);
 
   onMount(() => {
-    setDefaultValue();
+    // setDefaultValue();
     // Add all event listeners that should close the dropdown
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("touchstart", handleOutsideClick, {

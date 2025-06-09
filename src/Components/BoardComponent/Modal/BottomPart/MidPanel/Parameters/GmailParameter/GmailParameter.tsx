@@ -40,6 +40,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
     setPreviousData,
     setSubmittedData,
     dataRemoveHandler,
+    uniqueKey,
   } = useGmailParameterState();
 
   onMount(() => {
@@ -146,7 +147,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
                       <div class="w-full">
                         <ReproductiveDropDown
                           name={item}
-                          uniqueKey={item}
+                          uniqueKey={uniqueKey()}
                           defaultValue={
                             mode()[item] || poolTimesOptions[1].value
                           }
@@ -218,7 +219,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
                                   return (
                                     <DropDownN
                                       name={`${item}_${child.title}`}
-                                      uniqueKey={`${item}_${child.title}`}
+                                      uniqueKey={uniqueKey()}
                                       title={child.title}
                                       options={child.options ?? []}
                                       defaultValue={
@@ -260,13 +261,13 @@ const GmailNodeParameter: Component<{}> = (props) => {
             <DropDownN
               name="event"
               title="Event"
-              uniqueKey={`${currentFormConfig().id}_event`}
-              defaultValue={previousData()["event"] || "Message received"}
+              uniqueKey={uniqueKey()}
+              defaultValue={previousData()["event"]}
               options={[
                 { label: "Message received", value: "Message received" },
               ]}
               onChange={(selectedOption) => {
-                dataHandler("Event", selectedOption.value);
+                // dataHandler("Event", selectedOption.value);
               }}
             />
           </div>
@@ -274,7 +275,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
             <Switch
               title="Simplify"
               name="simplify"
-              uniqueKey={`${currentFormConfig().id}_simplify`}
+              uniqueKey={uniqueKey()}
               checked={previousData()["simplify"]}
               toolTipText="Whether to return a simplified version of the response instead of the raw data."
               onChange={(state) => {
@@ -315,7 +316,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
                         <Switch
                           name={item.content.name}
                           title={item.content.title}
-                          uniqueKey={`${currentFormConfig().id}_${item.content.name}`}
+                          uniqueKey={uniqueKey()}
                           checked={previousData()[item.content.name]}
                           toolTipText={item.content.toolTipText}
                           onChange={(state) => {
@@ -405,7 +406,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
                           <DeleteIcon />
                         </div>
                         <DropDownN
-                        uniqueKey={`${currentFormConfig().id}_${item.content.name}`}
+                          uniqueKey={uniqueKey()}
                           // placeholder={item.content.options[0].label}
                           defaultValue={
                             previousData()[item.content.name] ??
@@ -466,6 +467,7 @@ const GmailNodeParameter: Component<{}> = (props) => {
                         <Switch
                           name={item.content.name}
                           title={item.content.title}
+                          uniqueKey={uniqueKey()}
                           toolTipText={item.content.toolTipText}
                           checked={previousData()[item.content.name] ?? false}
                           onChange={(state) => {
