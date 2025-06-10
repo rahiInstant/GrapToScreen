@@ -1,21 +1,12 @@
 import { createSignal, createMemo, createEffect } from "solid-js";
 import useStateContext from "../../../../../useStateContext";
-import { ReproductiveChildren } from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
-import { DropDownNOption } from "../../../../Component lib/DropDown/DropDownN/DropDownN";
-import {
-  modeStore,
-  optionStoreForManualMapping,
-} from "./EditNodeParameterConfig";
 import { FilterOption } from "../../../../Component lib/DropDown/DropDownFilter/DropDownFilter";
-import { editNodeDataEncoder } from "./editNodeDataEncoder";
-import { editNodeDataDecoder } from "./editNodeDataDecoder";
+import { optionStoreForOllamaNode } from "./OllamaChatNodeConfig";
+import { ollamaChatNodeDataEncoder } from "./ollamaChatNodeDataEncoder";
+import { ollamaChatNodeDataDecoder } from "./ollamaChatNodeDataDecoder";
 
-export default function useEditNodeParameterState() {
+export default function useOllamaChatNodeParameterState() {
   const { formData, setFormData, currentFormConfig } = useStateContext();
-  const [currentMode, setCurrentMode] = createSignal<string>(
-    modeStore[0].value
-  );
-  const [field, setField] = createSignal<string[]>([]);
   const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
     []
   );
@@ -24,22 +15,20 @@ export default function useEditNodeParameterState() {
     {}
   );
   const [previousData, setPreviousData] = createSignal<Record<string, any>>({});
-  const [uniqueKey, setUniqueKey] = createSignal<string>("")
+  const [uniqueKey, setUniqueKey] = createSignal<string>("");
   const triggerKey = new Set();
 
   const reset = () => {
-    setOptions(optionStoreForManualMapping);
+    setOptions(optionStoreForOllamaNode);
     setSelectedOptions([]);
-    setField([]);
-    setCurrentMode(modeStore[0].value);
-    setSubmittedData({})
-    setPreviousData({})
+    setSubmittedData({});
+    setPreviousData({});
   };
 
   const dataInsertHandler = (fieldName: string, data: any) => {
     // const isKeyExistInPreviousData = previousData()[fieldName];
     console.log("from data handler raw >>>> ", fieldName, " >>>>> ", data);
-    console.log('before check: previous data from dataHandler', previousData())
+    console.log("before check: previous data from dataHandler", previousData());
     if (fieldName in previousData()) {
       if (previousData()[fieldName] === data) {
         console.log(
@@ -73,7 +62,7 @@ export default function useEditNodeParameterState() {
           submittedData()
         );
 
-        const formatted = editNodeDataEncoder(
+        const formatted = ollamaChatNodeDataEncoder(
           submittedData(),
           currentFormConfig().id
         );
@@ -109,7 +98,7 @@ export default function useEditNodeParameterState() {
         submittedData()
       );
 
-      const formatted = editNodeDataEncoder(
+      const formatted = ollamaChatNodeDataEncoder(
         submittedData(),
         currentFormConfig().id
       );
@@ -140,7 +129,7 @@ export default function useEditNodeParameterState() {
       }, {} as Record<string, any>);
     });
     console.log(" from data remover >>>> previous data", submittedData());
-    const formattedPrev = editNodeDataEncoder(
+    const formattedPrev = ollamaChatNodeDataEncoder(
       submittedData(),
       currentFormConfig().id
     );
@@ -180,7 +169,7 @@ export default function useEditNodeParameterState() {
     if (!triggerKey.has(currentFormConfig().id)) {
       triggerKey.clear();
       triggerKey.add(currentFormConfig().id);
-      setUniqueKey(currentFormConfig().id);   
+      setUniqueKey(currentFormConfig().id);
       const data = formData()[currentFormConfig().id];
       console.log("data1", data);
       reset();
@@ -189,25 +178,35 @@ export default function useEditNodeParameterState() {
       }
       // reset();
       console.log("data2", data);
-      const decoded = editNodeDataDecoder(data);
+      const decoded = ollamaChatNodeDataDecoder(data);
       if (decoded) {
         console.log(
           "decoded from observer, >>>>>> ",
           currentFormConfig().id,
-          decoded.field,
-          decoded.fieldData
+          decoded.model,
+          decoded.options
         );
         setPreviousData((prev: any) => ({
           ...prev,
-          mode: decoded.mode,
-          ...decoded.fieldData,
+          model: decoded.model,
+          ...decoded.options,
           // ...decoded.pollTimes.parseModesData,
         }));
         console.log(previousData(), "from inside");
-        console.log(decoded.fieldData, "from inside createEffect");
+        console.log(decoded.options, "from inside createEffect");
+        setDropDownFilterOption(
+          Object.keys(decoded.options),
+          optionStoreForOllamaNode,
+          setSelectedOptions
+        );
+        setOptions(() => {
+          return optionStoreForOllamaNode.filter((item) => {
+            return selectedOptions().every((selected) => {
+              return selected.value !== item.value;
+            });
+          });
+        });
         // setParsedData(decoded ?? {});
-        setField(decoded.field ?? []);
-        setCurrentMode(decoded.mode ?? "");
       }
     }
   });
@@ -223,11 +222,6 @@ export default function useEditNodeParameterState() {
     setPreviousData,
     setSubmittedData,
     dataRemoveHandler,
-    currentMode,
-    setCurrentMode,
-    field,
-    setField,
-    reset,
-    uniqueKey
+    uniqueKey,
   };
 }

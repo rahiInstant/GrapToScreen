@@ -23,11 +23,11 @@ const modelConfig: DropDownNOption[] = [
 const optionStoreForOllamaNode: FilterOption[] = [
   {
     label: "Sampling Temperature",
-    value: "samplingTemperature",
+    value: "temperature",
     content: {
       type: "dynamicInput",
       title: "Sampling Temperature",
-      name: "samplingTemperature",
+      name: "temperature",
       value: ".7",
       toolTipText:
         "Controls the randomness of the generated text. Lower values make the output more focused and deterministic, while higher values make it more diverse and random.",
@@ -95,22 +95,22 @@ const optionStoreForOllamaNode: FilterOption[] = [
   },
   {
     label: "Low VRAM Mode",
-    value: "lowVramMode",
+    value: "lowVram",
     content: {
       type: "switch",
       title: "Low VRAM Mode",
-      name: "lowVramMode",
+      name: "lowVram",
       toolTipText:
         "Whether to Activate low VRAM mode, which reduces memory usage at the cost of slower generation speed. Useful for GPUs with limited memory.",
     },
   },
   {
     label: "Main GPU ID",
-    value: "mainGpuId",
+    value: "mainGpu",
     content: {
       type: "dynamicInput",
       title: "Main GPU ID",
-      name: "mainGpuId",
+      name: "mainGpu",
       value: "1",
       toolTipText:
         "Specifies the ID of the GPU to use for the main computation. Only change this if you have multiple GPUs.",
@@ -118,11 +118,11 @@ const optionStoreForOllamaNode: FilterOption[] = [
   },
   {
     label: "Context Batch Size",
-    value: "contextBatchSize",
+    value: "numBatch",
     content: {
       type: "dynamicInput",
       title: "Context Batch Size",
-      name: "contextBatchSize",
+      name: "numBatch",
       value: "512",
       toolTipText:
         "Specifies the number of GPUs to use for parallel processing. Set to -1 for auto-detection.",
@@ -130,11 +130,11 @@ const optionStoreForOllamaNode: FilterOption[] = [
   },
   {
     label: "Context Length",
-    value: "contextLength",
+    value: "numCtx",
     content: {
       type: "dynamicInput",
       title: "Context Length",
-      name: "contextLength",
+      name: "numCtx",
       value: "2048",
       toolTipText:
         "The maximum number of tokens to use as context for generating the next token. Smaller values reduce memory usage, while larger values provide more context to the model.",
@@ -166,11 +166,11 @@ const optionStoreForOllamaNode: FilterOption[] = [
   },
   {
     label: "Number of CPU Threads",
-    value: "numCpuThreads",
+    value: "numThread",
     content: {
       type: "dynamicInput",
       title: "Number of CPU Threads",
-      name: "numCpuThreads",
+      name: "numThread",
       value: "0",
       toolTipText:
         "Specifies the number of CPU threads to use for processing. Set to 0 for auto-detection.",
@@ -179,11 +179,11 @@ const optionStoreForOllamaNode: FilterOption[] = [
 
   {
     label: "Penalize Newlines",
-    value: "penalizeNewlines",
+    value: "penalizeNewline",
     content: {
       type: "switch",
       title: "Penalize Newlines",
-      name: "penalizeNewlines",
+      name: "penalizeNewline",
       toolTipText:
         "Whether to lock the model in memory to prevent swapping. This can improve performance but requires sufficient available memory.",
     },
@@ -202,11 +202,11 @@ const optionStoreForOllamaNode: FilterOption[] = [
   },
   {
     label: "Repetition Penalty",
-    value: "repetitionPenalty",
+    value: "repeatPenalty",
     content: {
       type: "dynamicInput",
       title: "Repetition Penalty",
-      name: "repetitionPenalty",
+      name: "repeatPenalty",
       value: "1",
       toolTipText:
         "Adjusts the penalty factor for repeated tokens. Higher values more strongly discourage repetition. Set to 1.0 to disable repetition penalty.",
@@ -214,44 +214,44 @@ const optionStoreForOllamaNode: FilterOption[] = [
   },
   {
     label: "Use Memory Locking",
-    value: "UseMemoryLocking",
+    value: "useMLock",
     content: {
       type: "switch",
       title: "Use Memory Locking",
-      name: "UseMemoryLocking",
+      name: "useMLock",
       toolTipText:
         "Whether to lock the model in memory to prevent swapping. This can improve performance but requires sufficient available memory.",
     },
   },
   {
     label: "Use Memory Mapping",
-    value: "useMemoryMapping",
+    value: "useMMap",
     content: {
       type: "switch",
       title: "Use Memory Mapping",
-      name: "useMemoryMapping",
+      name: "useMMap",
       toolTipText:
         "Whether to use memory mapping for loading the model. This can reduce memory usage but may impact performance. Recommended to keep enabled.",
     },
   },
   {
     label: "Load Vocabulary Only",
-    value: "loadVocabularyOnly",
+    value: "vocabOnly",
     content: {
       type: "switch",
       title: "Load Vocabulary Only",
-      name: "loadVocabularyOnly",
+      name: "vocabOnly",
       toolTipText:
         "Whether to only load the model vocabulary without the weights. Useful for quickly testing tokenization.",
     },
   },
   {
     label: "Output Format",
-    value: "outputFormat",
+    value: "format",
     content: {
       type: "dropdownN",
       title: "Output Format",
-      name: "outputFormat",
+      name: "format",
       options: [
         {
           label: "JSON",

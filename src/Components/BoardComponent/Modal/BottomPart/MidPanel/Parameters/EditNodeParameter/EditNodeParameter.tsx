@@ -39,15 +39,12 @@ const EditNodeParameter: Component<{}> = (props) => {
     field,
     setField,
     previousData,
-    setPreviousData,
     selectedOptions,
     options,
     dataInsertHandler,
-    reset,
     uniqueKey,
     dataRemoveHandler
   } = useEditNodeParameterState();
-  // const [prevValue] = createSignal()
 
   onMount(() => {
     setOptions(optionStoreForManualMapping);
@@ -79,7 +76,7 @@ const EditNodeParameter: Component<{}> = (props) => {
 
     setFormData({
       ...formData(),
-      EditNodeData: data,
+      [currentFormConfig().id]: data,
     });
     const customEvent = new CustomEvent("formSubmitEvent", {
       detail: data,

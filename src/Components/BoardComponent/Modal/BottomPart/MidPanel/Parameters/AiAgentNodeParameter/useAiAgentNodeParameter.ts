@@ -1,21 +1,26 @@
-import { createSignal, createMemo, createEffect } from "solid-js";
+import { createSignal, createEffect } from "solid-js";
 import useStateContext from "../../../../../useStateContext";
-import { ReproductiveChildren } from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
-import { DropDownNOption } from "../../../../Component lib/DropDown/DropDownN/DropDownN";
-import {
-  modeStore,
-  optionStoreForManualMapping,
-} from "./EditNodeParameterConfig";
 import { FilterOption } from "../../../../Component lib/DropDown/DropDownFilter/DropDownFilter";
-import { editNodeDataEncoder } from "./editNodeDataEncoder";
-import { editNodeDataDecoder } from "./editNodeDataDecoder";
+import {
+  agentOptions,
+  dataSourceConfig,
+  optionStore,
+  sourceForPrompt,
+} from "./AiAgentConfigs";
+import { aiAgentNodeDataEncoder } from "./aiAgentNodeDataEncoder";
+import { aiAgentNodeDataDecoder } from "./aiAgentNodeDataDecoder";
 
-export default function useEditNodeParameterState() {
+export default function useAiAgentNodeParameterState() {
   const { formData, setFormData, currentFormConfig } = useStateContext();
-  const [currentMode, setCurrentMode] = createSignal<string>(
-    modeStore[0].value
+  const [currentAgent, setCurrentAgent] = createSignal<string>(
+    agentOptions[0].value
   );
-  const [field, setField] = createSignal<string[]>([]);
+  const [currentSourceForPrompt, setCurrentSourceForPrompt] =
+    createSignal<string>(sourceForPrompt[0].value);
+  const [dataSource, setDataSource] = createSignal<string>(
+    dataSourceConfig[0].value
+  );
+
   const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
     []
   );
@@ -24,22 +29,20 @@ export default function useEditNodeParameterState() {
     {}
   );
   const [previousData, setPreviousData] = createSignal<Record<string, any>>({});
-  const [uniqueKey, setUniqueKey] = createSignal<string>("")
+  const [uniqueKey, setUniqueKey] = createSignal<string>("");
   const triggerKey = new Set();
 
   const reset = () => {
-    setOptions(optionStoreForManualMapping);
+    setOptions(optionStore);
     setSelectedOptions([]);
-    setField([]);
-    setCurrentMode(modeStore[0].value);
-    setSubmittedData({})
-    setPreviousData({})
+    setSubmittedData({});
+    setPreviousData({});
   };
 
   const dataInsertHandler = (fieldName: string, data: any) => {
     // const isKeyExistInPreviousData = previousData()[fieldName];
     console.log("from data handler raw >>>> ", fieldName, " >>>>> ", data);
-    console.log('before check: previous data from dataHandler', previousData())
+    console.log("before check: previous data from dataHandler", previousData());
     if (fieldName in previousData()) {
       if (previousData()[fieldName] === data) {
         console.log(
@@ -73,7 +76,7 @@ export default function useEditNodeParameterState() {
           submittedData()
         );
 
-        const formatted = editNodeDataEncoder(
+        const formatted = aiAgentNodeDataEncoder(
           submittedData(),
           currentFormConfig().id
         );
@@ -109,7 +112,7 @@ export default function useEditNodeParameterState() {
         submittedData()
       );
 
-      const formatted = editNodeDataEncoder(
+      const formatted = aiAgentNodeDataEncoder(
         submittedData(),
         currentFormConfig().id
       );
@@ -140,7 +143,7 @@ export default function useEditNodeParameterState() {
       }, {} as Record<string, any>);
     });
     console.log(" from data remover >>>> previous data", submittedData());
-    const formattedPrev = editNodeDataEncoder(
+    const formattedPrev = aiAgentNodeDataEncoder(
       submittedData(),
       currentFormConfig().id
     );
@@ -180,7 +183,7 @@ export default function useEditNodeParameterState() {
     if (!triggerKey.has(currentFormConfig().id)) {
       triggerKey.clear();
       triggerKey.add(currentFormConfig().id);
-      setUniqueKey(currentFormConfig().id);   
+      setUniqueKey(currentFormConfig().id);
       const data = formData()[currentFormConfig().id];
       console.log("data1", data);
       reset();
@@ -189,25 +192,41 @@ export default function useEditNodeParameterState() {
       }
       // reset();
       console.log("data2", data);
-      const decoded = editNodeDataDecoder(data);
+      const decoded = aiAgentNodeDataDecoder(data);
       if (decoded) {
         console.log(
           "decoded from observer, >>>>>> ",
           currentFormConfig().id,
-          decoded.field,
-          decoded.fieldData
+          decoded.agent,
+          decoded.sourceForPrompt
         );
         setPreviousData((prev: any) => ({
           ...prev,
-          mode: decoded.mode,
-          ...decoded.fieldData,
-          // ...decoded.pollTimes.parseModesData,
+          agent: decoded.agent,
+          sourceForPrompt: decoded.sourceForPrompt,
+          promptDefineBelow: decoded.promptDefineBelow,
+          promptConnectedChatTriggerNode:
+            decoded.promptConnectedChatTriggerNode,
+          ...decoded.options,
         }));
         console.log(previousData(), "from inside");
-        console.log(decoded.fieldData, "from inside createEffect");
+        console.log(decoded.sourceForPrompt, "from inside createEffect");
+        setCurrentAgent(decoded.agent)
+        setCurrentSourceForPrompt(decoded.sourceForPrompt);
+
         // setParsedData(decoded ?? {});
-        setField(decoded.field ?? []);
-        setCurrentMode(decoded.mode ?? "");
+        setDropDownFilterOption(
+          Object.keys(decoded.options),
+          optionStore,
+          setSelectedOptions
+        );
+        setOptions(() => {
+          return optionStore.filter((item) => {
+            return selectedOptions().every((selected) => {
+              return selected.value !== item.value;
+            });
+          });
+        });
       }
     }
   });
@@ -223,11 +242,13 @@ export default function useEditNodeParameterState() {
     setPreviousData,
     setSubmittedData,
     dataRemoveHandler,
-    currentMode,
-    setCurrentMode,
-    field,
-    setField,
     reset,
-    uniqueKey
+    uniqueKey,
+    currentAgent,
+    setCurrentAgent,
+    currentSourceForPrompt,
+    setCurrentSourceForPrompt,
+    dataSource,
+    setDataSource,
   };
 }

@@ -1,8 +1,8 @@
-import { Option } from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
+import { ReproductiveDropDownOption } from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
 import { FilterOption } from "../../../../Component lib/DropDown/DropDownFilter/DropDownFilter";
 import { DropDownNOption } from "../../../../Component lib/DropDown/DropDownN/DropDownN";
 
-const agentOptions: Option[] = [
+const agentOptions: ReproductiveDropDownOption[] = [
   {
     value: "Tools Agent",
     label: "Tools Agent",
@@ -38,16 +38,16 @@ const agentOptions: Option[] = [
   },
 ];
 
-const sourceForPrompt: Option[] = [
+const sourceForPrompt: ReproductiveDropDownOption[] = [
   {
-    value: "Connected Chat Trigger Node",
+    value: "ConnectedChatTriggerNode",
     label: "Connected Chat Trigger Node",
     description: `Looks for an input field called 'chatInput' that is coming from a directly connected Chat Trigger.`,
     children: [],
   },
   {
     value: "Define below",
-    label: "Define below",
+    label: "DefineBelow",
     description: `Use an expression to reference data in previous nodes or enter static text.`,
     children: [],
   },
@@ -91,11 +91,11 @@ const optionStore: FilterOption[] = [
   },
   {
     label: "Automatically Passthrough Binary Images",
-    value: "automaticallyPassthroughBinaryImages",
+    value: "passthroughBinaryImages",
     content: {
       type: "switch",
       title: "Automatically Passthrough Binary Images",
-      name: "automaticallyPassthroughBinaryImages",
+      name: "passthroughBinaryImages",
       toolTipText:
         "Whether or not binary images should be automatically passed through to the agent as image type messages.",
     },

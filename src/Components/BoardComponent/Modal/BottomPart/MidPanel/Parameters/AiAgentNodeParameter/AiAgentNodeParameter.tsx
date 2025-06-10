@@ -5,7 +5,6 @@ import ReproductiveDropDown, {
 import {
   agentOptions,
   sourceForPrompt,
-  optionStore,
   dataSourceConfig,
 } from "./AiAgentConfigs";
 import DropDownFilter, {
@@ -15,35 +14,39 @@ import TextArea from "../../../../Component lib/TextArea/TextArea";
 import DynamicInput from "../../../../Component lib/Input/DynamicInput/DynamicInput";
 import Switch from "../../../../Component lib/Switch/Switch";
 import DeleteIcon from "../../../../Icons/DeleteIcon";
-import DropDownN, {
-  DropDownNOption,
-} from "../../../../Component lib/DropDown/DropDownN/DropDownN";
+import DropDownN from "../../../../Component lib/DropDown/DropDownN/DropDownN";
 import DependentDropDown from "../../../../Component lib/DropDown/DependentDropDown/DependentDropDown";
 import TextBlock from "../../../../Component lib/TextBlock/TextBlock";
 import useStateContext from "../../../../../useStateContext";
-import { aiAgentNodeDataManager } from "./aiAgenNodeDataManager";
-import { aiAgentNodeDataFormatter } from "./aiAgentNodeDataFormatter";
+
+import useAiAgentNodeParameterState from "./useAiAgentNodeParameter";
+import { aiAgentNodeDataEncoder } from "./aiAgentNodeDataEncoder";
 
 const AiAgentNodeParameter: Component<{}> = (props) => {
   const { currentFormConfig } = useStateContext();
-  const [currentAgent, setCurrentAgent] =
-    createSignal<ReproductiveDropDownOption>(agentOptions[0]);
-  const [currentSourceForPrompt, setCurrentSourceForPrompt] =
-    createSignal<ReproductiveDropDownOption>(sourceForPrompt[0]);
-  const [options, setOptions] = createSignal<FilterOption[]>(optionStore);
-  const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
-    []
-  );
-  const [dataSource, setDataSource] = createSignal<DropDownNOption>(
-    dataSourceConfig[0]
-  );
 
   const { formData, setFormData } = useStateContext();
+  const {
+    selectedOptions,
+    setSelectedOptions,
+    dataInsertHandler,
+    options,
+    setOptions,
+    previousData,
+    dataRemoveHandler,
+    uniqueKey,
+    currentAgent,
+    setCurrentAgent,
+    currentSourceForPrompt,
+    setCurrentSourceForPrompt,
+    dataSource,
+    setDataSource,
+  } = useAiAgentNodeParameterState();
 
   const isTopElement = () => {
     return (
-      currentAgent().value === "Tools Agent" ||
-      currentAgent().value === "Conversational Agent"
+      currentAgent() === "Tools Agent" ||
+      currentAgent() === "Conversational Agent"
     );
   };
   const handleOnSubmit = (e: Event) => {
@@ -51,17 +54,17 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
     const aiAgentData = new FormData(e.target as HTMLFormElement);
     let data = Object.fromEntries(aiAgentData.entries());
 
-    const formattedAiAgentNodeData = aiAgentNodeDataFormatter(
+    const formattedAiAgentNodeData = aiAgentNodeDataEncoder(
       data,
       currentFormConfig().id
     );
 
     setFormData({
       ...formData(),
-      AiAgent: formattedAiAgentNodeData,
+      [currentFormConfig().id]: formattedAiAgentNodeData,
     });
 
-  console.log(formattedAiAgentNodeData)
+    console.log(formattedAiAgentNodeData);
     const customEvent = new CustomEvent("formSubmitEvent", {
       detail: data,
       bubbles: true,
@@ -94,29 +97,31 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
           <ReproductiveDropDown
             name="agent"
             title="Agent"
+            uniqueKey={uniqueKey()}
             defaultValue={agentOptions[0].value}
             options={agentOptions}
             onChange={(selectedOption: ReproductiveDropDownOption) => {
-              setCurrentAgent(selectedOption);
-              aiAgentNodeDataManager("agent", selectedOption);
+              setCurrentAgent(selectedOption.value);
+              dataInsertHandler("agent", selectedOption.value);
             }}
           />
         </div>
-        <Show when={currentAgent().value === "SQL Agent"}>
+        <Show when={currentAgent() === "SQL Agent"}>
           <div class="mt-5 space-y-5">
             <div>
               <DropDownN
                 name="dataSource"
                 options={dataSourceConfig}
                 title="Data Source"
+                uniqueKey={uniqueKey()}
                 defaultValue={dataSourceConfig[0].value}
                 onChange={(selected) => {
-                  setDataSource(selected);
-                  aiAgentNodeDataManager("dataSource", selected);
+                  setDataSource(selected.value);
+                  dataInsertHandler("dataSource", selected);
                 }}
               />
             </div>
-            <Show when={dataSource().value === "sqlite"}>
+            <Show when={dataSource() === "sqlite"}>
               <div class="mt-5 space-y-5">
                 <div class="bg-[#584d38] border-[#f2dbb0] border-l-8 border font-extralight text-[#e7e1e1] py-2 px-3 leading-6 rounded-sm">
                   Pass the SQLite database into this node as binary data, e.g.
@@ -126,22 +131,23 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
                   <DynamicInput
                     name="inputBinaryField"
                     title="Input Binary Field"
+                    uniqueKey={uniqueKey()}
                     placeholder="e.g. Data"
                     value=""
                     footNote="The name of the input binary field containing the file to be extracted"
                     isArrow
                     onInput={(value) => {
-                      aiAgentNodeDataManager("inputBinaryField", value);
+                      dataInsertHandler("inputBinaryField", value);
                     }}
                   />
                 </div>
               </div>
             </Show>
             <div>
-              <Show when={dataSource().value !== "sqlite"}>
+              <Show when={dataSource() !== "sqlite"}>
                 <DependentDropDown
-                  name={`credential_for_${dataSource().value}`}
-                  title={`Credential for ${dataSource().value}`}
+                  name={`credential_for_${dataSource()}`}
+                  title={`Credential for ${dataSource()}`}
                   placeholder="Select Credential"
                 />
               </Show>
@@ -152,52 +158,50 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
           <ReproductiveDropDown
             name="sourceForPrompt"
             title="Source for Prompt (User message)"
+            uniqueKey={uniqueKey()}
             options={sourceForPrompt}
             defaultValue={sourceForPrompt[0].value}
             onChange={(selectedOption: ReproductiveDropDownOption) => {
-              setCurrentSourceForPrompt(selectedOption);
-              aiAgentNodeDataManager("sourceForPrompt", selectedOption);
+              setCurrentSourceForPrompt(selectedOption.value);
+              dataInsertHandler("sourceForPrompt", selectedOption.value);
             }}
           />
           <div class="mt-4">
-            <Show when={currentSourceForPrompt().value === "Define below"}>
+            <Show when={currentSourceForPrompt() === "DefineBelow"}>
               <TextArea
                 name={`promptDefineBelow`}
                 title="Prompt (User message)"
+                value={previousData()["promptDefineBelow"]}
+                uniqueKey={uniqueKey()}
                 placeholder="e.g. Hello, how can you help me?"
                 onInput={(value) => {
-                  aiAgentNodeDataManager(
-                    `prompt_${currentSourceForPrompt().value}`,
-                    value
-                  );
+                  dataInsertHandler(`prompt${currentSourceForPrompt()}`, value);
                 }}
               />
             </Show>
             <Show
-              when={
-                currentSourceForPrompt().value === "Connected Chat Trigger Node"
-              }
+              when={currentSourceForPrompt() === "ConnectedChatTriggerNode"}
             >
               <DynamicInput
                 name={`promptConnectedChatTriggerNode`}
                 title="Prompt (User message)"
                 placeholder="{{ $json.chatInput }}"
+                uniqueKey={uniqueKey()}
                 isArrow
                 isExpand
-                value=""
+                value={previousData()["promptConnectedChatTriggerNode"]}
                 onInput={(value) => {
-                  aiAgentNodeDataManager(
-                    `prompt_${currentSourceForPrompt().value}`,
-                    value
-                  );
+                  dataInsertHandler(`prompt${currentSourceForPrompt()}`, value);
                 }}
               />
             </Show>
           </div>
         </div>
-        <Show when={currentAgent().value !== "SQL Agent"}>
+        <Show when={currentAgent() !== "SQL Agent"}>
           <div class="mt-5">
             <Switch
+              checked
+              uniqueKey={uniqueKey()}
               title="Require Specific Output Format"
               name="requireSpecificOutputFormat"
             />
@@ -218,6 +222,7 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
                           );
                           setSelectedOptions(newSelectedOption);
                           setOptions([...options(), option]);
+                          dataRemoveHandler(option.value);
                         }}
                         class="text-[#6f6f70] hover:text-[#ff6f5c] mt-1 cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                       >
@@ -230,7 +235,7 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
                           title={option.content.title ?? ""}
                           toolTipText={option.content.toolTipText}
                           onInput={(value) => {
-                            aiAgentNodeDataManager(option.content.name, value);
+                            dataInsertHandler(option.content.name, value);
                           }}
                         />
                       </div>
@@ -246,6 +251,7 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
                           );
                           setSelectedOptions(newSelectedOption);
                           setOptions([...options(), option]);
+                          dataRemoveHandler(option.value);
                         }}
                         class="text-[#6f6f70] hover:text-[#ff6f5c] mt-1 cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                       >
@@ -254,11 +260,12 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
                       <div class="flex-1">
                         <DynamicInput
                           name={option.content.name}
+                          uniqueKey={uniqueKey()}
                           value={option.content.value}
                           title={option.content.title ?? ""}
                           toolTipText={option.content.toolTipText}
                           onInput={(value) => {
-                            aiAgentNodeDataManager(option.content.name, value);
+                            dataInsertHandler(option.content.name, value);
                           }}
                         />
                       </div>
@@ -275,6 +282,7 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
                           );
                           setSelectedOptions(newSelectedOption);
                           setOptions([...options(), option]);
+                          dataRemoveHandler(option.value);
                         }}
                         class="text-[#6f6f70] hover:text-[#ff6f5c] mt-1 cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                       >
@@ -282,11 +290,13 @@ const AiAgentNodeParameter: Component<{}> = (props) => {
                       </div>
                       <div class="flex-1">
                         <Switch
+                          uniqueKey={uniqueKey()}
+                          checked={previousData()[option.content.name]}
                           name={option.content.name}
                           title={option.content.title ?? ""}
                           toolTipText={option.content.toolTipText}
                           onChange={(state) => {
-                            aiAgentNodeDataManager(option.content.name, state);
+                            dataInsertHandler(option.content.name, state);
                           }}
                         />
                       </div>

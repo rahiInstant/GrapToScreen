@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 import useStateContext from "../../../../../useStateContext";
-import { aiAgentNodeDataFormatter } from "./aiAgentNodeDataFormatter";
+import { aiAgentNodeDataFormatter } from "./aiAgentNodeDataEncoder";
 
 const [aiAgentNodeData, setAiAgentNodeData] = createSignal<Record<string, any>>(
   {}

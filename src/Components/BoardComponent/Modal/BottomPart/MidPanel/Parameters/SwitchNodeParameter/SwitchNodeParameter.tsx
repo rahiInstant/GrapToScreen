@@ -24,8 +24,7 @@ import useStateContext from "../../../../../useStateContext";
 import { Node } from "../../../../../../ButtonComponents/Types";
 import DropDownMultiple from "../../../../Component lib/DropDown/DropDownMultiple/DropDownMultiple";
 import StepsDropDown from "../../../../Component lib/DropDown/StepsDropDown/StepsDropDown";
-import { switchNodeDataManager } from "./switchNodeDataManager";
-import { switchNodeDataFormatter } from "./switchNodeDataFormatter";
+import { switchNodeDataEncoder } from "./switchNodeDataEncoder";
 
 const ConvertTypeWhereRequired = () => {
   return (
@@ -166,7 +165,10 @@ const SwitchNodeParameter: Component<{}> = (props) => {
     const switchNodeData = new FormData(e.target as HTMLFormElement);
     let data = Object.fromEntries(switchNodeData.entries());
 
-    const formattedSwitchData = switchNodeDataFormatter(data, currentFormConfig().id)
+    const formattedSwitchData = switchNodeDataEncoder(
+      data,
+      currentFormConfig().id
+    );
     setFormData({
       ...formData(),
       switchNode: formattedSwitchData,
@@ -267,7 +269,7 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                                     defaultValue={typeStore[0].value}
                                     categoryLabel="Back to main"
                                     onChange={(selectedOption) => {
-                                      console.log(selectedOption)
+                                      console.log(selectedOption);
                                       switchNodeDataManager(
                                         `${item.fieldId}_type`,
                                         selectedOption.value
@@ -494,7 +496,7 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                   isExpand
                   isArrow
                   onInput={(value) => {
-                    switchNodeDataManager("outputIndex", value); 
+                    switchNodeDataManager("outputIndex", value);
                   }}
                 />
               </div>

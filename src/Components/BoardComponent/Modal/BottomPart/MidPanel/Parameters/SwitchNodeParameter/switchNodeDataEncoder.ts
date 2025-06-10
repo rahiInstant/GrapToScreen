@@ -1,12 +1,13 @@
 import { createSignal } from "solid-js";
 
-export const switchNodeDataFormatter = (switchNodeData: any, nodeId: string) => {
+export const switchNodeDataEncoder = (switchNodeData: any, nodeId: string) => {
   const transformRuleData = (data: any) => {
     const [fieldNo, setFieldNo] = createSignal(1);
     return Object.values(
       Object.entries(data)
         .filter(([k, v]) => k.startsWith("rule_"))
-        .reduce((acc, [key, value]: [string, string]) => {
+        .reduce((acc: any, cur: [string, unknown]) => {
+          const [key, value] = cur;
           const parts = key.split("_");
           const baseKey = `${parts[0]}_${parts[1]}`;
           const field = parts[2];
@@ -22,14 +23,15 @@ export const switchNodeDataFormatter = (switchNodeData: any, nodeId: string) => 
             acc[baseKey].leftValue = value;
           } else if (field === "value") {
             acc[baseKey].rightValue = value;
-          } 
-          else if (field === "type") {
-            acc[baseKey].type = value;
-          }
-          else if (field === "isRename") {
+          } else if (field === "type") {
+            acc[baseKey].operator = {
+              type: value,
+              operation: true,
+              singleValue: true,
+            };
+          } else if (field === "isRename") {
             acc[baseKey].renameOutput = value;
-          }
-          else if (field === "renameOutput") {
+          } else if (field === "renameOutput") {
             acc[baseKey].outputKey = value;
           }
           return acc;
@@ -38,7 +40,7 @@ export const switchNodeDataFormatter = (switchNodeData: any, nodeId: string) => 
   };
 
   return {
-    id: "switchNode1",
+    id: nodeId,
     name: "Switch",
     description: "Route items depending on defined expression or rules.",
     type: "SwitchNode",

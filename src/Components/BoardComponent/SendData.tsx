@@ -194,10 +194,10 @@ const SendData: Component<{}> = (props) => {
   //   };
 
   function submitAllForms() {
-    console.log(Object.values(formData()));
+    console.log(JSON.stringify(Object.values(formData())));
 
-    const customEvent = new CustomEvent("RAN", {
-      detail: Object.values(formData()),
+    const customEvent = new CustomEvent("AN", {
+      detail: JSON.stringify(Object.values(formData())),
       bubbles: true,
     });
     const submitAll = document.getElementById("allSubmit");

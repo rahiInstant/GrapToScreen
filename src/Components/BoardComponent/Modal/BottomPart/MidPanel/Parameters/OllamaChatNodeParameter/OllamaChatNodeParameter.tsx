@@ -9,31 +9,34 @@ import DeleteIcon from "../../../../Icons/DeleteIcon";
 import Switch from "../../../../Component lib/Switch/Switch";
 import DynamicInput from "../../../../Component lib/Input/DynamicInput/DynamicInput";
 import useStateContext from "../../../../../useStateContext";
-import { ollamaChatNodeDataManager } from "./ollamaChatNodeDataManager";
-import { ollamaChatNodeDataFormatter } from "./ollamaChatNodeDataFormatter";
+import useOllamaChatNodeParameterState from "./useOllamaChatNodeParameter";
+import { ollamaChatNodeDataEncoder } from "./ollamaChatNodeDataEncoder";
 
 const OllamaChatNodeParameter: Component<{}> = (props) => {
-  const {currentFormConfig} = useStateContext()
-  const [options, setOptions] = createSignal<FilterOption[]>(
-    optionStoreForOllamaNode
-  );
-  const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
-    []
-  );
-
-  const {formData, setFormData} = useStateContext()
-
+  const { currentFormConfig, formData, setFormData } = useStateContext();
+  const {
+    selectedOptions,
+    setSelectedOptions,
+    dataInsertHandler,
+    options,
+    setOptions,
+    previousData,
+    dataRemoveHandler,
+    uniqueKey,
+  } = useOllamaChatNodeParameterState();
   const handleOnSubmit = (e: Event) => {
     e.preventDefault();
     const ollamaChatData = new FormData(e.target as HTMLFormElement);
     let data = Object.fromEntries(ollamaChatData.entries());
 
-    const formattedOllamaChatNode = ollamaChatNodeDataFormatter(data, currentFormConfig().id)
-
+    const formattedOllamaChatNode = ollamaChatNodeDataEncoder(
+      data,
+      currentFormConfig().id
+    );
 
     setFormData({
       ...formData(),
-      ollamaChat: formattedOllamaChatNode,
+      [currentFormConfig().id]: formattedOllamaChatNode,
     });
     const customEvent = new CustomEvent("formSubmitEvent", {
       detail: data,
@@ -58,10 +61,11 @@ const OllamaChatNodeParameter: Component<{}> = (props) => {
             <DropDownN
               name="model"
               title="Model"
-              defaultValue={modelConfig[0].value}
+              uniqueKey={uniqueKey()}
+              defaultValue={previousData()["model"]}
               options={modelConfig}
               onChange={(selectedOption) => {
-                ollamaChatNodeDataManager('modal',selectedOption)
+                dataInsertHandler("model", selectedOption.value);
               }}
             />
           </div>
@@ -80,17 +84,20 @@ const OllamaChatNodeParameter: Component<{}> = (props) => {
                             );
                             setSelectedOptions(newSelectedOption);
                             setOptions([...options(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
                           <DeleteIcon />
                         </div>
                         <Switch
+                          uniqueKey={uniqueKey()}
+                          checked={previousData()[item.content.name]}
                           name={item.content.name}
                           title={item.content.title ?? ""}
                           toolTipText={item.content.toolTipText}
                           onChange={(state) => {
-                            ollamaChatNodeDataManager(item.content.name, state)
+                            dataInsertHandler(item.content.name, state);
                           }}
                         />
                       </div>
@@ -105,6 +112,7 @@ const OllamaChatNodeParameter: Component<{}> = (props) => {
                             );
                             setSelectedOptions(newSelectedOption);
                             setOptions([...options(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
@@ -112,14 +120,18 @@ const OllamaChatNodeParameter: Component<{}> = (props) => {
                         </div>
                         <DynamicInput
                           name={item.content.name}
-                          value={item.content.value}
+                          uniqueKey={uniqueKey()}
+                          value={
+                            previousData()[item.content.name] ||
+                            item.content.value
+                          }
                           title={item.content.title}
                           toolTipText={item.content.toolTipText}
                           isArrow
                           footNote={item.content.footNote}
                           placeholder={item.content.placeholder ?? ""}
                           onInput={(value) => {
-                            ollamaChatNodeDataManager(item.content.name, value)
+                            dataInsertHandler(item.content.name, value);
                           }}
                         />
                       </div>
@@ -134,6 +146,7 @@ const OllamaChatNodeParameter: Component<{}> = (props) => {
                             );
                             setSelectedOptions(newSelectedOption);
                             setOptions([...options(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                           class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] h-fit p-1 rounded-md opacity-0 group-hover:opacity-100"
                         >
@@ -141,13 +154,18 @@ const OllamaChatNodeParameter: Component<{}> = (props) => {
                         </div>
                         <DropDownN
                           name={item.content.name}
+                          uniqueKey={uniqueKey()}
                           title={item.content.title}
-                          defaultValue={item.content.options?.[0]?.value ?? ""}
+                          defaultValue={
+                            (previousData()[item.content.name] ||
+                              item.content.options?.[0]?.value) ??
+                            ""
+                          }
                           options={item.content.options ?? []}
                           toolTipText={item.content.toolTipText}
                           footNote={item.content.footNote}
-                          onChange={(value) => {
-                            ollamaChatNodeDataManager(item.content.name, value)
+                          onChange={(selected) => {
+                            dataInsertHandler(item.content.name, selected.value);
                           }}
                         />
                       </div>

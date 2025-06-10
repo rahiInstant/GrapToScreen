@@ -8,8 +8,9 @@ import { dynamicInputType } from "./inputType";
 interface DynamicInputProps {
   name: string;
   placeholder?: string;
-  value?: string | number;
+  value?: string;
   onInput?: (value: string | number, event?: any) => void;
+  uniqueKey?: any;
   disabled?: boolean;
   title?: string;
   footNote?: string;
@@ -19,6 +20,7 @@ interface DynamicInputProps {
   class?: string;
   autocomplete?: boolean;
   type?: dynamicInputType;
+  pattern?: string;
 }
 
 interface InputState {
@@ -36,6 +38,17 @@ const DynamicInput = (props: DynamicInputProps) => {
   let inputRef: HTMLInputElement | undefined;
   let containerRef: HTMLDivElement | undefined;
 
+  const [mountKey, setMountKey] = createSignal<any>("");
+
+  createEffect(() => {
+    const key = `${props.uniqueKey}-${props.name}`;
+    if (key !== mountKey()) {
+      setMountKey(key);
+      setInputValue(props.value || "")
+      props.onInput?.(props.value || "");
+    }
+  });
+
   // Handle clicks outside the component
   const handleClickOutside = (event: Event): void => {
     if (containerRef && !containerRef.contains(event.target as Node)) {
@@ -45,17 +58,9 @@ const DynamicInput = (props: DynamicInputProps) => {
 
   const closeExpandPortion = () => setIsExpanded(false);
 
-  // Handle keyboard events (like Escape to close)
-  //   const handleKeyDown = (event: KeyboardEvent): void => {
-  //     if (event.key === 'Escape') {
-  //       setIsExpanded(false);
-  //       inputRef?.blur();
-  //     }
-  //   };
-
   // Add event listeners when component mounts
   onMount(() => {
-    props.onInput?.(props.value || "");
+    // props.onInput?.(props.value || "");
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("touchstart", handleClickOutside, {
       passive: true,
@@ -126,6 +131,7 @@ const DynamicInput = (props: DynamicInputProps) => {
           disabled={props.disabled}
           value={props.value || ""}
           placeholder={props.placeholder || ""}
+          pattern={props.pattern}
           class={`w-full px-3 py-2.5 pr-8 border font-normal rounded-sm border-neutral-700 bg-[#282a39] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#dad7d742] focus:border-[#dad7d742] focus:bg-[#282a39] transition-colors ${
             props.disabled ? "opacity-50 cursor-not-allowed" : ""
           }`}
@@ -152,7 +158,7 @@ const DynamicInput = (props: DynamicInputProps) => {
       {/* Expanded Information Panel */}
       {props.isExpand && (
         <div
-          class={`absolute top-full rounded-sm left-0 right-0 p-4 bg-[#1f1f2b] border border-gray-600 border-t-0 rounded-b transition-all duration-200 z-10 ${
+          class={`absolute top-[105%] rounded-sm  left-0 right-0 p-4 bg-[#1f1f2b] border border-gray-600 border-t-0 rounded-b transition-all duration-200 z-10 ${
             isExpanded() ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
         >

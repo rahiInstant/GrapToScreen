@@ -15,8 +15,8 @@ interface ReproductiveChildren {
   name?: string;
   title?: string;
   toolTipText?: string;
-  value?: string | number;
-  defaultValue?: string | number;
+  value?: string ;
+  defaultValue?: string ;
   placeholder?: string;
   footNote?: string;
   children?: ReproductiveChildren[];
@@ -25,14 +25,14 @@ interface ReproductiveChildren {
     title?: string;
     toolTipText?: string;
     placeholder?: string;
-    value: string | number;
+    value: string ;
     description?: string;
     children?: ReproductiveChildren[];
   }>;
 }
 
 interface ReproductiveDropDownOption {
-  value: string | number;
+  value: string ;
   label: string;
   description?: string;
   children?: ReproductiveChildren[];
@@ -42,12 +42,12 @@ interface ReproductiveDropDownProps {
   name: string;
   title?: string;
   toolTipText?: string;
-  uniqueKey?: string;
+  uniqueKey?: any;
   options: ReproductiveDropDownOption[];
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
-  defaultValue?: string | number;
+  defaultValue?: string ;
   footNote?: string;
   onChange: (selectedOption: ReproductiveDropDownOption) => void;
 }
@@ -125,7 +125,7 @@ const ReproductiveDropDown: Component<ReproductiveDropDownProps> = (props) => {
   const closeDropdown = () => setIsOpen(false);
 
   onMount(() => {
-    setDefaultValue();
+    // setDefaultValue();
     // Add all event listeners that should close the dropdown
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("touchstart", handleOutsideClick, {

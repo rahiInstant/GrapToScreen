@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import type { Component } from "solid-js";
 import Tooltip from "../../BottomPart/MidPanel/Tooltip";
 
@@ -7,6 +7,7 @@ interface TextAreaProps {
   placeholder?: string;
   value?: string;
   title?: string;
+  uniqueKey?: any;
   toolTipText?: string;
   onInput?: (value: string) => void;
 }
@@ -14,6 +15,17 @@ interface TextAreaProps {
 const TextArea: Component<TextAreaProps> = (props) => {
   const [text, setText] = createSignal<string>("");
   const [isEmpty, setIsEmpty] = createSignal<boolean>(true);
+  const [mountKey, setMountKey] = createSignal<any>("");
+
+  createEffect(() => {
+    const key = `${props.uniqueKey}-${props.name}`;
+    if (key !== mountKey()) {
+      console.log('unique key from inside', props.uniqueKey)
+      setIsEmpty(props.value?.trim() === "" || false);
+      setMountKey(key);
+      props.onInput?.(props.value || "");
+    }
+  });
 
   const handleInput = (e: Event) => {
     const target = e.target as HTMLTextAreaElement;
