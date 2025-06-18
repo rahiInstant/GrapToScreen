@@ -28,39 +28,67 @@ interface StepsDropDownProps {
   required?: boolean;
   disabled?: boolean;
   containerId?: string;
-  defaultValue?: string;
-  onChange?: (selectedOptions: ChildOption) => void;
+  uniqueKey?: any;
+  defaultValue?: {
+    parentOption: string;
+    childOption: string;
+  };
+  onChange?: (selectedOption: {
+    parentOption: string;
+    childOption: ChildOption;
+  }) => void;
 }
 
 const StepsDropDown: Component<StepsDropDownProps> = (props) => {
   const [isOpen, setIsOpen] = createSignal(false);
-  const [selectedOption, setSelectedOption] = createSignal<ParentOption>(
-    props.options[0]
+  const [selectedOption, setSelectedOption] = createSignal<ChildOption | null>(
+    null
   );
   const [selectedLabel, setSelectedLabel] = createSignal("Select an option");
   const [currentView, setCurrentView] = createSignal("main");
   const [activeParent, setActiveParent] = createSignal<ParentOption | null>(
     null
   );
+  const [mountKey, setMountKey] = createSignal<any>("")
+
 
   let selectRef: any;
   let dropdownRef: any;
 
   const setDefaultValue = () => {
     if (props.defaultValue) {
-      const defaultOption = props.options.find(
-        (opt) => opt.value === props.defaultValue
+      const defaultParentOption = props.options.find(
+        (opt) => opt.value === props.defaultValue?.parentOption
       );
-      if (defaultOption) {
-        setSelectedOption(defaultOption);
-        setSelectedLabel(defaultOption.label);
-        props.onChange?.(defaultOption);
-      }
-      if (props.placeholder) {
-        setSelectedLabel(props.placeholder);
+      let defaultOption: ChildOption | undefined;
+      if (defaultParentOption && defaultParentOption.children) {
+        setActiveParent(defaultParentOption);
+        defaultOption = defaultParentOption.children.find(
+          (child) => child.value === props.defaultValue?.childOption
+        );
+
+        if (defaultOption) {
+          setSelectedOption(defaultOption);
+          setSelectedLabel(defaultOption.label);
+          props.onChange?.({
+            parentOption: defaultParentOption.value,
+            childOption: defaultOption,
+          });
+        } else if (props.placeholder) {
+          setSelectedLabel(props.placeholder);
+        }
       }
     }
   };
+
+  createEffect(() => {
+    const key = `${props.uniqueKey}-${props.name}`;
+    console.log("from outside", props.defaultValue);
+    if (key !== mountKey()) {
+      setMountKey(key);
+      setDefaultValue();
+    }
+  });
 
   // Close dropdown when clicking outside
   const handleOutsideClick = (e: any) => {
@@ -78,7 +106,7 @@ const StepsDropDown: Component<StepsDropDownProps> = (props) => {
   };
 
   onMount(() => {
-    setDefaultValue();
+    // setDefaultValue();
     // Add all event listeners that should close the dropdown
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("touchstart", handleOutsideClick, {
@@ -138,6 +166,10 @@ const StepsDropDown: Component<StepsDropDownProps> = (props) => {
   const handleChildClick = (childOption: ParentOption) => {
     setSelectedOption(childOption);
     setSelectedLabel(childOption.label);
+    props.onChange?.({
+      parentOption: activeParent()!.value,
+      childOption: childOption,
+    });
     setIsOpen(false);
     setCurrentView("main");
 
@@ -166,7 +198,7 @@ const StepsDropDown: Component<StepsDropDownProps> = (props) => {
             <>
               <option
                 value={parentOption.value}
-                selected={parentOption.value === selectedOption().value}
+                selected={parentOption.value === activeParent()?.value}
               >
                 {parentOption.label}
               </option>
@@ -175,7 +207,7 @@ const StepsDropDown: Component<StepsDropDownProps> = (props) => {
                   {(childOption) => (
                     <option
                       value={childOption.value}
-                      selected={childOption.value === selectedOption().value}
+                      selected={childOption.value === selectedOption()?.value}
                     >
                       {childOption.label}
                     </option>
@@ -219,8 +251,8 @@ const StepsDropDown: Component<StepsDropDownProps> = (props) => {
               <div
                 classList={{
                   "parent-option": true,
-                  selected: option.value === selectedOption().value,
-                  "aria-selected-true": option.value === selectedOption().value,
+                  selected: option.value === activeParent()?.value,
+                  "aria-selected-true": option.value === activeParent()?.value,
                 }}
                 onClick={() =>
                   option.children
@@ -252,8 +284,9 @@ const StepsDropDown: Component<StepsDropDownProps> = (props) => {
               <div
                 classList={{
                   "child-option": true,
-                  selected: childOption.value === selectedOption().value,
-                  "aria-selected-true": childOption.value === selectedOption().value,
+                  selected: childOption.value === selectedOption()?.value,
+                  "aria-selected-true":
+                    childOption.value === selectedOption()?.value,
                 }}
                 onClick={() => handleChildClick(childOption)}
                 tabIndex={isOpen() ? 0 : -1}

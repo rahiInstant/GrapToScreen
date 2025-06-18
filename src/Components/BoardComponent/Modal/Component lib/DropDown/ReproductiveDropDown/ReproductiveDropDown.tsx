@@ -63,7 +63,7 @@ const ReproductiveDropDown: Component<ReproductiveDropDownProps> = (props) => {
   const [dropdownDirection, setDropdownDirection] = createSignal<"down" | "up">(
     "down"
   );
-  let prevValue = props.defaultValue;
+  // let prevValue = props.defaultValue;
   const RDTriggered = new Set<string>();
 
   let selectRef: any;

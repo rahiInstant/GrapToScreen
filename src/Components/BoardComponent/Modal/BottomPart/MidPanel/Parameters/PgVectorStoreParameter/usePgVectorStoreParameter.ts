@@ -1,94 +1,47 @@
-import { createSignal, createMemo, createEffect, onMount } from "solid-js";
-import { FilterOption } from "./GmailType";
-import { filterStore, optionStore, poolTimesOptions } from "./GmailConfig";
-import { gmailNodeDataEncoder } from "./gmailNodeDataEncoder";
+import { createSignal, createMemo, createEffect } from "solid-js";
 import useStateContext from "../../../../../useStateContext";
-import { ReproductiveChildren } from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
-import { gmailNodeDataDecoder } from "./gmailNodeDataDecoder";
+import { FilterOption } from "../../../../Component lib/DropDown/DropDownFilter/DropDownFilter";
+import { pgVectorStoreNodeDataEncoder } from "./pgVectorStoreDataEncoder";
+import { pgVectorNodeDataDecoder } from "./pgVectorStoreDataDecoder";
+import { operation, pgVectorOption } from "./PgVectorStoreParameterConfig";
+import { ReproductiveDropDownOption } from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
 
-export default function useGmailParameterState() {
+export default function usePgVectorNodeParameterState() {
   const { formData, setFormData, currentFormConfig } = useStateContext();
-  const [filters, setFilters] = createSignal<FilterOption[]>([]);
-  const [options, setOptions] = createSignal<FilterOption[]>([]);
-  const [pollTimes, setPollTimes] = createSignal<string[]>([]);
-  const [mode, setMode] = createSignal<Record<string, string>>({});
-  const [modeChild, setModeChild] = createSignal<Record<string, any>>({});
-  const [modeChildValue, setModeChildValue] = createSignal<
-    Record<string, string | number | boolean>
-  >({});
+  const [currentOperation, setCurrentOperation] = createSignal<string>(
+    operation[0].value
+  );
+  const [metadataFilter, setMetadataFilter] = createSignal<string[]>([]);
   const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
     []
   );
-  const [selectedFilter, setSelectedFilter] = createSignal<FilterOption[]>([]);
+  const [options, setOptions] = createSignal<FilterOption[]>([]);
+  const [isCollection, setIsCollection] = createSignal(false);
   const [submittedData, setSubmittedData] = createSignal<Record<string, any>>(
     {}
   );
   const [previousData, setPreviousData] = createSignal<Record<string, any>>({});
   const [uniqueKey, setUniqueKey] = createSignal<string>("");
-
   const triggerKey = new Set();
-  onMount(() => {
-    setFilters(filterStore);
-    setOptions(optionStore);
-  });
+
   const reset = () => {
-    setSubmittedData({});
-    setPollTimes([]);
-    setMode({});
-    setModeChild({});
-    setSelectedFilter([]);
+    setOptions(pgVectorOption);
     setSelectedOptions([]);
+    setSubmittedData({});
     setPreviousData({});
-    setFilters(filterStore);
-    setOptions(optionStore);
+    setMetadataFilter([]);
+    setCurrentOperation("");
+    setIsCollection(false)
   };
 
-  // const dataHandler = (fieldName: string, data: any) => {
-  //   // const isKeyExistInPreviousData = previousData()[fieldName];
-  //   console.log("from data handler raw >>>> ", fieldName, " >>>>> ", data);
-  //   console.log(
-  //     "from data handler, 2 >>> both key and data changed",
-  //     previousData()
-  //   );
-  //   console.log(
-  //     "from data handler:::: >> submitted data 1  >>> both key and data changed",
-  //     submittedData()
-  //   );
-  //   setSubmittedData((prev) => ({
-  //     ...prev,
-  //     [fieldName]: data,
-  //   }));
-  //   console.log(
-  //     "from data handler:::: >> submitted data 2 >>> both key and data changed",
-  //     submittedData()
-  //   );
-
-  //   const formatted = gmailNodeDataEncoder(
-  //     submittedData(),
-  //     currentFormConfig().id
-  //   );
-  //   console.log(
-  //     "from data handler:::: >> formatted >>> both key and data changed",
-  //     formatted
-  //   );
-
-  //   setFormData({
-  //     ...formData(),
-  //     [currentFormConfig().id]: formatted,
-  //   });
-  //   console.log(
-  //     "from data handler:::: >> formData() >>> both key and data changed",
-  //     formData()
-  //   );
-  // };
-  const dataHandler = (fieldName: string, data: any) => {
+  const dataInsertHandler = (fieldName: string, data: any) => {
     // const isKeyExistInPreviousData = previousData()[fieldName];
     console.log("from data handler raw >>>> ", fieldName, " >>>>> ", data);
-    console.log("before check from data handler", previousData());
+    console.log("before check: previous data from dataHandler", previousData());
     if (fieldName in previousData()) {
       if (previousData()[fieldName] === data) {
         console.log(
-          "from data handler:::: >> submitted Data,>>> data unchanged, key unchanged",
+          "from data handler:::: >> previous Data,>>> data unchanged, key unchanged",
           submittedData()
         );
         setSubmittedData((prev) => ({
@@ -98,10 +51,6 @@ export default function useGmailParameterState() {
         console.log(
           "from data handler:::: >> submitted data from previous data >>> data unchanged, key unchanged",
           submittedData()
-        );
-        console.log(
-          "from data handler:::: >> form data >>> data unchanged, key unchanged",
-          formData()
         );
         return;
       } else if (previousData()[fieldName] !== data) {
@@ -122,7 +71,7 @@ export default function useGmailParameterState() {
           submittedData()
         );
 
-        const formatted = gmailNodeDataEncoder(
+        const formatted = pgVectorStoreNodeDataEncoder(
           submittedData(),
           currentFormConfig().id
         );
@@ -158,7 +107,7 @@ export default function useGmailParameterState() {
         submittedData()
       );
 
-      const formatted = gmailNodeDataEncoder(
+      const formatted = pgVectorStoreNodeDataEncoder(
         submittedData(),
         currentFormConfig().id
       );
@@ -180,17 +129,16 @@ export default function useGmailParameterState() {
 
   const dataRemoveHandler = (fieldName: string) => {
     console.log("from data remover raw >>>> ", fieldName, " >>>>>> ");
-    console.log(" from data remover submitted>>>> pre data", submittedData());
     setSubmittedData((prev) => {
       return Object.entries(prev).reduce((acc, [k, v]: [string, any]) => {
-        if (!k.includes(fieldName)) {
+        if (!k.toLowerCase().includes(fieldName.toLowerCase())) {
           acc[k] = v;
         }
         return acc;
       }, {} as Record<string, any>);
     });
-    console.log(" from data remover submitted>>>> post data", submittedData());
-    const formattedPrev = gmailNodeDataEncoder(
+    console.log(" from data remover >>>> previous data", submittedData());
+    const formattedPrev = pgVectorStoreNodeDataEncoder(
       submittedData(),
       currentFormConfig().id
     );
@@ -222,9 +170,7 @@ export default function useGmailParameterState() {
       currentFormConfig().id,
       "  >  node data  >  ",
       "\n",
-      selectedOptions(),
-      "\n",
-      selectedFilter()
+      selectedOptions()
     );
     console.log(">>>>>>.>>>>>>>>>>>>>>>>>.>>>>>>>>>>>>>>>>>>>>>>>>>");
     // console.log(parsedData(), "parsed data");
@@ -235,87 +181,79 @@ export default function useGmailParameterState() {
       setUniqueKey(currentFormConfig().id);
       const data = formData()[currentFormConfig().id];
       console.log("data1", data);
+      reset();
       if (!data) {
-        reset();
         return;
       }
-      reset();
+      // reset();
       console.log("data2", data);
-      const decoded = gmailNodeDataDecoder(data);
+      const decoded = pgVectorNodeDataDecoder(data);
       if (decoded) {
         console.log(
           "decoded from observer, >>>>>> ",
           currentFormConfig().id,
-          decoded?.filters,
-          decoded.options
+          decoded.options,
+          decoded.metadataFilter
         );
+        console.log("from effect test ", {
+          ...(decoded.options.useCollection && {
+            ...decoded.options.useCollection.values,
+          }),
+        });
         setPreviousData((prev: any) => ({
-          ...prev,
-          simplify: decoded.simplify,
-          ...decoded.pollTimes.parseModesData,
-          ...decoded.filters,
-          ...decoded.options,
+          operationMode: decoded.operationMode,
+          tableName: decoded.tableName,
+          limit: decoded.limit,
+          prompt: decoded.prompt,
+          includeMetadata: decoded.includeMetadata,
+          ...(decoded.options.distanceStrategy && {
+            distanceStrategy: decoded.options.distanceStrategy,
+          }),
+          ...(decoded.options.collection && {
+            ...decoded.options.collection.values,
+          }),
+          ...(decoded.options.columnNames && {
+            ...decoded.options.columnNames.values,
+          }),
+          ...decoded.metadataFilter,
+
           // ...decoded.pollTimes.parseModesData,
         }));
         console.log(previousData(), "from inside");
-        console.log(
-          decoded.pollTimes.parseModesData,
-          "from inside parseModesData"
-        );
+        console.log(decoded.metadataFilter, "from inside createEffect");
+        setCurrentOperation(decoded.operationMode);
+        setMetadataFilter(decoded.metadataIds);
         // setParsedData(decoded ?? {});
-        setPollTimes(decoded.pollTimes.parsedPollTimes ?? []);
-        setMode(decoded.pollTimes.parsedModes ?? {});
-        setDropDownFilterOption(
-          Object.keys(decoded.filters),
-          filterStore,
-          setSelectedFilter
-        );
-        setFilters(() => {
-          return filterStore.filter((item) => {
-            return selectedFilter().every((selected) => {
-              return selected.value !== item.value;
-            });
-          });
-        });
         setDropDownFilterOption(
           Object.keys(decoded.options),
-          optionStore,
+          pgVectorOption,
           setSelectedOptions
         );
         setOptions(() => {
-          return optionStore.filter((item) => {
+          return pgVectorOption.filter((item) => {
             return selectedOptions().every((selected) => {
               return selected.value !== item.value;
             });
           });
         });
       }
-      // setSelectedFilter(decoded.selectedFilter);
-      // setSelectedOptions(decoded.selectedOptions);
     }
   });
 
   return {
-    pollTimes,
-    setPollTimes,
-    mode,
-    setMode,
     selectedOptions,
     setSelectedOptions,
-    selectedFilter,
-    setSelectedFilter,
-    submittedData,
-    dataHandler,
-    modeChild,
-    setModeChild,
-    filters,
-    setFilters,
+    dataInsertHandler,
     options,
     setOptions,
     previousData,
-    setPreviousData,
-    setSubmittedData,
     dataRemoveHandler,
     uniqueKey,
+    currentOperation,
+    setCurrentOperation,
+    metadataFilter,
+    setMetadataFilter,
+    isCollection,
+    setIsCollection,
   };
 }

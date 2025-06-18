@@ -1,9 +1,17 @@
-import { Component, createEffect, createSignal, For, Show } from "solid-js";
+import {
+  Component,
+  createEffect,
+  createSignal,
+  For,
+  Show,
+  untrack,
+} from "solid-js";
 import DependentDropDown from "../../../../Component lib/DropDown/DependentDropDown/DependentDropDown";
 import ReproductiveDropDown, {
   ReproductiveDropDownOption,
 } from "../../../../Component lib/DropDown/ReproductiveDropDown/ReproductiveDropDown";
 import {
+  collectionChild,
   columnNamesChild,
   operation,
   pgVectorOption,
@@ -19,8 +27,9 @@ import DropDownN from "../../../../Component lib/DropDown/DropDownN/DropDownN";
 import DeleteIcon from "../../../../Icons/DeleteIcon";
 import ButtonSolid from "../../../../Component lib/Button/ButtonSolid";
 import useStateContext from "../../../../../useStateContext";
-import { pgVectorStoreNodeDataFormatter } from "./pgVectorStoreDataFormatter";
-import { pgVectorStoreNodeDataManager } from "./pgVectorStoreDataManager";
+import { pgVectorStoreNodeDataEncoder } from "./pgVectorStoreDataEncoder";
+import usePgVectorNodeParameterState from "./usePgVectorStoreParameter";
+// import { dataInsertHandler } from "./pgVectorStoreDataManager";
 
 const TableName = (
   name: string,
@@ -52,16 +61,25 @@ const Delete: Component<{
 };
 
 const PgVectorStoreParameter: Component<{}> = (props) => {
-  const {currentFormConfig, formData, setFormData} = useStateContext()
-  const [currentOperation, setCurrentOperation] =
-    createSignal<ReproductiveDropDownOption>(operation[0]);
-  const [options, setOptions] = createSignal<FilterOption[]>([]);
-  const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
-    []
-  );
-  const [metadataFilter, setMetadataFilter] = createSignal<string[]>([]);
+  const { currentFormConfig, formData, setFormData } = useStateContext();
+  const {
+    selectedOptions,
+    setSelectedOptions,
+    dataInsertHandler,
+    options,
+    setOptions,
+    previousData,
+    dataRemoveHandler,
+    uniqueKey,
+    currentOperation,
+    setCurrentOperation,
+    metadataFilter,
+    setMetadataFilter,
+    isCollection,
+    setIsCollection,
+  } = usePgVectorNodeParameterState();
   createEffect(() => {
-    if (currentOperation().value === "insertDocuments") {
+    if (currentOperation() === "insertDocuments") {
       setOptions(pgVectorOption.slice(1, 3));
     } else {
       setOptions(pgVectorOption);
@@ -73,7 +91,7 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
     const pgVectorStoreData = new FormData(e.target as HTMLFormElement);
     let data = Object.fromEntries(pgVectorStoreData.entries());
 
-    const formattedPgVectorStoreNodeData = pgVectorStoreNodeDataFormatter(
+    const formattedPgVectorStoreNodeData = pgVectorStoreNodeDataEncoder(
       data,
       currentFormConfig().id
     );
@@ -96,16 +114,15 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
           <ReproductiveDropDown
             name="operationMode"
             title="Operation Mode"
+            uniqueKey={uniqueKey()}
             options={operation}
-            defaultValue={operation[0].value}
+            defaultValue={previousData()["operationMode"] || operation[0].value}
             onChange={(selected) => {
-              setCurrentOperation(selected);
-              pgVectorStoreNodeDataManager("operationMode", selected)
+              setCurrentOperation(selected.value);
+              dataInsertHandler("operationMode", selected.value);
             }}
           />
-          <Show
-            when={currentOperation().value === "retrieveDocumentsAsVectorStore"}
-          >
+          <Show when={currentOperation() === "retrieveDocumentsAsVectorStore"}>
             <TextBlock>
               This node must be connected to a vector store retriever.{" "}
               <a href="#" class="font-semibold text-[#fe705a]">
@@ -113,70 +130,80 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
               </a>
             </TextBlock>
           </Show>
-          <Show when={currentOperation().value === "retrieveDocumentsAsTool"}>
+          <Show when={currentOperation() === "retrieveDocumentsAsTool"}>
             <DynamicInput
               name="name"
               title="Name"
+              uniqueKey={uniqueKey()}
+              value={previousData()["name"]}
               toolTipText="Name of the vector store."
               placeholder="e.g. company_knowledge_base"
               isArrow
               onInput={(value) => {
-                pgVectorStoreNodeDataManager("name", value);
+                dataInsertHandler("name", value);
               }}
             />
             <TextArea
               name="description"
               title="Description"
+              uniqueKey={uniqueKey()}
+              value={previousData()["name"]}
               toolTipText="Explain to the LLM what this tool does, a good, specific description would allow LLMs to produce expected results much more often."
               placeholder="e.g. work with your data in postgresql with the PgVector extension."
               onInput={(value) => {
-                pgVectorStoreNodeDataManager("description", value);
+                dataInsertHandler("description", value);
               }}
             />
           </Show>
           <DynamicInput
             name="tableName"
             title="Table Name"
+            uniqueKey={uniqueKey()}
             toolTipText="The table name to store the vectors in. If table does not exist, it will be created."
-            value={"repoRunner_vectors"}
+            value={previousData()["tableName"] || "repoRunner_vectors"}
             isArrow
             onInput={(value) => {
-              pgVectorStoreNodeDataManager("tableName", value);
+              dataInsertHandler("tableName", value);
             }}
           />
-          <Show when={currentOperation().value === "getMany"}>
+          <Show when={currentOperation() === "getMany"}>
             <DynamicInput
               name="limit"
               title="Limit"
+              uniqueKey={uniqueKey()}
               toolTipText="Number of top results to fetch from vector store."
-              value={4}
+              value={previousData()["limit"] || "4"}
               onInput={(value) => {
-                pgVectorStoreNodeDataManager("limit", value);
+                dataInsertHandler("limit", value);
               }}
             />
           </Show>
-          <Show when={currentOperation().value === "getMany"}>
+          <Show when={currentOperation() === "getMany"}>
             <DynamicInput
               name="prompt"
               title="Prompt"
+              uniqueKey={uniqueKey()}
+              value={previousData()["prompt"] || "How Are you?"}
               toolTipText="Search prompt to retrieve matching documents from the vector store using similarity-based ranking."
-            onInput={(value) => {
-              pgVectorStoreNodeDataManager("prompt", value);
-            }}
+              onInput={(value) => {
+                dataInsertHandler("prompt", value);
+              }}
             />
           </Show>
           <Show
             when={
-              currentOperation().value === "getMany" ||
-              currentOperation().value === "retrieveDocumentsAsTool"
+              currentOperation() === "getMany" ||
+              currentOperation() === "retrieveDocumentsAsTool"
             }
           >
             <Switch
               name="includeMetadata"
               title="Include Metadata"
+              uniqueKey={uniqueKey()}
+              checked={previousData()["includeMetadata"]}
               toolTipText="Whether or not to include document metadata."
               onChange={(state) => {
-                pgVectorStoreNodeDataManager("includeMetadata", state);
+                dataInsertHandler("includeMetadata", state);
               }}
             />
           </Show>
@@ -197,26 +224,32 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                             );
                             setSelectedOptions(newSelectedOption);
                             setOptions([...options(), item]);
+                            dataRemoveHandler(item.value);
                           }}
                         />
                         <div class="flex-1">
                           <DropDownN
                             name={item.content.name}
                             options={item.content.options ?? []}
-                            defaultValue={item.content.options?.[0]?.value}
+                            defaultValue={
+                              previousData()[item.content.name] ||
+                              item.content.options?.[0]?.value
+                            }
+                            uniqueKey={uniqueKey()}
                             toolTipText={item.content.toolTipText}
                             title={item.content.title}
                             onChange={(selected) => {
-                              pgVectorStoreNodeDataManager(
+                              dataInsertHandler(
                                 item.content.name,
-                                selected 
-                              )
+                                selected.value
+                              );
                             }}
                           />
                         </div>
                       </div>
                     );
                   } else if (item.value === "collection") {
+                    // dataInsertHandler(item.value, "");
                     return (
                       <div>
                         <div class="group flex items-start gap-1.5 w-full">
@@ -228,6 +261,7 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                                 );
                               setSelectedOptions(newSelectedOption);
                               setOptions([...options(), item]);
+                              dataRemoveHandler(item.value);
                             }}
                           />
                           <div class="flex-1">
@@ -243,19 +277,40 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                                     );
                                   setSelectedOptions(newSelectedOption);
                                   setOptions([...options(), item]);
+                                  dataRemoveHandler(item.value);
                                 }}
                               />
-                              <div class="flex-1">
+                              <div class="flex-1 space-y-5">
                                 <Switch
+                                  uniqueKey={uniqueKey()}
+                                  checked={previousData()[item.content.name]}
                                   name={item.content.name}
                                   title={item.content.title ?? ""}
                                   onChange={(state) => {
-                                    pgVectorStoreNodeDataManager(
-                                      item.content.name,
-                                      state 
-                                    )
+                                    setIsCollection(state);
+                                    dataInsertHandler(item.content.name, state);
                                   }}
                                 />
+                                <Show when={isCollection()}>
+                                  <For each={collectionChild}>
+                                    {(item, _) => {
+                                      return (
+                                        <DynamicInput
+                                          name={item.name}
+                                          value={
+                                            previousData()[item.name] || "---"
+                                          }
+                                          title={item.title}
+                                          uniqueKey={uniqueKey()}
+                                          isArrow
+                                          onInput={(value) => {
+                                            dataInsertHandler(item.name, value);
+                                          }}
+                                        />
+                                      );
+                                    }}
+                                  </For>
+                                </Show>
                               </div>
                             </div>
                           </div>
@@ -263,6 +318,7 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                       </div>
                     );
                   } else if (item.value === "columnNames") {
+                    // dataInsertHandler(item.value, "");
                     return (
                       <div>
                         <div class="group flex items-start gap-1.5 w-full">
@@ -274,6 +330,7 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                                 );
                               setSelectedOptions(newSelectedOption);
                               setOptions([...options(), item]);
+                              dataRemoveHandler(item.value);
                             }}
                           />
                           <div class="flex-1">
@@ -289,6 +346,7 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                                     );
                                   setSelectedOptions(newSelectedOption);
                                   setOptions([...options(), item]);
+                                  dataRemoveHandler(item.value);
                                 }}
                               />
                               <div class="flex-1 space-y-5">
@@ -297,14 +355,14 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                                     return (
                                       <DynamicInput
                                         name={item.name}
-                                        value={item.value}
+                                        value={
+                                          previousData()[item.name] || "---"
+                                        }
                                         title={item.title}
+                                        uniqueKey={uniqueKey()}
                                         isArrow
                                         onInput={(value) => {
-                                          pgVectorStoreNodeDataManager(
-                                            item.name,
-                                            value
-                                          )
+                                          dataInsertHandler(item.name, value);
                                         }}
                                       />
                                     );
@@ -328,6 +386,7 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                                 );
                               setSelectedOptions(newSelectedOption);
                               setOptions([...options(), item]);
+                              dataRemoveHandler("metadata");
                             }}
                           />
                           <div class="flex-1">
@@ -359,29 +418,36 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
                                                   (item) => item !== id
                                                 )
                                               );
+                                              dataRemoveHandler(id);
                                             }}
                                           />
                                           <div class="flex flex-col gap-5 w-full">
                                             <DynamicInput
                                               name={`${id}_name`}
+                                              value={
+                                                previousData()[`${id}_name`]
+                                              }
                                               title="Name"
                                               isArrow
                                               onInput={(value) => {
-                                                pgVectorStoreNodeDataManager(
+                                                dataInsertHandler(
                                                   `${id}_name`,
-                                                  value 
-                                                )
+                                                  value
+                                                );
                                               }}
                                             />
                                             <DynamicInput
                                               name={`${id}value`}
                                               title="Value"
+                                              value={
+                                                previousData()[`${id}_value`]
+                                              }
                                               isArrow
                                               onInput={(value) => {
-                                                pgVectorStoreNodeDataManager(
-                                                  `${id}value`,
-                                                  value 
-                                                )
+                                                dataInsertHandler(
+                                                  `${id}_value`,
+                                                  value
+                                                );
                                               }}
                                             />
                                           </div>
@@ -437,7 +503,5 @@ const PgVectorStoreParameter: Component<{}> = (props) => {
     </form>
   );
 };
-
-// ${selectedOptions().length <= 0 ? "" : "mt-5"}
 
 export default PgVectorStoreParameter;

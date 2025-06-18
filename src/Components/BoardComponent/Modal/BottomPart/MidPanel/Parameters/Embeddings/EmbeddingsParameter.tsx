@@ -3,17 +3,19 @@ import DependentDropDown from "../../../../Component lib/DropDown/DependentDropD
 import DropDownN from "../../../../Component lib/DropDown/DropDownN/DropDownN";
 import { modelConfig } from "./EmbeddingsParameterConfig";
 import useStateContext from "../../../../../useStateContext";
-import { embeddingNodeDataFormatter } from "./embeddingDataFormatter";
-import { embeddingNodeDataManager } from "./embeddingDataManager";
+import { embeddingNodeDataEncoder } from "./embeddingDataEncoder";
+import useEmbeddingNodeParameterState from "./useEmbeddingParameter";
 
 const EmbeddingsParameter: Component<{}> = (props) => {
   const { currentFormConfig, formData, setFormData } = useStateContext();
+  const { dataInsertHandler, previousData, uniqueKey } =
+    useEmbeddingNodeParameterState();
   const handleOnSubmit = (e: Event) => {
     e.preventDefault();
     const pgVectorStoreData = new FormData(e.target as HTMLFormElement);
     let data = Object.fromEntries(pgVectorStoreData.entries());
 
-    const formattedEmbeddingNodeData = embeddingNodeDataFormatter(
+    const formattedEmbeddingNodeData = embeddingNodeDataEncoder(
       data,
       currentFormConfig().id
     );
@@ -35,10 +37,11 @@ const EmbeddingsParameter: Component<{}> = (props) => {
         <DropDownN
           name="model"
           title="Model"
+          uniqueKey={uniqueKey()}
           options={modelConfig}
-          defaultValue={modelConfig[0].value}
+          defaultValue={previousData()["model"] || modelConfig[0].value}
           onChange={(selected) => {
-            embeddingNodeDataManager("model", selected);
+            dataInsertHandler("model", selected.value);
           }}
         />
       </div>

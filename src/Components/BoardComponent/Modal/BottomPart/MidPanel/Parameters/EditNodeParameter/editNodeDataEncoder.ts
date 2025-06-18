@@ -1,9 +1,8 @@
 import { createSignal } from "solid-js";
 import useStateContext from "../../../../../useStateContext";
 
-
 export const editNodeDataEncoder = (editNodeData: any, nodeId: string) => {
-  const {nodes} = useStateContext()
+  const { nodes } = useStateContext();
   const transformFieldData = (data: any) => {
     const [fieldNo, setFieldNo] = createSignal(1);
     return Object.values(
@@ -46,10 +45,9 @@ export const editNodeDataEncoder = (editNodeData: any, nodeId: string) => {
     name: "Edit Fields",
     description: "Modify,add,or remove item fields.",
     type: "EditNode",
-    parameter: {
+    parameters: {
       mode: editNodeData?.mode,
       assignment: transformFieldData(editNodeData),
-      position: getNodePosition(),
       inputs: [
         {
           id: "input",
@@ -67,5 +65,6 @@ export const editNodeDataEncoder = (editNodeData: any, nodeId: string) => {
         },
       ],
     },
+    position: getNodePosition(),
   };
 };

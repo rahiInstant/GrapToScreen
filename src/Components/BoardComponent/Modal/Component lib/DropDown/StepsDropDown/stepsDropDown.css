@@ -112,6 +112,7 @@
   transition: all 0.2s ease;
 }
 
+
 .parent-option:hover {
   background-color: #343446;
   color: #b8b5b5;
@@ -183,6 +184,8 @@
   color: #c24434;
   font-weight: normal;
 }
+
+
 
 /* Accessibility improvements */
 .aria-selected-true {

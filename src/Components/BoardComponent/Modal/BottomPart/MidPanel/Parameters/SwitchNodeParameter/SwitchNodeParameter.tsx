@@ -25,16 +25,18 @@ import { Node } from "../../../../../../ButtonComponents/Types";
 import DropDownMultiple from "../../../../Component lib/DropDown/DropDownMultiple/DropDownMultiple";
 import StepsDropDown from "../../../../Component lib/DropDown/StepsDropDown/StepsDropDown";
 import { switchNodeDataEncoder } from "./switchNodeDataEncoder";
+import useSwitchNodeParameterState from "./useSwitchNodeParameter";
 
-const ConvertTypeWhereRequired = () => {
+const ConvertTypeWhereRequired = (dataInsertHandler: any, checked: boolean) => {
   return (
     <div class="mt-5">
       <Switch
+        checked={checked}
         name="convertTypeWhereRequired"
         title="Convert Type Where Required"
         toolTipText={`If the type of an expression doesn't match the type of the comparison, n8n will try to cast the expression to the required type. E.g. for booleans "false" or 0 will be cast to false.`}
         onChange={(state) => {
-          switchNodeDataManager("convertTypeWhereRequired", state);
+          dataInsertHandler("convertTypeWhereRequired", state);
         }}
       />
     </div>
@@ -42,122 +44,34 @@ const ConvertTypeWhereRequired = () => {
 };
 
 const SwitchNodeParameter: Component<{}> = (props) => {
-  const { nodes, setNodes, currentFormConfig, formData, setFormData } =
-    useStateContext();
+  const { currentFormConfig, formData, setFormData } = useStateContext();
 
-  const [currentMode, setCurrentMode] = createSignal<DropDownNOption>(
-    modeStore[0]
-  );
-  const [field, setField] = createSignal<
-    Array<{ fieldId: string; vertexId: string }>
-  >([]);
-  // const [] = createSignal();
-  const [selectedOptions, setSelectedOptions] = createSignal<FilterOption[]>(
-    []
-  );
-  const [switchOptions, setSwitchOptions] = createSignal<FilterOption[]>([]);
-  const [renameOutput, setRenameOutput] = createSignal<Record<string, boolean>>(
-    {}
-  );
-
-  const [inputStore, setInputStore] = createSignal<
-    Record<
-      string,
-      {
-        [key: string]: string;
-      }
-    >
-  >({});
-
-  const handleIncreaseSwitchNodeVertex = (newVertexId: string) => {
-    // const newVertexId = `vertex_${Math.random().toString(36).substring(2, 8)}`;
-    setNodes(
-      nodes().map((node) =>
-        node.id === currentFormConfig().id
-          ? {
-              ...node,
-              outputVertexIds: [...node.outputVertexIds, newVertexId],
-              numberOutputs: field().length,
-            }
-          : node
-      )
-    );
-  };
-
-  const handleDecreaseSwitchNodeVertex = (removeVertexId: string) => {
-    setNodes(
-      nodes().map((node) =>
-        node.id === currentFormConfig().id
-          ? {
-              ...node,
-              outputVertexIds: [
-                ...node.outputVertexIds.filter((id) => {
-                  return id !== removeVertexId;
-                }),
-              ],
-              numberOutputs: field().length,
-            }
-          : node
-      )
-    );
-  };
-
-  const [matchInput, setMatchInput] = createSignal<Record<string, boolean>>({});
-
-  const handleRoutingRulesNameValueMatch = (
-    itemId: string,
-    fieldType: string,
-    value: any
-  ) => {
-    // console.log({itemId, fieldId, value});
-    setInputStore((prev) => ({
-      ...prev,
-      [itemId]: {
-        ...prev[itemId],
-        [fieldType]: value,
-      },
-    }));
-    // console.log(inputStore()[itemId]);
-    if (inputStore()[itemId]) {
-      // console.log(inputStore()[itemId].name === inputStore()[itemId].value);
-      if (inputStore()[itemId].name === inputStore()[itemId].value) {
-        setMatchInput({
-          ...matchInput(),
-          [itemId]: true,
-        });
-      } else {
-        setMatchInput({
-          ...matchInput(),
-          [itemId]: false,
-        });
-      }
-    }
-  };
-
-  const addInitialField = () => {
-    const newField = `rule_${Math.random().toString(36).substring(2, 8)}`;
-    setField((prev) => [
-      ...prev,
-      {
-        fieldId: newField,
-        vertexId:
-          nodes().find((node) => node.id === currentFormConfig().id)
-            ?.outputVertexIds[0] || "",
-      },
-    ]);
-    setRenameOutput({
-      ...renameOutput(),
-      [newField]: false,
-    });
-    setMatchInput({
-      ...matchInput(),
-      [newField]: true,
-    });
-  };
+  const {
+    selectedOptions,
+    setSelectedOptions,
+    dataInsertHandler,
+    dataRemoveHandler,
+    currentMode,
+    setCurrentMode,
+    field,
+    setField,
+    uniqueKey,
+    renameOutput,
+    setRenameOutput,
+    switchOptions,
+    setSwitchOptions,
+    matchInput,
+    setMatchInput,
+    handleRoutingRulesNameValueMatch,
+    handleDecreaseSwitchNodeVertex,
+    handleIncreaseSwitchNodeVertex,
+    getValue, previousData
+  } = useSwitchNodeParameterState();
 
   onMount(() => {
     setSwitchOptions(options);
-    addInitialField();
+    if (field().length <= 0) {
+    }
   });
 
   const handleOnSubmit = (e: Event) => {
@@ -187,18 +101,19 @@ const SwitchNodeParameter: Component<{}> = (props) => {
     <form id="switchForm" onsubmit={handleOnSubmit}>
       <div>
         <DropDownN
-          name="mode"
+          name={`${uniqueKey()}_mode`}
           title="Mode"
+          uniqueKey={uniqueKey()}
           options={modeStore}
-          defaultValue={modeStore[0].value}
+          defaultValue={previousData()['mode']}
           onChange={(selectedOption) => {
-            setCurrentMode(selectedOption);
-            switchNodeDataManager("mode", selectedOption);
+            setCurrentMode(selectedOption.value);
+            dataInsertHandler("mode", selectedOption.value);
           }}
         />
         <div class="mt-5">
           {/* Rules */}
-          <Show when={currentMode().value === "Rules"}>
+          <Show when={currentMode() === "Rules"}>
             <div class="label hr-solid-line">Routing Rules</div>
             <div class="mt-5">
               {field().length <= 0 && (
@@ -232,6 +147,7 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                                 )
                               );
                               handleDecreaseSwitchNodeVertex(item.vertexId);
+                              dataRemoveHandler(item.fieldId);
                             }}
                             class="text-[#6f6f70] hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] p-1 rounded-md"
                           >
@@ -247,7 +163,10 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                                   <DynamicInput
                                     placeholder="name"
                                     name={`${item.fieldId}_name`}
-                                    value=""
+                                    value={
+                                      getValue(`${item.fieldId}_name`) || ""
+                                    }
+                                    uniqueKey={uniqueKey()}
                                     isArrow
                                     onInput={(value) => {
                                       handleRoutingRulesNameValueMatch(
@@ -255,7 +174,7 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                                         `name`,
                                         value
                                       );
-                                      switchNodeDataManager(
+                                      dataInsertHandler(
                                         `${item.fieldId}_name`,
                                         value
                                       );
@@ -266,13 +185,36 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                                   <StepsDropDown
                                     name={`${item.fieldId}_type`}
                                     options={typeStore}
-                                    defaultValue={typeStore[0].value}
+                                    uniqueKey={uniqueKey()}
+                                    defaultValue={
+                                      getValue(`${item.fieldId}_operator`)
+                                        ? {
+                                            parentOption: getValue(
+                                              `${item.fieldId}_operator`
+                                            )["type"],
+                                            childOption: getValue(
+                                              `${item.fieldId}_operator`
+                                            )["operation"],
+                                          }
+                                        : {
+                                            parentOption:
+                                              typeStore[0].value || "",
+                                            childOption:
+                                              typeStore[0].children?.[3]
+                                                .value || "",
+                                          }
+                                    }
                                     categoryLabel="Back to main"
                                     onChange={(selectedOption) => {
                                       console.log(selectedOption);
-                                      switchNodeDataManager(
-                                        `${item.fieldId}_type`,
-                                        selectedOption.value
+                                      dataInsertHandler(
+                                        `${item.fieldId}_operator`,
+                                        {
+                                          type: selectedOption.parentOption,
+                                          operation:
+                                            selectedOption.childOption.value,
+                                          singleValue: true,
+                                        }
                                       );
                                     }}
                                   />
@@ -282,7 +224,10 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                                 <DynamicInput
                                   placeholder="value"
                                   name={`${item.fieldId}_value`}
-                                  value=""
+                                  value={
+                                    getValue(`${item.fieldId}_value`) || ""
+                                  }
+                                  uniqueKey={uniqueKey()}
                                   isArrow
                                   onInput={(value) => {
                                     handleRoutingRulesNameValueMatch(
@@ -290,7 +235,7 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                                       `value`,
                                       value
                                     );
-                                    switchNodeDataManager(
+                                    dataInsertHandler(
                                       `${item.fieldId}_value`,
                                       value
                                     );
@@ -323,6 +268,8 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                           </div>
                           <div class="mt-5">
                             <Switch
+                              checked={getValue(`${item.fieldId}_isRename`)}
+                              uniqueKey={uniqueKey()}
                               title="Rename Output"
                               name={`${item.fieldId}_isRename`}
                               onChange={(state) => {
@@ -330,7 +277,7 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                                   ...renameOutput(),
                                   [item.fieldId]: state,
                                 });
-                                switchNodeDataManager(
+                                dataInsertHandler(
                                   `${item.fieldId}_isRename`,
                                   state
                                 );
@@ -341,12 +288,15 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                             <div class="mt-4">
                               <DynamicInput
                                 name={`${item.fieldId}_renameOutput`}
-                                value=""
+                                value={
+                                  getValue(`${item.fieldId}_renameOutput`) || ""
+                                }
+                                uniqueKey={uniqueKey()}
                                 title="Output Name"
                                 toolTipText="The label of output to which to send data to if rule matches."
                                 isArrow
                                 onInput={(value) => {
-                                  switchNodeDataManager(
+                                  dataInsertHandler(
                                     `${item.fieldId}_renameOutput`,
                                     value
                                   );
@@ -389,7 +339,17 @@ const SwitchNodeParameter: Component<{}> = (props) => {
               />
             </div>
             {/* switch */}
-            <ConvertTypeWhereRequired />
+            <div class="mt-5">
+              <Switch
+                checked={getValue("convertTypeWhereRequired")}
+                name="convertTypeWhereRequired"
+                title="Convert Type Where Required"
+                toolTipText={`If the type of an expression doesn't match the type of the comparison, n8n will try to cast the expression to the required type. E.g. for booleans "false" or 0 will be cast to false.`}
+                onChange={(state) => {
+                  // dataInsertHandler("convertTypeWhereRequired", state);
+                }}
+              />
+            </div>
             <div class="mt-5">
               <div class="label hr-solid-line">Options</div>
               {/* Options */}
@@ -402,9 +362,12 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                           <div
                             onClick={() => {
                               setSelectedOptions(
-                                selectedOptions().filter((opt) => opt !== item)
+                                selectedOptions().filter(
+                                  (opt) => opt.value !== item.value
+                                )
                               );
                               setSwitchOptions([...switchOptions(), item]);
+                              dataRemoveHandler(item.value);
                             }}
                             class="text-[#6f6f70] h-fit hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] p-1 rounded-md"
                           >
@@ -412,11 +375,13 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                           </div>
                           <div class="flex-1">
                             <Switch
+                              checked={getValue(item.content.name)}
+                              uniqueKey={uniqueKey()}
                               title={item.content.title ?? ""}
                               toolTipText={item.content.toolTipText ?? ""}
                               name={item.content.name}
                               onChange={(state) => {
-                                switchNodeDataManager(item.content.name, state);
+                                dataInsertHandler(item.content.name, state);
                               }}
                             />
                           </div>
@@ -428,9 +393,12 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                           <div
                             onClick={() => {
                               setSelectedOptions(
-                                selectedOptions().filter((opt) => opt !== item)
+                                selectedOptions().filter(
+                                  (opt) => opt.value !== item.value
+                                )
                               );
                               setSwitchOptions([...switchOptions(), item]);
+                              dataRemoveHandler(item.value);
                             }}
                             class="text-[#6f6f70] h-fit hover:text-[#ff6f5c] cursor-pointer bg-[#36373d] p-1 rounded-md"
                           >
@@ -442,9 +410,13 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                               title={item.content.title}
                               toolTipText={item.content.toolTipText}
                               options={item.content.options ?? []}
-                              defaultValue={item.content.options?.[0]?.value}
+                              uniqueKey={uniqueKey()}
+                              defaultValue={
+                                getValue(item.content.name) ||
+                                item.content.options?.[0]?.value
+                              }
                               onChange={(selectedOption) => {
-                                switchNodeDataManager(
+                                dataInsertHandler(
                                   item.content.name,
                                   selectedOption.value
                                 );
@@ -473,16 +445,17 @@ const SwitchNodeParameter: Component<{}> = (props) => {
           {/* <div class={`${currentMode().value === "Rules" ? "" : "hidden"}`}>
        
         </div> */}
-          <Show when={currentMode().value === "Expression"}>
+          <Show when={currentMode() === "Expression"}>
             <div class="space-y-5">
               <div>
                 <DynamicInput
                   name="numberOfOutputs"
                   title="Number of Outputs"
                   toolTipText="How many outputs to create"
-                  value={4}
+                  uniqueKey={uniqueKey()}
+                  value={getValue("numberOfOutputs") || ""}
                   onInput={(value) => {
-                    switchNodeDataManager("numberOfOutputs", value);
+                    dataInsertHandler("numberOfOutputs", value);
                   }}
                 />
               </div>
@@ -491,16 +464,26 @@ const SwitchNodeParameter: Component<{}> = (props) => {
                   name="outputIndex"
                   title="Output Index"
                   placeholder={"{{}}"}
+                  value={getValue("outputIndex") || ""}
+                  uniqueKey={uniqueKey()}
                   footNote="[ERROR: invalid syntax]"
                   toolTipText="The output index to send the input item to. Use an expression to calculate which input item should be routed to which output. The expression must return a number."
                   isExpand
                   isArrow
                   onInput={(value) => {
-                    switchNodeDataManager("outputIndex", value);
+                    dataInsertHandler("outputIndex", value);
                   }}
                 />
               </div>
-              <ConvertTypeWhereRequired />
+              <Switch
+                checked={getValue("convertTypeWhereRequired")}
+                name="convertTypeWhereRequired"
+                title="Convert Type Where Required"
+                toolTipText={`If the type of an expression doesn't match the type of the comparison, n8n will try to cast the expression to the required type. E.g. for booleans "false" or 0 will be cast to false.`}
+                onChange={(state) => {
+                  dataInsertHandler("convertTypeWhereRequired", state);
+                }}
+              />
             </div>
           </Show>
         </div>

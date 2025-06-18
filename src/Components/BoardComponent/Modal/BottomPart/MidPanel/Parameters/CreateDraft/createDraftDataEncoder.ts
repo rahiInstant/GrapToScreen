@@ -1,7 +1,16 @@
-export const createDraftNodeDataFormatter = (
+import useStateContext from "../../../../../useStateContext";
+
+export const createDraftNodeDataEncoder = (
   createDraftNodeData: any,
   nodeId: string
 ) => {
+  const { nodes } = useStateContext();
+  const getNodePosition = () => {
+    const node = nodes().find((node) => node.id === nodeId);
+    if (node) {
+      return node.currPosition.get();
+    }
+  };
   return {
     id: nodeId,
     name: "createDraft",
@@ -26,10 +35,7 @@ export const createDraftNodeDataFormatter = (
         sendTo: createDraftNodeData?.sendRepliesTo,
       },
     },
-    position: {
-      x: -13980,
-      y: -400,
-    },
+    position: getNodePosition(),
     inputs: [],
     outputs: [
       {

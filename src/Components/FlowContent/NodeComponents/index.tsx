@@ -3,6 +3,7 @@ import {
   Component,
   createEffect,
   createSignal,
+  For,
   JSX,
   onMount,
   ParentComponent,
@@ -17,6 +18,7 @@ import DeleteIcon from "./DeleteIcon";
 import OptionIcon from "./OptionIcon";
 import useStateContext from "../../BoardComponent/useStateContext";
 import ModalConfig from "./ModalConfig";
+import PlusIcon from "./PlusIcon";
 
 interface NodeProps {
   id: string;
@@ -68,19 +70,43 @@ interface NodeProps {
 
 const NodeMain: Component<NodeProps> = (props) => {
   const {
-    setIsShowModal,
-    isShowModal,
-    setPositionButton,
-    setIsOpening,
     setIsModalOpen,
     setCurrentFormConfig,
     setSettingConfig,
     currentFormConfig,
+    setIsOpen,
+    setPendingOutput,
+    newEdge,
+    edgeLength,
   } = useStateContext();
   let nodeRef: HTMLDivElement | undefined = undefined;
   // createEffect(() => {
   //   console.log("from nodeMain", props.outputVertexIds);
   // });
+
+  function handleMouseDownOutput(
+    outputRef: any,
+    event: any,
+    outputIndex: number,
+    vertexId: string,
+    typeOfEdge: string
+  ) {
+    // console.log(props.busyIndex.get());
+    // console.log(typeOfEdge)
+    event.stopPropagation();
+    const { left, right, top, bottom } = outputRef.getBoundingClientRect();
+    const centerX = left + Math.abs(left - right) / 2;
+    const centerY = top + Math.abs(top - bottom) / 2;
+    // console.log({ centerX, centerY });
+    props.onMouseDownOutput(
+      centerX,
+      centerY,
+      props.id,
+      outputIndex,
+      vertexId,
+      typeOfEdge
+    );
+  }
   return (
     <div
       id={props.id}
@@ -88,7 +114,11 @@ const NodeMain: Component<NodeProps> = (props) => {
       onDblClick={() => {
         setIsModalOpen(true);
         console.log(props.name);
-        setCurrentFormConfig({ name: props.name, id: props.id, title: props.title });
+        setCurrentFormConfig({
+          name: props.name,
+          id: props.id,
+          title: props.title,
+        });
         console.log(currentFormConfig());
         setSettingConfig(ModalConfig[props.name]);
         //   setTimeout(() => {
@@ -131,16 +161,16 @@ const NodeMain: Component<NodeProps> = (props) => {
         </div>
       </div>
       <div>
-        <props.content selected={props.selected} title={props.title}/>
+        <props.content selected={props.selected} title={props.title} />
       </div>
       {/* <TestNode selected={props.selected} onMouseDownNode={props.onMouseDownNode} id={props.id}/> */}
       <Vertex
         id={props.id}
         name={props.name}
         numberInputs={props.numberInputs}
-        numberOutputs={props.numberOutputs}
+        numberOutputs={0} //props.numberOutputs
         isInputVertex={props.isInputVertex}
-        isOutputVertex={props.isOutputVertex}
+        isOutputVertex={false} //props.isOutputVertex
         inputVertexIds={props.inputVertexIds}
         outputVertexIds={props.outputVertexIds}
         isDownVertex={props.isDownVertex}
@@ -155,6 +185,58 @@ const NodeMain: Component<NodeProps> = (props) => {
         onMouseEnterInput={props.onMouseEnterInput}
         onMouseLeaveInput={props.onMouseLeaveInput}
       />
+      {/* render all output vertex of a node */}
+      {props.isOutputVertex && (
+        <div class={style.outputsWrapper}>
+          <For each={props.outputVertexIds}>
+            {(id, index: Accessor<number>) => {
+              let outputRef: any = null;
+              return (
+                <div
+                  id={`output-${id}`}
+                  class={style.output}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsOpen(true);
+                    setPendingOutput({
+                      nodeId: props.id,
+                      outputVertexIndex: index(),
+                    });
+                  }}
+                  onMouseDown={(event: any) =>
+                    handleMouseDownOutput(
+                      outputRef,
+                      event,
+                      index(),
+                      id,
+                      "solid"
+                    )
+                  }
+                >
+                  <div id={id} ref={outputRef} class={style.outputCircle}></div>
+                  <div
+                    classList={{
+                      [style.plusLine]: true,
+                      [style.plusLineHidden]:
+                        (newEdge()?.outputVertexId == id &&
+                          edgeLength() > 10) ||
+                        props.busyIndex.get().includes(id),
+                    }}
+                  >
+                    {props.numberOutputs > 1 && (
+                      <div class={style.vertexNum}>{index()}</div>
+                    )}
+                    <div class={style.outputLine}></div>
+                    <div class={style.outputPlus} id="plus">
+                      <PlusIcon />
+                    </div>
+                  </div>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      )}
     </div>
   );
 };

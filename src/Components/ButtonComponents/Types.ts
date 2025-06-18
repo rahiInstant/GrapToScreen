@@ -7,6 +7,12 @@ export type nodeMarkType = {
   icon: Component;
 };
 
+export interface customNodeProps {
+  selected: boolean;
+  title?: string;
+  description?: string
+}
+
 export type nodeType = {
   [key: string]: {
     name: string;
@@ -24,11 +30,7 @@ export type nodeType = {
   };
 };
 
-export interface customNodeProps {
-  selected: boolean;
-  title?: string;
-  description?: string
-}
+
 
 export interface Edge {
   id: string;

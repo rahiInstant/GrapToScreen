@@ -37,16 +37,11 @@ const GmailNodeParameter: Component<{}> = (props) => {
     filters,
     options,
     setOptions,
-    setPreviousData,
-    setSubmittedData,
     dataRemoveHandler,
     uniqueKey,
   } = useGmailParameterState();
 
-  onMount(() => {
-    setFilters(filterStore);
-    setOptions(optionStore);
-  });
+
 
   const filterObj = (obj: Record<string, any>, item: string) => {
     return Object.entries(obj).reduce((acc, [k, v]: [string, any]) => {

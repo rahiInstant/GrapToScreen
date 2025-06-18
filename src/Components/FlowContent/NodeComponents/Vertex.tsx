@@ -202,10 +202,10 @@ const Vertex: Component<VertexProps> = (props) => {
                     // class={style.plusLine}
                     classList={{
                       [style.downPlusLine]: true,
-                      [style.plusLineHidden]:
-                        (newEdge()?.outputVertexId == id &&
-                          edgeLength() > 10) ||
-                        props.busyIndex.get().includes(id),
+                      // [style.plusLineHidden]:
+                      //   (newEdge()?.outputVertexId == id &&
+                      //     edgeLength() > 10) ||
+                      //   props.busyIndex.get().includes(id),
                     }}
                   >
                     {/* {props.numberOutputs > 1 && (

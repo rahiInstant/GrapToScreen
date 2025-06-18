@@ -1,4 +1,5 @@
 import { createSignal } from "solid-js";
+import useStateContext from "../../../../../useStateContext";
 
 export const switchNodeDataEncoder = (switchNodeData: any, nodeId: string) => {
   const transformRuleData = (data: any) => {
@@ -6,7 +7,7 @@ export const switchNodeDataEncoder = (switchNodeData: any, nodeId: string) => {
     return Object.values(
       Object.entries(data)
         .filter(([k, v]) => k.startsWith("rule_"))
-        .reduce((acc: any, cur: [string, unknown]) => {
+        .reduce((acc: any, cur: [string, any]) => {
           const [key, value] = cur;
           const parts = key.split("_");
           const baseKey = `${parts[0]}_${parts[1]}`;
@@ -23,10 +24,10 @@ export const switchNodeDataEncoder = (switchNodeData: any, nodeId: string) => {
             acc[baseKey].leftValue = value;
           } else if (field === "value") {
             acc[baseKey].rightValue = value;
-          } else if (field === "type") {
+          } else if (field === "operator") {
             acc[baseKey].operator = {
-              type: value,
-              operation: true,
+              type: value.type,
+              operation: value.operation,
               singleValue: true,
             };
           } else if (field === "isRename") {
@@ -39,18 +40,24 @@ export const switchNodeDataEncoder = (switchNodeData: any, nodeId: string) => {
     );
   };
 
+  const { nodes } = useStateContext();
+  const getNodePosition = () => {
+    const node = nodes().find((node) => node.id === nodeId);
+    if (node) {
+      return node.currPosition.get();
+    }
+  };
+
   return {
     id: nodeId,
     name: "Switch",
     description: "Route items depending on defined expression or rules.",
     type: "SwitchNode",
     parameters: {
+      mode: switchNodeData?.mode,
       rules: transformRuleData(switchNodeData),
     },
-    position: {
-      x: -340,
-      y: -1040,
-    },
+    position: getNodePosition(),
     inputs: [
       {
         id: "input",

@@ -123,8 +123,8 @@ const Board: Component<BoardComponent> = () => {
   } = useStateContext();
 
   createEffect(() => {
-    // console.log("from board", nodes());
-    // console.log(edges());
+    console.log("from board", nodes());
+    console.log(edges());
   });
   // const [cursor, setCursor] = createSignal({ x: 0, y: 0 });
 
@@ -491,17 +491,27 @@ const Board: Component<BoardComponent> = () => {
           positionY: number;
           id: string;
         } | null>(null);
+        const typeOfEdge = newEdge()?.typeOfEdge;
 
-        // ************* check nearest input vertex ************
+        // const distanceCalculator = (node) => {};
+
+        // ************ check nearest input vertex ************
         for (const node of nodes()) {
-          const leftOrTopInputVertex = node.isInputVertex || node.isUpVertex;
-          if (node.id !== newEdge()!.nodeStartId && leftOrTopInputVertex) {
+          console.log(newEdge()?.typeOfEdge);
+          const targetVertex =
+            typeOfEdge === "dash" ? node.isUpVertex : node.isInputVertex;
+          if (node.id !== newEdge()!.nodeStartId && targetVertex) {
             // console.log(node);
-            const inputVertexId = node.isInputVertex
-              ? node.inputVertexIds[0]
-              : node.upVertexIds[0];
+            const targetVertexId =
+              typeOfEdge === "dash"
+                ? node.upVertexIds[0]
+                : node.inputVertexIds[0];
+
+            // node.isInputVertex
+            //   ? node.inputVertexIds[0]
+            //   : node.upVertexIds[0];
             // console.log(inputVertexId, "inputVertexId");
-            const inputVertexRef = document.getElementById(inputVertexId);
+            const inputVertexRef = document.getElementById(targetVertexId);
             const { left, right, top, bottom } =
               inputVertexRef!.getBoundingClientRect();
             const centerX = left + Math.abs(left - right) / 2;
@@ -1117,80 +1127,82 @@ const Board: Component<BoardComponent> = () => {
           "transform-origin": "top left",
         }}
       >
-        {/* render all nodes */}
-        <For each={nodes()}>
-          {(node: Node) => (
-            <NodeMain
-              id={node.id}
-              name={node.name}
-              title={node.title}
-              x={node.currPosition.get().x}
-              y={node.currPosition.get().y}
-              numberInputs={node.numberInputs}
-              numberOutputs={node.numberOutputs}
-              downVertexNumber={node.downVertexNumber || 0}
-              upVertexNumber={node.upVertexNumber || 0}
-              isInputVertex={node.isInputVertex}
-              isOutputVertex={node.isOutputVertex}
-              isDownVertex={node.isDownVertex || false}
-              isUpVertex={node.isUpVertex || false}
-              inputVertexIds={node.inputVertexIds}
-              outputVertexIds={node.outputVertexIds}
-              downVertexIds={node.downVertexIds || []}
-              upVertexIds={node.upVertexIds || []}
-              downVertexOrientation={node.downVertexOrientation || ""}
-              busyIndex={node.busyIndex}
-              content={node.content}
-              selected={
-                selectedNode() == node.id ||
-                selectedNodesGroup().includes(node.id)
-              }
-              onMouseDownNode={handleOnMouseDownNode}
-              onMouseDownOutput={handleOnMouseDownOutput}
-              onMouseEnterInput={handleOnMouseEnterInput}
-              onMouseLeaveInput={handleOnMouseLeaveInput}
-              onClickDeleteNode={handleOnClickDeleteNode}
-            />
-          )}
-        </For>
+        <div id="flow">
+          {/* render all nodes */}
+          <For each={nodes()}>
+            {(node: Node) => (
+              <NodeMain
+                id={node.id}
+                name={node.name}
+                title={node.title}
+                x={node.currPosition.get().x}
+                y={node.currPosition.get().y}
+                numberInputs={node.numberInputs}
+                numberOutputs={node.numberOutputs}
+                downVertexNumber={node.downVertexNumber || 0}
+                upVertexNumber={node.upVertexNumber || 0}
+                isInputVertex={node.isInputVertex}
+                isOutputVertex={node.isOutputVertex}
+                isDownVertex={node.isDownVertex || false}
+                isUpVertex={node.isUpVertex || false}
+                inputVertexIds={node.inputVertexIds}
+                outputVertexIds={node.outputVertexIds}
+                downVertexIds={node.downVertexIds || []}
+                upVertexIds={node.upVertexIds || []}
+                downVertexOrientation={node.downVertexOrientation || ""}
+                busyIndex={node.busyIndex}
+                content={node.content}
+                selected={
+                  selectedNode() == node.id ||
+                  selectedNodesGroup().includes(node.id)
+                }
+                onMouseDownNode={handleOnMouseDownNode}
+                onMouseDownOutput={handleOnMouseDownOutput}
+                onMouseEnterInput={handleOnMouseEnterInput}
+                onMouseLeaveInput={handleOnMouseLeaveInput}
+                onClickDeleteNode={handleOnClickDeleteNode}
+              />
+            )}
+          </For>
 
-        {/* render only new edge */}
-        {newEdge() !== null && (
-          <EdgeComponent
-            selected={false}
-            isNew={true}
-            edgeLength={() => getPathLength()}
-            typeOfEdge={newEdge()!.typeOfEdge}
-            position={{
-              x0: newEdge()!.currStartPosition.get().x,
-              y0: newEdge()!.currStartPosition.get().y,
-              x1: newEdge()!.currEndPosition.get().x,
-              y1: newEdge()!.currEndPosition.get().y,
-            }}
-            onMouseDownEdge={() => {}}
-            onClickDeleteEdge={() => {}}
-          />
-        )}
-
-        {/* render all edges */}
-        <For each={edges()}>
-          {(edges: Edge) => (
+          {/* render only new edge */}
+          {newEdge() !== null && (
             <EdgeComponent
-              selected={selectedEdge() === edges.id}
-              isNew={false}
+              selected={false}
+              isNew={true}
               edgeLength={() => getPathLength()}
-              typeOfEdge={edges.typeOfEdge}
+              typeOfEdge={newEdge()!.typeOfEdge}
               position={{
-                x0: edges.currStartPosition.get().x,
-                y0: edges.currStartPosition.get().y,
-                x1: edges.currEndPosition.get().x,
-                y1: edges.currEndPosition.get().y,
+                x0: newEdge()!.currStartPosition.get().x,
+                y0: newEdge()!.currStartPosition.get().y,
+                x1: newEdge()!.currEndPosition.get().x,
+                y1: newEdge()!.currEndPosition.get().y,
               }}
-              onMouseDownEdge={() => handleOnMouseDownEdge(edges.id)}
-              onClickDeleteEdge={() => handleOnDeleteEdge(edges.id)}
+              onMouseDownEdge={() => {}}
+              onClickDeleteEdge={() => {}}
             />
           )}
-        </For>
+
+          {/* render all edges */}
+          <For each={edges()}>
+            {(edges: Edge) => (
+              <EdgeComponent
+                selected={selectedEdge() === edges.id}
+                isNew={false}
+                edgeLength={() => getPathLength()}
+                typeOfEdge={edges.typeOfEdge}
+                position={{
+                  x0: edges.currStartPosition.get().x,
+                  y0: edges.currStartPosition.get().y,
+                  x1: edges.currEndPosition.get().x,
+                  y1: edges.currEndPosition.get().y,
+                }}
+                onMouseDownEdge={() => handleOnMouseDownEdge(edges.id)}
+                onClickDeleteEdge={() => handleOnDeleteEdge(edges.id)}
+              />
+            )}
+          </For>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
-export const editNodeDataDecoder = (data: any) => {
+export const createDraftNodeDataDecoder = (data: any) => {
   if (data) {
-    const { parameters } = data;
-    const assignment = parameters?.assignment;
+    const { parameter } = data;
+    const assignment = parameter?.assignment;
     const field: string[] = [];
     const fieldData: Record<string, string> = {};
     if (assignment) {
@@ -21,7 +21,7 @@ export const editNodeDataDecoder = (data: any) => {
       });
     }
     return {
-      mode: data?.parameters?.mode,
+      mode: data?.parameter?.mode,
       field,
       fieldData,
     };

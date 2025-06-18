@@ -47,9 +47,9 @@ import JsonEditor from "../../../../Component lib/JsonEditor/JsonEditor";
 import MoveIcon from "../../../../Icons/MoveIcon";
 import TextBlock from "../../../../Component lib/TextBlock/TextBlock";
 import ButtonSolid from "../../../../Component lib/Button/ButtonSolid";
-import { createDraftNodeDataFormatter } from "./createDraftDataFormatter";
+import { createDraftNodeDataEncoder } from "./createDraftDataEncoder";
 import useStateContext from "../../../../../useStateContext";
-import { createDraftDataManager } from "./createDraftDatamanager";
+import useCreateDraftNodeParameterState from "./useCreateDraftParameter";
 
 const Delete: Component<{
   onClick: () => void;
@@ -66,54 +66,56 @@ const Delete: Component<{
 
 const CreateDraftParameter: Component<{}> = (props) => {
   const { currentFormConfig, formData, setFormData } = useStateContext();
-  const [currentToolDescription, setCurrentToolDescription] =
-    createSignal<ReproductiveDropDownOption>(toolDescriptionOption[0]);
-  const [resource, setResource] = createSignal<DropDownNOption>(
-    resourceOption[0]
-  );
-  const [operation, setOperation] = createSignal<ReproductiveDropDownOption[]>(
-    []
-  );
-  const [selectedOperation, setSelectedOperation] =
-    createSignal<ReproductiveDropDownOption>(messageOperationOption[0]);
-
-  const [selectedFilter, setSelectedFilter] = createSignal<FilterOption[]>([]);
-  const [filters, setFilters] = createSignal<FilterOption[]>([]);
-  const [option, setOption] = createSignal<FilterOption[]>([]);
-  const [selectedOption, setSelectedOption] = createSignal<FilterOption[]>([]);
-  const [responseType, setResponseType] =
-    createSignal<ReproductiveDropDownOption>(responseTypeOption[0]);
-  const [isAddApprovalOption, setIsAddApprovalOption] =
-    createSignal<boolean>(false);
-  const [approval, setApproval] = createSignal<ReproductiveDropDownOption>(
-    approvalOption[0]
-  );
-  const [isOption, setIsOption] = createSignal<boolean>(false);
-
-  const [limitType, setLimitType] = createSignal<ReproductiveDropDownOption>(
-    limitTypeOption[0]
-  );
-
-  const [defineForm, setDefineForm] = createSignal<ReproductiveDropDownOption>(
-    defineFormOption[0]
-  );
-  const [formElementId, setFormElementId] = createSignal<string[]>([]);
-  const [formElements, setFormElements] = createSignal<
-    Record<string, ReproductiveChildren[]>
-  >({});
-  const [fieldOption, setFieldOption] = createSignal<Record<string, string[]>>(
-    {}
-  );
+  const {
+    dataInsertHandler,
+    previousData,
+    dataRemoveHandler,
+    uniqueKey,
+    currentToolDescription,
+    setCurrentToolDescription,
+    resource,
+    setResource,
+    operation,
+    setOperation,
+    selectedOperation,
+    setSelectedOperation,
+    selectedFilter,
+    setSelectedFilter,
+    filters,
+    setFilters,
+    option,
+    setOption,
+    selectedOption,
+    setSelectedOption,
+    responseType,
+    setResponseType,
+    isAddApprovalOption,
+    setIsAddApprovalOption,
+    approval,
+    setApproval,
+    isOption,
+    setIsOption,
+    limitType,
+    setLimitType,
+    defineForm,
+    setDefineForm,
+    formElementId,
+    setFormElementId,
+    formElements,
+    setFormElements,
+    fieldOption,
+    setFieldOption,
+  } = useCreateDraftNodeParameterState();
 
   createEffect(() => {
     setSelectedOption([]);
-    if (resource().value === "message") {
+    if (resource() === "message") {
       setOperation(messageOperationOption);
-    } else if (resource().value === "label") {
+    } else if (resource() === "label") {
       setOperation(labelOperationOption);
-    } else if (resource().value === "draft") {
+    } else if (resource() === "draft") {
       setOperation(draftOperationOption);
-    } else if (resource().value === "thread") {
+    } else if (resource() === "thread") {
       setOperation(threadOperationOption);
     }
   });
@@ -165,14 +167,14 @@ const CreateDraftParameter: Component<{}> = (props) => {
     const createDraftData = new FormData(e.target as HTMLFormElement);
     let data = Object.fromEntries(createDraftData.entries());
 
-    const formattedCreateDraftNodeData = createDraftNodeDataFormatter(
+    const formattedCreateDraftNodeData = createDraftNodeDataEncoder(
       data,
       currentFormConfig().id
     );
 
     setFormData({
       ...formData(),
-      createDraft: formattedCreateDraftNodeData,
+      [currentFormConfig().id]: formattedCreateDraftNodeData,
     });
   };
   return (
@@ -187,10 +189,12 @@ const CreateDraftParameter: Component<{}> = (props) => {
           name="toolDescription"
           title="Tool Description"
           options={toolDescriptionOption}
-          defaultValue={toolDescriptionOption[0].value}
+          defaultValue={
+            previousData()["toolDescription"] || toolDescriptionOption[0].value
+          }
           onChange={(selected) => {
             setCurrentToolDescription(selected);
-            createDraftDataManager("toolDescription", selected);
+            dataInsertHandler("toolDescription", selected);
           }}
         />
         <Show when={currentToolDescription().value === "setManually"}>
@@ -198,10 +202,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
             name="description"
             title="Description"
             toolTipText="Explain to the LLM what this tool does, a good, specific description would allow LLMs to produce expected results much more often."
-            value="Consume the Gmail API"
+            value={previousData()["description"] || "Consume the Gmail API"}
             placeholder="e.g. Consume the Gmail API"
             onInput={(value) => {
-              createDraftDataManager("description", value);
+              dataInsertHandler("description", value);
             }}
           />
         </Show>
@@ -209,10 +213,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
           name="resource"
           title="Resource"
           options={resourceOption}
-          defaultValue={resourceOption[0].value}
+          defaultValue={previousData()["resource"] || resourceOption[0].value}
           onChange={(selected) => {
-            setResource(selected);
-            createDraftDataManager("resource", selected);
+            setResource(selected.value);
+            dataInsertHandler("resource", selected);
           }}
         />
 
@@ -220,10 +224,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
           name="operation"
           title="Operation"
           options={operation()}
-          defaultValue={operation()[0].value}
+          defaultValue={previousData()["operation"] || operation()[0].value}
           onChange={(selected) => {
             setSelectedOperation(selected);
-            createDraftDataManager("operation", selected);
+            dataInsertHandler("operation", selected);
           }}
         />
         <div class="space-y-5">
@@ -237,9 +241,9 @@ const CreateDraftParameter: Component<{}> = (props) => {
                       title={item.title}
                       toolTipText={item.toolTipText}
                       placeholder={item.placeholder}
-                      value={item.value}
+                      value={previousData()[item.name!] || item.value}
                       onInput={(value) => {
-                        createDraftDataManager(item.name ?? "", value);
+                        dataInsertHandler(item.name ?? "", value);
                       }}
                     />
                   </div>
@@ -248,11 +252,12 @@ const CreateDraftParameter: Component<{}> = (props) => {
                 return (
                   <div>
                     <Switch
+                      checked={previousData()[item.name!]}
                       name={item.name ?? ""}
                       title={item.title ?? ""}
                       toolTipText={item.toolTipText}
                       onChange={(state) => {
-                        createDraftDataManager(item.name ?? "", state);
+                        dataInsertHandler(item.name ?? "", state);
                       }}
                     />
                   </div>
@@ -285,14 +290,12 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                   }}
                                 />
                                 <Switch
+                                  checked={previousData()[item.content.name]}
                                   name={item.content.name}
                                   title={item.content.title ?? ""}
                                   toolTipText={item.content.toolTipText}
                                   onChange={(state) => {
-                                    createDraftDataManager(
-                                      item.content.name,
-                                      state
-                                    );
+                                    dataInsertHandler(item.content.name, state);
                                   }}
                                 />
                               </div>
@@ -312,16 +315,16 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                 />
                                 <DynamicInput
                                   name={item.content.name}
+                                  value={
+                                    previousData()[item.content.name] || ""
+                                  }
                                   title={item.content.title}
                                   toolTipText={item.content.toolTipText}
                                   isArrow
                                   footNote={item.content.footNote}
                                   placeholder={item.content.placeholder ?? ""}
                                   onInput={(value) => {
-                                    createDraftDataManager(
-                                      item.content.name,
-                                      value
-                                    );
+                                    dataInsertHandler(item.content.name, value);
                                   }}
                                 />
                               </div>
@@ -342,14 +345,17 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                 <DropDownMultiple
                                   name={item.content.name}
                                   title={item.content.title}
+                                  defaultSelectedOptions={
+                                    previousData()[item.content.name] || []
+                                  }
                                   options={item.content.options ?? []}
                                   toolTipText={item.content.toolTipText}
                                   footNote={item.content.footNote}
                                   onChange={(selected) => {
-                                    createDraftDataManager(
+                                    dataInsertHandler(
                                       item.content.name,
                                       selected
-                                    ); 
+                                    );
                                   }}
                                 />
                               </div>
@@ -373,14 +379,15 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                   }
                                   name={item.content.name}
                                   title={item.content.title}
+                                  defaultValue={previousData()[item.content.name]}
                                   options={item.content.options ?? []}
                                   toolTipText={item.content.toolTipText}
                                   footNote={item.content.footNote}
                                   onChange={(selected) => {
-                                    createDraftDataManager(
+                                    dataInsertHandler(
                                       item.content.name,
                                       selected
-                                    ); 
+                                    );
                                   }}
                                 />
                               </div>
@@ -407,10 +414,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                       name={item.name ?? ""}
                       title={item.title}
                       options={item.options ?? []}
-                      defaultValue={item.options?.[0].value}
+                      defaultValue={previousData()[item.name!]|| item.options?.[0].value}
                       toolTipText={item.toolTipText}
                       onChange={(selected) => {
-                        createDraftDataManager(item.name?? "", selected); 
+                        dataInsertHandler(item.name ?? "", selected);
                       }}
                     />
                   </div>
@@ -460,11 +467,9 @@ const CreateDraftParameter: Component<{}> = (props) => {
                             placeholder={child.content.placeholder}
                             toolTipText={child.content.toolTipText}
                             isArrow
+                            value={previousData()[child.content.name]}
                             onInput={(value) => {
-                              createDraftDataManager(
-                                child.content.name,
-                                value 
-                              )
+                              dataInsertHandler(child.content.name, value);
                             }}
                           />
                         </div>
@@ -487,14 +492,12 @@ const CreateDraftParameter: Component<{}> = (props) => {
                         </div>
                         <div class="flex-1">
                           <Switch
+                          checked={previousData()[child.content.name]}
                             title={child.content.title ?? ""}
                             toolTipText={child.content.toolTipText}
                             name={child.content.name}
                             onChange={(state) => {
-                              createDraftDataManager(
-                                child.content.name,
-                                state
-                              ); 
+                              dataInsertHandler(child.content.name, state);
                             }}
                           />
                         </div>
@@ -525,10 +528,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
               name="responseType"
               title="Response Type"
               options={responseTypeOption}
-              defaultValue={responseTypeOption[0].value}
+              defaultValue={previousData()["responseType"]|| responseTypeOption[0].value}
               onChange={(selected) => {
                 setResponseType(selected);
-                createDraftDataManager("responseType", selected);
+                dataInsertHandler("responseType", selected);
               }}
             />
             <div class="space-y-5 mt-5">
@@ -567,10 +570,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                             defaultValue={approvalOption[0].value}
                             onChange={(selected) => {
                               setApproval(selected);
-                              createDraftDataManager(
-                                "typeOfApproval",
-                                selected 
-                              )
+                              dataInsertHandler("typeOfApproval", selected);
                             }}
                           />
                           <DynamicInput
@@ -587,10 +587,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                             ]}
                             defaultValue={"primary"}
                             onChange={(value) => {
-                              createDraftDataManager(
-                                "approveButtonStyle",
-                                value 
-                              )
+                              dataInsertHandler("approveButtonStyle", value);
                             }}
                           />
                           <Show
@@ -601,10 +598,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                               title="Disapprove Button Label"
                               value={"Disapprove"}
                               onInput={(value) => {
-                                createDraftDataManager(
+                                dataInsertHandler(
                                   "disapproveButtonLabel",
-                                  value 
-                                )
+                                  value
+                                );
                               }}
                             />
                             <DropDownN
@@ -616,10 +613,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                               ]}
                               defaultValue={"primary"}
                               onChange={(value) => {
-                                createDraftDataManager(
+                                dataInsertHandler(
                                   "disapproveButtonStyle",
-                                  value 
-                                )
+                                  value
+                                );
                               }}
                             />
                           </Show>
@@ -663,10 +660,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                             toolTipText="Sets the condition for the execution to resume. Can be a specified date or after some time."
                             onChange={(selected) => {
                               setLimitType(selected);
-                              createDraftDataManager(
-                                "limitType",
-                                selected 
-                              )
+                              dataInsertHandler("limitType", selected);
                             }}
                           />
                           <div class="space-y-5">
@@ -676,13 +670,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                               <DynamicInput
                                 name="amount"
                                 title="Amount"
-                                value={45}
+                                value={"45"}
                                 toolTipText="The time to wait."
                                 onInput={(value) => {
-                                  createDraftDataManager(
-                                    "amount",
-                                    value 
-                                  )
+                                  dataInsertHandler("amount", value);
                                 }}
                               />
                               <DropDownN
@@ -696,10 +687,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                 ]}
                                 defaultValue={"minutes"}
                                 onChange={(value) => {
-                                  createDraftDataManager(
-                                    "unit",
-                                    value
-                                  ) 
+                                  dataInsertHandler("unit", value);
                                 }}
                               />
                             </Show>
@@ -711,10 +699,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                 name="maxDateAndTime"
                                 toolTipText="Continue execution after the specified date and time"
                                 onInput={(value) => {
-                                  createDraftDataManager(
-                                    "maxDateAndTime",
-                                    value 
-                                  )
+                                  dataInsertHandler("maxDateAndTime", value);
                                 }}
                               />
                             </Show>
@@ -736,10 +721,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                   defaultValue={defineFormOption[0].value}
                   onChange={(selected) => {
                     setDefineForm(selected);
-                    createDraftDataManager(
-                      "defineForm",
-                      selected 
-                    )
+                    dataInsertHandler("defineForm", selected);
                   }}
                 />
                 <Show when={defineForm().value === "usingJSON"}>
@@ -757,15 +739,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                       ],
                       null,
                       2
-                    )
-                  
-                  }
-                  onInput={(value) => {
-                    createDraftDataManager(
-                      "formFieldsJson",
-                      value 
-                    )
-                  }}
+                    )}
+                    onInput={(value) => {
+                      dataInsertHandler("formFieldsJson", value);
+                    }}
                   />
                 </Show>
                 <div class="space-y-5">
@@ -820,10 +797,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                       ...prev,
                                       [item]: selected.children || [],
                                     }));
-                                    createDraftDataManager(
-                                      "elementType",
-                                      selected 
-                                    )
+                                    dataInsertHandler("elementType", selected);
                                   }}
                                 />
                                 {/* child */}
@@ -840,10 +814,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                               value={child.value}
                                               placeholder={child.placeholder}
                                               onInput={(value) => {
-                                                createDraftDataManager(
+                                                dataInsertHandler(
                                                   `${item}_${child.title}`,
                                                   value
-                                                )
+                                                );
                                               }}
                                             />
                                           );
@@ -854,10 +828,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                               title={child.title ?? ""}
                                               toolTipText={child.toolTipText}
                                               onChange={(state) => {
-                                                createDraftDataManager(
+                                                dataInsertHandler(
                                                   `${item}_${child.title}`,
-                                                  state 
-                                                )
+                                                  state
+                                                );
                                               }}
                                             />
                                           );
@@ -884,10 +858,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                                 2
                                               )}
                                               onInput={(value) => {
-                                                createDraftDataManager(
+                                                dataInsertHandler(
                                                   `${item}_${child.title}`,
                                                   value
-                                                )
+                                                );
                                               }}
                                             />
                                           );
@@ -943,11 +917,13 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                                           <DynamicInput
                                                             name={`${item}_${child.name}_${option}`}
                                                             title="Option"
-                                                            onInput={(value) => {
-                                                              createDraftDataManager(
+                                                            onInput={(
+                                                              value
+                                                            ) => {
+                                                              dataInsertHandler(
                                                                 `${item}_${child.name}_${option}`,
-                                                                value 
-                                                              )
+                                                                value
+                                                              );
                                                             }}
                                                           />
                                                         </div>
@@ -1038,10 +1014,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                               title={child.content.title}
                               toolTipText={child.content.toolTipText}
                               onInput={(value) => {
-                                createDraftDataManager(
-                                  child.content.name,
-                                  value 
-                                )
+                                dataInsertHandler(child.content.name, value);
                               }}
                             />
                           </div>
@@ -1071,10 +1044,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                               toolTipText="Sets the condition for the execution to resume. Can be a specified date or after some time."
                               onChange={(selected) => {
                                 setLimitType(selected);
-                                createDraftDataManager(
-                                  "limitType",
-                                  selected 
-                                )
+                                dataInsertHandler("limitType", selected);
                               }}
                             />
 
@@ -1085,13 +1055,10 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                 <DynamicInput
                                   name="amount"
                                   title="Amount"
-                                  value={45}
+                                  value={"45"}
                                   toolTipText="The time to wait."
                                   onInput={(value) => {
-                                    createDraftDataManager(
-                                      "amount",
-                                      value 
-                                    )
+                                    dataInsertHandler("amount", value);
                                   }}
                                 />
                                 <DropDownN
@@ -1105,10 +1072,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                   ]}
                                   defaultValue={"minutes"}
                                   onChange={(value) => {
-                                    createDraftDataManager(
-                                      "unit",
-                                      value
-                                    ) 
+                                    dataInsertHandler("unit", value);
                                   }}
                                 />
                               </Show>
@@ -1120,10 +1084,7 @@ const CreateDraftParameter: Component<{}> = (props) => {
                                   name="maxDateAndTime"
                                   toolTipText="Continue execution after the specified date and time"
                                   onInput={(value) => {
-                                    createDraftDataManager(
-                                      "maxDateAndTime",
-                                      value 
-                                    )
+                                    dataInsertHandler("maxDateAndTime", value);
                                   }}
                                 />
                               </Show>

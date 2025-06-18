@@ -1,7 +1,16 @@
-export const vectorStoreNodeDataFormatter = (
+import useStateContext from "../../../../../useStateContext";
+
+export const vectorStoreNodeDataEncoder = (
   vectorStoreNodeData: any,
   nodeId: string
 ) => {
+  const { nodes } = useStateContext();
+  const getNodePosition = () => {
+    const node = nodes().find((node) => node.id === nodeId);
+    if (node) {
+      return node.currPosition.get();
+    }
+  };
   return {
     id: nodeId,
     name: "Vector Store Tool",
@@ -12,10 +21,7 @@ export const vectorStoreNodeDataFormatter = (
       description: vectorStoreNodeData?.dataDescription,
       limit: vectorStoreNodeData?.limit,
     },
-    position: {
-      x: -14460,
-      y: -360,
-    },
+    position: getNodePosition(),
     inputs: [
       {
         id: "vectorStore",

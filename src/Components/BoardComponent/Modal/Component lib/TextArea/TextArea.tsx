@@ -32,6 +32,7 @@ const TextArea: Component<TextAreaProps> = (props) => {
     const value = target.value;
     setText(value);
     setIsEmpty(value.trim() === "");
+    props.onInput?.(value || "")
   };
 
   return (

@@ -22,7 +22,7 @@ export const operation: ReproductiveDropDownOption[] = [
       {
         type: "dynamicInput",
         title: "Limit",
-        value: 10,
+        value: "10",
         toolTipText: "Number of top results to fetch from vector store.",
       },
       {
@@ -87,7 +87,7 @@ export const operation: ReproductiveDropDownOption[] = [
       {
         type: "dynamicInput",
         title: "Limit",
-        value: 10,
+        value: "10",
         toolTipText: "Number of top results to fetch from vector store.",
       },
       {
@@ -107,23 +107,40 @@ export const columnNamesChild: {
 }[] = [
   {
     title: "ID Column name",
-    value: "id",
-    name: "idColumnName"
+    value: "idColumnName",
+    name: "idColumnName",
   },
   {
     title: "Vector Column Name",
     value: "embedding",
-    name: "vectorColumnName"
+    name: "vectorColumnName",
   },
   {
     title: "Content Column name",
     value: "text",
-    name: "contentColumnName"
+    name: "contentColumnName",
   },
   {
     title: "Metadata Column name",
     value: "metadata",
-    name: "metadataColumnName"
+    name: "metadataColumnName",
+  },
+];
+
+export const collectionChild: {
+  value: string;
+  title: string;
+  name: string;
+}[] = [
+  {
+    title: "Collection Name",
+    value: "collectionName",
+    name: "collectionName",
+  },
+  {
+    title: "Collection Table Name",
+    value: "collectionTableName",
+    name: "collectionTableName",
   },
 ];
 
@@ -157,7 +174,7 @@ export const pgVectorOption: FilterOption[] = [
     value: "collection",
     content: {
       type: "switch",
-      name: "collection",
+      name: "useCollection",
       title: "Use Collection",
       toolTipText: "Collection of vector",
     },

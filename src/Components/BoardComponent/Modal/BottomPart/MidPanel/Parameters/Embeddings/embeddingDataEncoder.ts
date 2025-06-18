@@ -1,7 +1,16 @@
-export const embeddingNodeDataFormatter = (
+import useStateContext from "../../../../../useStateContext";
+
+export const embeddingNodeDataEncoder = (
   embeddingNodeData: any,
   nodeId: string
 ) => {
+    const { nodes } = useStateContext();
+  const getNodePosition = () => {
+    const node = nodes().find((node) => node.id === nodeId);
+    if (node) {
+      return node.currPosition.get();
+    }
+  };
   return {
     id: nodeId,
     name: "Embeddings",
@@ -14,12 +23,9 @@ export const embeddingNodeDataFormatter = (
         provider: "ollama",
         ctype: "url",
       },
-      model: "nomic-embed-text:latest",
+      model: embeddingNodeData?.model,
     },
-    position: {
-      x: -14600,
-      y: -100,
-    },
+    position: getNodePosition(),
     inputs: [],
     outputs: [
       {

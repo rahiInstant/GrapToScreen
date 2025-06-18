@@ -1,19 +1,6 @@
-.node {
-  border: 2px solid #c3c9d5;
-  min-height: 100px;
-  height: auto;
-  width: 100px;
-  border-radius: 10px;
-  background-color: #414244;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
+.node,
 .selectedNode {
   border: 2px solid #c3c9d5;
-  min-height: 100px;
-  height: auto;
   width: 100px;
   border-radius: 10px;
   background-color: #414244;
@@ -21,6 +8,14 @@
   justify-content: center;
   align-items: center;
   position: relative;
+
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.node {
+}
+.selectedNode {
   outline: 8px solid #626262;
 }
 

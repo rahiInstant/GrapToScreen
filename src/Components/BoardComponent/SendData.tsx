@@ -1,18 +1,9 @@
 import { Component, createSignal, onCleanup, onMount } from "solid-js";
 import style from "./style.module.css";
 import useStateContext from "./useStateContext";
+import { Edge } from "../ButtonComponents/Types";
+import { domToJson } from "./domToJsonToDom";
 
-// declare global {
-//   interface Document {
-//     workFlowData?: Promise<void>;
-//   }
-// }
-
-// declare global {
-//   interface Window {
-//     handleData: () => any;
-//   }
-// }
 
 const SendData: Component<{}> = (props) => {
   const { formData, nodes, edges } = useStateContext();
@@ -194,16 +185,39 @@ const SendData: Component<{}> = (props) => {
   //   };
 
   function submitAllForms() {
-    console.log(JSON.stringify(Object.values(formData())));
+    const connections = edges().map((item: Edge) => {
+      return {
+        id: item.id,
+        sourceNodeId: item.nodeStartId,
+        sourcePortId: item.outputVertexId,
+        targetNodeId: item.nodeEndId,
+        targetPortId: item.inputVertexId,
+      };
+    });
 
-    const customEvent = new CustomEvent("AN", {
-      detail: JSON.stringify(Object.values(formData())),
+    const finalJSON = {
+      name: "Email Analyzer",
+      description:
+        "A workflow demonstrating multiple inputs and outputs per node",
+      nodes: Object.values(formData()),
+      connections: connections,
+    };
+    console.log(JSON.stringify(finalJSON))
+    const customEvent = new CustomEvent("sendAllData", {
+      detail: JSON.stringify(finalJSON, null, 2),
       bubbles: true,
     });
     const submitAll = document.getElementById("allSubmit");
     if (submitAll) {
       submitAll.dispatchEvent(customEvent);
     }
+  }
+
+  const domToJsonOutput = () => {
+    const workflow = document.getElementById('flow')
+    console.log(workflow)
+    const jsonFlow = domToJson(workflow)
+    console.log(jsonFlow)
   }
 
   return (
@@ -216,7 +230,7 @@ const SendData: Component<{}> = (props) => {
         <span class={style.loader}></span>
         Data processing...
       </div>
-      <div>
+      {/* <div>
         <input
           onChange={(e) => setBackendUrl(e.target.value)}
           class="border rounded-md px-4 py-2 outline-none border-white"
@@ -224,7 +238,7 @@ const SendData: Component<{}> = (props) => {
           name="url"
           type="text"
         />
-      </div>
+      </div> */}
       <button
         id="allSubmit"
         onClick={submitAllForms}
@@ -232,6 +246,14 @@ const SendData: Component<{}> = (props) => {
         class={style.testButton}
       >
         Test WorkFlow
+      </button>
+      <button
+        id="domJson"
+        onClick={domToJsonOutput}
+        // type="submit"
+        class={style.testButton}
+      >
+        DOM to JSON
       </button>
     </div>
   );
